@@ -1,7 +1,7 @@
 package cri
 
 import (
-	"MiniK8S/pkg/util/config"
+	"MiniK8S/pkg/util/config/containerConfig"
 	"context"
 	"fmt"
 	"github.com/docker/docker/api/types"
@@ -23,7 +23,7 @@ type DockerClient struct {
 	Client *client.Client
 }
 
-func (c *DockerClient) CreateContainer(config config.ContainerConfig, name string) (bool, error) {
+func (c *DockerClient) CreateContainer(config containerConfig.ContainerConfig, name string) (*container.CreateResponse, error) {
 	ctx := context.Background()
 	//cl, err := client.NewClientWithOpts(client.WithVersion("1.43"), client.FromEnv, client.WithHost())
 	cl, err := client.NewClientWithOpts(client.WithVersion("1.43"))
@@ -31,10 +31,10 @@ func (c *DockerClient) CreateContainer(config config.ContainerConfig, name strin
 	if err != nil {
 		fmt.Println("Unable to create docker client")
 		panic(err)
-		return false, err
+		return nil, err
 	}
-
-	_, err = cl.ContainerCreate(ctx, &container.Config{
+	var resp container.CreateResponse
+	resp, err = cl.ContainerCreate(ctx, &container.Config{
 		Image:      config.Image,
 		Cmd:        config.Cmd,
 		Env:        config.Env,
@@ -50,9 +50,9 @@ func (c *DockerClient) CreateContainer(config config.ContainerConfig, name strin
 	if err != nil {
 		fmt.Println("Unable to create docker container")
 		panic(err)
-		return false, err
+		return nil, err
 	}
-	return true, nil
+	return &resp, nil
 
 }
 func (c *DockerClient) StartContainer(id string) (bool, error) {

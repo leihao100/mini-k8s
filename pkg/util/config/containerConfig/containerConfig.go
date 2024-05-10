@@ -1,10 +1,12 @@
-package config
+package containerConfig
 
 import (
 	"github.com/docker/go-connections/nat"
 )
 
 type ContainerConfig struct {
+	Name       string
+	Args       []string
 	Cmd        []string            `json:"cmd"` // Command to run when starting the container
 	Entrypoint []string            // Entrypoint to run when starting the container
 	Env        []string            // List of environment variable to set in the container
