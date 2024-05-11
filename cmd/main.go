@@ -1,12 +1,12 @@
 package main
 
 import (
+	"MiniK8S/pkg/api/config/containerConfig"
+	"MiniK8S/pkg/api/config/podConfig"
+	"MiniK8S/pkg/api/meta"
+	"MiniK8S/pkg/api/spec"
+	"MiniK8S/pkg/api/status"
 	"MiniK8S/pkg/kubelet"
-	"MiniK8S/pkg/util/config/containerConfig"
-	"MiniK8S/pkg/util/config/podConfig"
-	"MiniK8S/pkg/util/meta"
-	"MiniK8S/pkg/util/spec"
-	"MiniK8S/pkg/util/status"
 )
 
 func main() {
