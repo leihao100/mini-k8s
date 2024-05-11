@@ -7,7 +7,7 @@ import (
 )
 
 type Client interface {
-	CreateContainer(Config containerConfig.ContainerConfig, name string) (container.CreateResponse, error)
+	CreateContainer(Config containerConfig.ContainerConfig, name string) (*container.CreateResponse, error)
 	StartContainer(id string) (bool, error)
 	StopContainer(id string) (bool, error)
 	ContainerStatus(id string) (bool, int, error)

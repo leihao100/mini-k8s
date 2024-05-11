@@ -3,9 +3,13 @@ package kubelet
 import (
 	"MiniK8S/pkg/kubelet/cri"
 	"MiniK8S/pkg/kubelet/pod"
+	"MiniK8S/pkg/util/config/containerConfig"
 	"MiniK8S/pkg/util/config/podConfig"
+	"MiniK8S/pkg/util/status"
 	"fmt"
 )
+
+const pauseName = "mirrorgooglecontainers/pause:latest"
 
 type Kubelet struct {
 	cli        cri.Client
@@ -27,24 +31,52 @@ func (k *Kubelet) Stop() {
 
 }
 
+func (k *Kubelet) CreatePodPause(pod podConfig.PodConfig) {
+	containername := pod.Meta.Namespace + "_" + pod.Meta.Name + "_" + "pause"
+	container := containerConfig.ContainerConfig{
+		Name:         containername,
+		Args:         nil,
+		Cmd:          nil,
+		Entrypoint:   nil,
+		Env:          nil,
+		Image:        pauseName,
+		Volumes:      nil,
+		Labels:       nil,
+		PortBindings: nil,
+		VolumesFrom:  nil,
+		Binds:        nil,
+		NetworkMode:  "",
+		CPULimit:     0,
+		MemLimit:     0,
+	}
+	response, err := k.cli.CreateContainer(container, containername)
+	if err != nil {
+		panic(err)
+	}
+	k.podManager.AddContainer(pod.Meta.Name, response.ID)
+}
+
 func (k *Kubelet) MakePod(pod podConfig.PodConfig) {
+	podStatus := status.PodStatus{
+		ContainerStatuses: nil,
+		HostIP:            "",
+		Phase:             "",
+		PodIP:             "",
+	}
+	k.CreatePodPause(pod)
+	pod.Status = podStatus
 	containers := pod.Spec.Containers
 	for _, container := range containers {
 		containerName := pod.Meta.Namespace + "_" + pod.Meta.Name + "_" + container.Name
-		_, err := k.cli.CreateContainer(container, containerName)
+		response, err := k.cli.CreateContainer(container, containerName)
 		if err != nil {
 			panic(err)
 			fmt.Println("error:", err)
 		}
-		//append(pod.Status.ContainerStatuses, status.ContainerStatus{
-		//	Name:         containerName,
-		//	ContainerID:  createContainer.ID,
-		//	ImageID:      "",
-		//	Image:        "",
-		//	State:        types.ContainerState{},
-		//	Started:      false,
-		//	RestartCount: 0,
-		//})
-
+		k.cli.StartContainer(response.ID)
 	}
+}
+
+func (k *Kubelet) getPods() []*podConfig.PodConfig {
+	return k.podManager.GetPods()
 }

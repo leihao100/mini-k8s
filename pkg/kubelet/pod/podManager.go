@@ -5,15 +5,21 @@ import (
 	"github.com/google/uuid"
 )
 
+type containerNameToContainerID map[string]string
+
 type PodManager struct {
-	id2Pod   map[uuid.UUID]*podConfig.PodConfig
-	name2Pod map[string]*podConfig.PodConfig
+	id2Pod     map[uuid.UUID]*podConfig.PodConfig
+	name2Pod   map[string]*podConfig.PodConfig
+	containers map[string]containerNameToContainerID
+	pods       []*podConfig.PodConfig
 }
 
 func NewPodManager() *PodManager {
 	return &PodManager{
-		id2Pod:   map[uuid.UUID]*podConfig.PodConfig{},
-		name2Pod: map[string]*podConfig.PodConfig{},
+		id2Pod:     map[uuid.UUID]*podConfig.PodConfig{},
+		name2Pod:   map[string]*podConfig.PodConfig{},
+		containers: map[string]containerNameToContainerID{},
+		pods:       []*podConfig.PodConfig{},
 	}
 }
 
@@ -35,6 +41,14 @@ func (p *PodManager) DeletePodById(id uuid.UUID) {
 	name := pod.Meta.Name
 	delete(p.name2Pod, name)
 	delete(p.id2Pod, id)
+}
+
+func (p *PodManager) GetPods() []*podConfig.PodConfig {
+	return p.pods
+}
+
+func (p *PodManager) AddContainer(name string, id string) {
+	//p.containers[name] = append(p.containers[name], id)
 }
 func (p *PodManager) DeletePodByName(name string) {
 	pod := p.GetPodByName(name)

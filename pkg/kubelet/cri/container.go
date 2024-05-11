@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	_ "github.com/docker/docker/pkg/stdcopy"
 )
@@ -28,11 +29,24 @@ func (c *DockerClient) CreateContainer(config containerConfig.ContainerConfig, n
 	//cl, err := client.NewClientWithOpts(client.WithVersion("1.43"), client.FromEnv, client.WithHost())
 	cl, err := client.NewClientWithOpts(client.WithVersion("1.43"))
 	//cl := c
+	containerRepoTag := config.Image
+	exist := false
+	list, err := cl.ImageList(context.Background(), image.ListOptions{})
+	for _, repoTag := range list {
+		if repoTag.RepoTags[0] == containerRepoTag {
+			exist = true
+		}
+	}
+	if !exist {
+		cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
+	}
+
 	if err != nil {
 		fmt.Println("Unable to create docker client")
 		panic(err)
 		return nil, err
 	}
+
 	var resp container.CreateResponse
 	resp, err = cl.ContainerCreate(ctx, &container.Config{
 		Image:      config.Image,
