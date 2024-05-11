@@ -1,7 +1,7 @@
 package pod
 
 import (
-	"MiniK8S/pkg/util/config/podConfig"
+	"MiniK8S/pkg/api/config/podConfig"
 	"github.com/google/uuid"
 )
 
