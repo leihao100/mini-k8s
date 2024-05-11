@@ -1,7 +1,7 @@
 package cri
 
 import (
-	"MiniK8S/pkg/util/config/containerConfig"
+	"MiniK8S/pkg/api/config/containerConfig"
 	"context"
 	"fmt"
 	"github.com/docker/docker/api/types"

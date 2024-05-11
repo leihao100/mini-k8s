@@ -1,9 +1,9 @@
 package podConfig
 
 import (
-	"MiniK8S/pkg/util/meta"
-	"MiniK8S/pkg/util/spec"
-	"MiniK8S/pkg/util/status"
+	"MiniK8S/pkg/api/meta"
+	"MiniK8S/pkg/api/spec"
+	"MiniK8S/pkg/api/status"
 )
 
 type PodConfig struct {

@@ -1,11 +1,11 @@
 package kubelet
 
 import (
+	"MiniK8S/pkg/api/config/containerConfig"
+	"MiniK8S/pkg/api/config/podConfig"
+	"MiniK8S/pkg/api/status"
 	"MiniK8S/pkg/kubelet/cri"
 	"MiniK8S/pkg/kubelet/pod"
-	"MiniK8S/pkg/util/config/containerConfig"
-	"MiniK8S/pkg/util/config/podConfig"
-	"MiniK8S/pkg/util/status"
 	"fmt"
 )
 
