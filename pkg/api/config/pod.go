@@ -1,16 +1,15 @@
-package podConfig
+package config
 
 import (
 	"MiniK8S/pkg/api/meta"
-	"MiniK8S/pkg/api/spec"
 	"MiniK8S/pkg/api/status"
 )
 
-type PodConfig struct {
+type Pod struct {
 	ApiVersion string
 	Kind       string
 	Meta       meta.ObjectMeta
-	Spec       spec.PodSpec
+	Spec       PodSpec
 	Status     status.PodStatus
 }
 
@@ -28,3 +27,12 @@ PodSpec	Specification of the desired behavior of the pod. More info: https://git
 status
 PodStatus	Most recently observed status of the pod. This data may not be up to date. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 */
+
+type PodSpec struct {
+	Containers     []Container
+	InitContainers []Container
+	NodeName       string
+	ExposedPorts   []string
+	Volumes        []string
+	BindPorts      map[string]string
+}

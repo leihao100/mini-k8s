@@ -1,6 +1,6 @@
 package config
 
-type VolumeMountConfig struct {
+type VolumeMount struct {
 	Name      string
 	MountPath string
 }
