@@ -1,10 +1,8 @@
 package main
 
 import (
-	"MiniK8S/pkg/api/config/containerConfig"
-	"MiniK8S/pkg/api/config/podConfig"
+	"MiniK8S/pkg/api/config"
 	"MiniK8S/pkg/api/meta"
-	"MiniK8S/pkg/api/spec"
 	"MiniK8S/pkg/api/status"
 	"MiniK8S/pkg/kubelet"
 )
@@ -15,7 +13,7 @@ func main() {
 	//	fmt.Println("Unable to create docker client")
 	//	panic(err)
 	//}
-	co := containerConfig.ContainerConfig{
+	co := config.Container{
 		Name:         "helloworld",
 		Cmd:          nil,
 		Entrypoint:   nil,
@@ -30,7 +28,7 @@ func main() {
 		CPULimit:     0,
 		MemLimit:     0,
 	}
-	co1 := containerConfig.ContainerConfig{
+	co1 := config.Container{
 		Name:         "nginx",
 		Cmd:          nil,
 		Entrypoint:   nil,
@@ -64,17 +62,17 @@ func main() {
 	//		fmt.Println("hello-world")
 	//	}
 	//}
-	var containers []containerConfig.ContainerConfig
+	var containers []config.Container
 	containers = append(containers, co)
 	containers = append(containers, co1)
-	pod := podConfig.PodConfig{
+	pod := config.Pod{
 		ApiVersion: "",
 		Kind:       "pod",
 		Meta: meta.ObjectMeta{
 			Name:      "try",
 			Namespace: "try",
 		},
-		Spec: spec.PodSpec{
+		Spec: config.PodSpec{
 			Containers: containers,
 		},
 		Status: status.PodStatus{},
@@ -82,6 +80,19 @@ func main() {
 
 	k := kubelet.Kubelet{}
 	k.Run()
-	k.MakePod(pod)
-
+	k.MakePod(&pod)
+	k.UpdatePodStatusByID(pod.Meta.Uid)
+	//fmt.Println((pod.Status.ContainerStatuses)[1].State.Running)
+	//pods := k.GetPods()
+	//for _, pod := range pods {
+	//	fmt.Println("pod id is", pod.Meta.Uid)
+	//	fmt.Println("first container is", pod.Status.ContainerStatuses[0].Name, pod.Status.ContainerStatuses[0].ContainerID)
+	//	cl, _ := client.NewClientWithOpts(client.WithVersion("1.43"))
+	//	json, err := cl.ContainerInspect(context.Background(), pod.Status.ContainerStatuses[1].ContainerID)
+	//	if err != nil {
+	//		fmt.Println(err)
+	//	}
+	//	fmt.Println(json)
+	//
+	//}
 }

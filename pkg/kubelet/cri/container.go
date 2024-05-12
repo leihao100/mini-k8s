@@ -1,7 +1,7 @@
 package cri
 
 import (
-	"MiniK8S/pkg/api/config/containerConfig"
+	"MiniK8S/pkg/api/config"
 	"context"
 	"fmt"
 	"github.com/docker/docker/api/types"
@@ -24,11 +24,9 @@ type DockerClient struct {
 	Client *client.Client
 }
 
-func (c *DockerClient) CreateContainer(config containerConfig.ContainerConfig, name string) (*container.CreateResponse, error) {
+func (c *DockerClient) CreatePause(config config.Container, name string) (*container.CreateResponse, error) {
 	ctx := context.Background()
-	//cl, err := client.NewClientWithOpts(client.WithVersion("1.43"), client.FromEnv, client.WithHost())
 	cl, err := client.NewClientWithOpts(client.WithVersion("1.43"))
-	//cl := c
 	containerRepoTag := config.Image
 	exist := false
 	list, err := cl.ImageList(context.Background(), image.ListOptions{})
@@ -38,9 +36,14 @@ func (c *DockerClient) CreateContainer(config containerConfig.ContainerConfig, n
 		}
 	}
 	if !exist {
-		cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
+		fmt.Println("pulling image ", containerRepoTag)
+		_, err := cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
+		if err != nil {
+			fmt.Println("Failed to pull image " + containerRepoTag)
+			panic(err)
+			return nil, err
+		}
 	}
-
 	if err != nil {
 		fmt.Println("Unable to create docker client")
 		panic(err)
@@ -60,6 +63,60 @@ func (c *DockerClient) CreateContainer(config containerConfig.ContainerConfig, n
 		PortBindings: config.PortBindings,
 		VolumesFrom:  config.VolumesFrom,
 		NetworkMode:  container.NetworkMode(config.NetworkMode),
+	}, nil, nil, name)
+	if err != nil {
+		fmt.Println("Unable to create docker container")
+		panic(err)
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (c *DockerClient) CreateContainer(config config.Container, name string) (*container.CreateResponse, error) {
+	ctx := context.Background()
+	//cl, err := client.NewClientWithOpts(client.WithVersion("1.43"), client.FromEnv, client.WithHost())
+	cl, err := client.NewClientWithOpts(client.WithVersion("1.43"))
+	//cl := c
+	containerRepoTag := config.Image
+	exist := false
+	list, err := cl.ImageList(context.Background(), image.ListOptions{})
+	for _, repoTag := range list {
+		if repoTag.RepoTags[0] == containerRepoTag {
+			exist = true
+		}
+	}
+	if !exist {
+		fmt.Println("pulling image ", containerRepoTag)
+		_, err := cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
+		if err != nil {
+			fmt.Println("Failed to pull image " + containerRepoTag)
+			panic(err)
+			return nil, err
+		}
+
+	}
+
+	if err != nil {
+		fmt.Println("Unable to create docker client")
+		panic(err)
+		return nil, err
+	}
+	//pauseId := cl.containerId
+
+	var resp container.CreateResponse
+	resp, err = cl.ContainerCreate(ctx, &container.Config{
+		Image:      config.Image,
+		Cmd:        config.Cmd,
+		Env:        config.Env,
+		Entrypoint: config.Entrypoint,
+		Volumes:    config.Volumes,
+		Labels:     config.Labels,
+	}, &container.HostConfig{
+		Binds:        config.Binds,
+		PortBindings: config.PortBindings,
+		VolumesFrom:  config.VolumesFrom,
+		NetworkMode:  container.NetworkMode("container:" + config.Pause),
+		Cgroup:       container.CgroupSpec("container:" + config.Pause),
 	}, nil, nil, name)
 	if err != nil {
 		fmt.Println("Unable to create docker container")
@@ -91,13 +148,14 @@ func (c *DockerClient) StopContainer(id string) (bool, error) {
 	}
 	return true, nil
 }
-func (c *DockerClient) ContainerStatus(id string) (bool, int, error) {
+func (c *DockerClient) ContainerStatus(id string) (types.ContainerJSON, error) {
 	ctx := context.Background()
 	resp, err := c.Client.ContainerInspect(ctx, id)
 	if err != nil {
-		return false, 0, err
+		return resp, err
 	}
-	return resp.State.Running, resp.State.ExitCode, nil
+
+	return resp, err
 }
 func (c *DockerClient) RemoveContainer(id string) error {
 	ctx := context.Background()
