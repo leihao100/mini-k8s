@@ -3,8 +3,8 @@ package meta
 import "github.com/google/uuid"
 
 type ObjectMeta struct {
-	Name              string
-	Namespace         string
+	Name              string `json:"name,omitempty"`
+	Namespace         string `json:"namespace,omitempty"`
 	Uid               uuid.UUID
 	Generation        int64
 	ResourceVersion   string
