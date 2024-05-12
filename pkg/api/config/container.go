@@ -1,10 +1,10 @@
-package containerConfig
+package config
 
 import (
 	"github.com/docker/go-connections/nat"
 )
 
-type ContainerConfig struct {
+type Container struct {
 	Name       string
 	Args       []string
 	Cmd        []string            `json:"cmd"` // Command to run when starting the container
@@ -21,6 +21,7 @@ type ContainerConfig struct {
 
 	CPULimit int64
 	MemLimit int64
+	Pause    string
 }
 
 //以下为官方文档中的config参数
