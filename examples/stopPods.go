@@ -13,12 +13,12 @@ func mmain() {
 	pod := config.Pod{
 		ApiVersion: "",
 		Kind:       "pod",
-		Meta: meta.ObjectMeta{
+		Metadata: meta.ObjectMeta{
 			Name:      "try",
 			Namespace: "try",
 		},
 		Spec:   config.PodSpec{},
 		Status: status.PodStatus{},
 	}
-	fmt.Println(pod.Meta.Uid)
+	fmt.Println(pod.Metadata.Uid)
 }

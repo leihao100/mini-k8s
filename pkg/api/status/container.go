@@ -3,15 +3,13 @@ package status
 import "github.com/docker/docker/api/types"
 
 type ContainerStatus struct {
-	Name        string
-	ContainerID string
-	ImageID     string
-	Image       string
-	State       types.ContainerState
-	//LastState    types.ContainerState
-	Started bool
-	//Ready        bool
-	RestartCount int64
+	Name         string               `json:"name,omitempty"`
+	ContainerID  string               `json:"containerID,omitempty"`
+	ImageID      string               `json:"imageID,omitempty"`
+	Image        string               `json:"image,omitempty"`
+	State        types.ContainerState `json:"state,omitempty"`   //LastState    types.ContainerState
+	Started      bool                 `json:"started,omitempty"` //Ready bool
+	RestartCount int64                `json:"restartCount,omitempty"`
 }
 
 /*
