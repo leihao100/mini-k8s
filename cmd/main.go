@@ -18,7 +18,7 @@ func main() {
 		Cmd:          nil,
 		Entrypoint:   nil,
 		Env:          nil,
-		Image:        "hello-world:latest",
+		Image:        "mysql:latest",
 		Volumes:      nil,
 		Labels:       nil,
 		PortBindings: nil,

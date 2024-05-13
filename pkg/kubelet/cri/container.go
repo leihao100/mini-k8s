@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	_ "github.com/docker/docker/pkg/stdcopy"
+	"io"
 )
 
 func GetClient() (Client, error) {
@@ -31,26 +32,31 @@ func (c *DockerClient) CreatePause(config config.Container, name string) (*conta
 	exist := false
 	list, err := cl.ImageList(context.Background(), image.ListOptions{})
 	for _, repoTag := range list {
+		if len(repoTag.RepoTags) == 0 {
+			continue
+		}
 		if repoTag.RepoTags[0] == containerRepoTag {
 			exist = true
 		}
 	}
 	if !exist {
 		fmt.Println("pulling image ", containerRepoTag)
-		_, err := cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
+		out, err := cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
 		if err != nil {
 			fmt.Println("Failed to pull image " + containerRepoTag)
 			panic(err)
 			return nil, err
 		}
+		_, err = io.Copy(io.Discard, out)
 	}
 	if err != nil {
-		fmt.Println("Unable to create docker client")
+		fmt.Println("Unable to pull docker client")
 		panic(err)
 		return nil, err
 	}
 
 	var resp container.CreateResponse
+	//cl, err = client.NewClientWithOpts(client.WithVersion("1.43"))
 	resp, err = cl.ContainerCreate(ctx, &container.Config{
 		Image:      config.Image,
 		Cmd:        config.Cmd,
