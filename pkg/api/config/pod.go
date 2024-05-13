@@ -8,7 +8,7 @@ import (
 type Pod struct {
 	ApiVersion string
 	Kind       string
-	Meta       meta.ObjectMeta
+	Metadata   meta.ObjectMeta
 	Spec       PodSpec
 	Status     status.PodStatus
 }

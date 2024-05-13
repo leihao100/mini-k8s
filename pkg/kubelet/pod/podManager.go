@@ -41,7 +41,7 @@ func (p *PodManager) AddPod(id uuid.UUID, name string, config *config.Pod) {
 
 func (p *PodManager) DeletePodById(id uuid.UUID) {
 	pod := p.GetPodById(id)
-	name := pod.Meta.Name
+	name := pod.Metadata.Name
 	delete(p.name2Pod, name)
 	delete(p.id2Pod, id)
 	delete(p.containers, id)
@@ -61,12 +61,12 @@ func (p *PodManager) AddContainer(podID uuid.UUID, containerName string, id stri
 }
 func (p *PodManager) DeletePodByName(name string) {
 	pod := p.GetPodByName(name)
-	id := pod.Meta.Uid
+	id := pod.Metadata.Uid
 	delete(p.name2Pod, name)
 	delete(p.id2Pod, id)
 	delete(p.containers, uuid.UUID{})
 }
 
 func (p *PodManager) MakePodName(pod *config.Pod) string {
-	return pod.Meta.Namespace + "_" + pod.Meta.Name
+	return pod.Metadata.Namespace + "_" + pod.Metadata.Name
 }

@@ -18,7 +18,7 @@ func main() {
 		Cmd:          nil,
 		Entrypoint:   nil,
 		Env:          nil,
-		Image:        "hello-world:latest",
+		Image:        "mysql:latest",
 		Volumes:      nil,
 		Labels:       nil,
 		PortBindings: nil,
@@ -68,7 +68,7 @@ func main() {
 	pod := config.Pod{
 		ApiVersion: "",
 		Kind:       "pod",
-		Meta: meta.ObjectMeta{
+		Metadata: meta.ObjectMeta{
 			Name:      "try",
 			Namespace: "try",
 		},
@@ -81,7 +81,7 @@ func main() {
 	k := kubelet.Kubelet{}
 	k.Run()
 	k.MakePod(&pod)
-	k.UpdatePodStatusByID(pod.Meta.Uid)
+	k.UpdatePodStatusByID(pod.Metadata.Uid)
 	//fmt.Println((pod.Status.ContainerStatuses)[1].State.Running)
 	//pods := k.GetPods()
 	//for _, pod := range pods {

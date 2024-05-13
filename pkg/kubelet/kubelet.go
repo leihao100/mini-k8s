@@ -33,8 +33,8 @@ func (k *Kubelet) Stop() {
 }
 
 func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
-	uid := pod.Meta.Uid.String()
-	name := pod.Meta.Namespace + "_" + pod.Meta.Name + "_pause_" + uid
+	uid := pod.Metadata.Uid.String()
+	name := pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_" + uid
 	container := config.Container{
 		Name:         name,
 		Args:         nil,
@@ -56,13 +56,13 @@ func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 	if err != nil {
 		panic(err)
 	}
-	k.podManager.AddContainer(pod.Meta.Uid, name, response.ID)
+	k.podManager.AddContainer(pod.Metadata.Uid, name, response.ID)
 	return response.ID
 }
 
 func (k *Kubelet) MakePod(pod *config.Pod) {
-	pod.Meta.Uid, _ = uuid.NewUUID()
-	k.podManager.AddPod(pod.Meta.Uid, k.podManager.MakePodName(pod), pod)
+	pod.Metadata.Uid, _ = uuid.NewUUID()
+	k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
 	podStatus := status.PodStatus{
 		ContainerStatuses: nil,
 		HostIP:            "",
@@ -74,7 +74,7 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 	pod.Status = podStatus
 	containers := pod.Spec.Containers
 	for _, container := range containers {
-		containerName := pod.Meta.Namespace + "_" + pod.Meta.Name + "_" + container.Name + "_" + pod.Meta.Uid.String()
+		containerName := pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_" + container.Name + "_" + pod.Metadata.Uid.String()
 		container.Pause = pauseID
 		response, err := k.cli.CreateContainer(container, containerName)
 		if err != nil {
