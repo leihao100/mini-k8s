@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 type ApiObjectType string
 
 const (
@@ -15,3 +17,6 @@ const (
 	DnsObjectType                     ApiObjectType = "DNS"
 	DeploymentObjectType              ApiObjectType = "deployment"
 )
+
+type Time = time.Time
+type Quantity string

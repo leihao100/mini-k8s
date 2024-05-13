@@ -5,23 +5,21 @@ import (
 )
 
 type Container struct {
-	Name       string
-	Args       []string
-	Cmd        []string            `json:"cmd"` // Command to run when starting the container
-	Entrypoint []string            // Entrypoint to run when starting the container
-	Env        []string            // List of environment variable to set in the container
-	Image      string              // Name of the image as it was passed by the operator (e.g. could be symbolic)
-	Volumes    map[string]struct{} // List of volumes (mounts) used for the container
-	Labels     map[string]string   // List of labels set to this container
-
-	PortBindings nat.PortMap
-	VolumesFrom  []string
-	Binds        []string
-	NetworkMode  string
-
-	CPULimit int64
-	MemLimit int64
-	Pause    string
+	Name         string              `json:"name,omitempty"`
+	Args         []string            `json:"args,omitempty"`
+	Cmd          []string            `json:"cmd,omitempty"`        // Command to run when starting the container
+	Entrypoint   []string            `json:"entrypoint,omitempty"` // Entrypoint to run when starting the container
+	Env          []string            `json:"env,omitempty"`        // List of environment variable to set in the container
+	Image        string              `json:"image,omitempty"`      // Name of the image as it was passed by the operator (e.g. could be symbolic)
+	Volumes      map[string]struct{} `json:"volumes,omitempty"`    // List of volumes (mounts) used for the container
+	Labels       map[string]string   `json:"label,omitempty"`      // List of labels set to this container
+	PortBindings nat.PortMap         `json:"portBindings,omitempty"`
+	VolumesFrom  []string            `json:"volumesFrom,omitempty"`
+	Binds        []string            `json:"binds,omitempty"`
+	NetworkMode  string              `json:"networkMode,omitempty"`
+	CPULimit     int64               `json:"CPULimit,omitempty"`
+	MemLimit     int64               `json:"memLimit,omitempty"`
+	Pause        string              `json:"pause,omitempty"`
 }
 
 //以下为官方文档中的config参数

@@ -6,11 +6,11 @@ import (
 )
 
 type Pod struct {
-	ApiVersion string
-	Kind       string
-	Meta       meta.ObjectMeta
-	Spec       PodSpec
-	Status     status.PodStatus
+	ApiVersion string           `json:"apiVersion,omitempty"`
+	Kind       string           `json:"kind,omitempty"`
+	Metadata   meta.ObjectMeta  `json:"metadata,omitempty"`
+	Spec       PodSpec          `json:"spec,omitempty"`
+	Status     status.PodStatus `json:"status,omitempty"`
 }
 
 /*
@@ -29,10 +29,15 @@ PodStatus	Most recently observed status of the pod. This data may not be up to d
 */
 
 type PodSpec struct {
-	Containers     []Container
-	InitContainers []Container
-	NodeName       string
-	ExposedPorts   []string
-	Volumes        []string
-	BindPorts      map[string]string
+	Containers     []Container       `json:"containers,omitempty"`
+	InitContainers []Container       `json:"initContainers,omitempty"`
+	NodeName       string            `json:"nodeName,omitempty"`
+	ExposedPorts   []string          `json:"exposedPorts,omitempty"`
+	Volumes        []string          `json:"volumes,omitempty"`
+	BindPorts      map[string]string `json:"bindPorts,omitempty"`
+}
+
+type PodTemplateSpec struct {
+	Metadata meta.ObjectMeta `json:"metadata,omitempty"`
+	Spec     PodSpec         `json:"spec,omitempty"`
 }

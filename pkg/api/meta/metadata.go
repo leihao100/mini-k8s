@@ -3,14 +3,14 @@ package meta
 import "github.com/google/uuid"
 
 type ObjectMeta struct {
-	Name              string
-	Namespace         string
-	Uid               uuid.UUID
-	Generation        int64
-	ResourceVersion   string
-	CreationTimestamp string
-	DeletionTimestamp string
-	Labels            map[string]string
+	Name              string            `json:"name,omitempty"`
+	Namespace         string            `json:"namespace,omitempty"`
+	Uid               uuid.UUID         `json:"uid,omitempty"`
+	Generation        int64             `json:"generation,omitempty"`
+	ResourceVersion   string            `json:"resourceVersion,omitempty"`
+	CreationTimestamp string            `json:"creationTimestamp,omitempty"`
+	DeletionTimestamp string            `json:"deletionTimestamp,omitempty"`
+	Labels            map[string]string `json:"labels,omitempty"`
 }
 
 /*

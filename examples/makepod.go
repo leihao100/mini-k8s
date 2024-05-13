@@ -45,7 +45,7 @@ func main() {
 	pod := config.Pod{
 		ApiVersion: "",
 		Kind:       "pod",
-		Meta: meta.ObjectMeta{
+		Metadata: meta.ObjectMeta{
 			Name:      "try",
 			Namespace: "try",
 		},
