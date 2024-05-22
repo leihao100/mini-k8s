@@ -57,6 +57,16 @@ func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 	if err != nil {
 		panic(err)
 	}
+	newContainerStatus := status.ContainerStatus{
+		Name:         name,
+		ContainerID:  response.ID,
+		ImageID:      "",
+		Image:        container.Image,
+		State:        types.ContainerState{},
+		Started:      false,
+		RestartCount: 0,
+	}
+	pod.Status.ContainerStatuses = append(pod.Status.ContainerStatuses, newContainerStatus)
 	k.podManager.AddContainer(pod.Metadata.Uid, name, response.ID)
 	return response.ID
 }
@@ -168,6 +178,7 @@ func (k *Kubelet) UpdatePodStatusByID(id uuid.UUID) {
 				FinishedAt: json.State.FinishedAt,
 				Health:     json.State.Health,
 			},
+			Started: json.State.Running,
 			//todo :may add net config
 		}
 

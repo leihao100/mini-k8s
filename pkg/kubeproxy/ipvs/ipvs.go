@@ -2,6 +2,7 @@ package ipvsManager
 
 import (
 	"MiniK8S/pkg/api/config"
+	"MiniK8S/pkg/kubeproxy/ipInterface"
 	"github.com/cloudflare/ipvs"
 	"github.com/cloudflare/ipvs/netmask"
 	"net/netip"
@@ -31,6 +32,13 @@ type IPVSManager struct {
 	Client *ipvs.Client
 }
 
+func GetIPVS() ipInterface.IP {
+	ip, _ := ipvs.New()
+	return &IPVSManager{
+		Client: &ip,
+	}
+}
+
 func (im *IPVSManager) New() {
 	client, err := ipvs.New()
 	if err != nil {
@@ -39,7 +47,7 @@ func (im *IPVSManager) New() {
 	im.Client = &client
 }
 
-func (im *IPVSManager) AddServiceToIPVS(service *config.Service) {
+func (im *IPVSManager) AddService(service *config.Service) {
 	client := *im.Client
 	addr, err := netip.ParseAddr(service.Spec.ClusterIP)
 	if err != nil {
@@ -58,7 +66,7 @@ func (im *IPVSManager) AddServiceToIPVS(service *config.Service) {
 
 }
 
-func (im *IPVSManager) RemoveServiceFromIPVS(service *config.Service) {
+func (im *IPVSManager) RemoveService(service *config.Service) {
 	client := *im.Client
 	addr, err := netip.ParseAddr(service.Spec.ClusterIP)
 	if err != nil {
@@ -81,7 +89,7 @@ func (im *IPVSManager) RemoveServiceFromIPVS(service *config.Service) {
 	}
 }
 
-func (im *IPVSManager) AddPodDestinationToIPVS(serviceArg *config.Service, pod *config.Pod) {
+func (im *IPVSManager) AddPodToService(serviceArg *config.Service, pod *config.Pod) {
 	client := *im.Client
 	addr, err := netip.ParseAddr(serviceArg.Spec.ClusterIP)
 	if err != nil {
@@ -119,7 +127,7 @@ func (im *IPVSManager) AddPodDestinationToIPVS(serviceArg *config.Service, pod *
 	}
 }
 
-func (im *IPVSManager) RemovePodDestinationFromIPVS(serviceArg *config.Service, pod *config.Pod) {
+func (im *IPVSManager) RemovePodFromService(serviceArg *config.Service, pod *config.Pod) {
 	client := *im.Client
 	addr, err := netip.ParseAddr(serviceArg.Spec.ClusterIP)
 	if err != nil {
