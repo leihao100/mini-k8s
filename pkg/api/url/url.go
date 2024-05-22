@@ -1,7 +1,7 @@
 package url
 
 const apiServerURL string = ""
-const cleanURL string = "/api/v1/clean"
+const clearURL string = "/api/v1/clear"
 
 type URL struct {
 	version string

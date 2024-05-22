@@ -1,13 +1,17 @@
 package apiserver
 
-import "github.com/gin-gonic/gin"
+import (
+	"MiniK8S/pkg/apiServer/handlers"
+
+	"github.com/gin-gonic/gin"
+)
 
 type HttpServer interface {
 	Run(addr string) (err error)
 	BindHandlers()
 }
 
-func New() HttpServer {
+func NewHttpServer() HttpServer {
 	return &httpServer{
 		router: gin.Default(),
 	}
@@ -21,11 +25,6 @@ func (h httpServer) Run(addr string) (err error) {
 	return h.router.Run(addr)
 }
 
-/*
-"/api/pods/"
-
-*/
-
 func (h httpServer) BindHandlers() {
 	api := h.router.Group("/api")
 	{
@@ -33,73 +32,73 @@ func (h httpServer) BindHandlers() {
 		{
 			clear := v1.Group("/clear")
 			{
-				clear.DELETE("/")
+				clear.DELETE("/", handlers.HandleClear) // DELETE /api/v1/clear/
 			}
 
 			pods := v1.Group("/pods")
 			{
-				pods.GET("/get")             //GET /api/v1/pods/get
-				pods.GET("/get/:name")       //GET /api/v1/pods/get/:name
-				pods.POST("/create")         //POST /api/v1/pods/get
-				pods.PUT("/create/:name")    //PUT /api/v1/pods/get
-				pods.DELETE("/delete")       //DELETE /api/v1/pods/delete
-				pods.DELETE("/delete/:name") //DELETE /api/v1/pods/get
-				pods.GET("/watch")
-				pods.GET("/watch/:name")
-				pods.GET("/status/:name")
-				pods.PUT("/status/:name")
+				pods.GET("/get", handlers.HandleGetPods)                  // GET /api/v1/pods/get
+				pods.GET("/get/:name", handlers.HandleGetPod)             // GET /api/v1/pods/get/:name
+				pods.POST("/create", handlers.HandleCreatePod)            // POST /api/v1/pods/create
+				pods.PUT("/create/:name", handlers.HandleModifyPod)       // PUT /api/v1/pods/create/:name
+				pods.DELETE("/delete", handlers.HandleDeletePods)         // DELETE /api/v1/pods/delete
+				pods.DELETE("/delete/:name", handlers.HandleDeletePod)    // DELETE /api/v1/pods/delete/:name
+				pods.GET("/watch", handlers.HandleWatchPods)              // GET /api/v1/pods/watch
+				pods.GET("/watch/:name", handlers.HandleWatchPod)         // GET /api/v1/pods/watch/:name
+				pods.GET("/status/:name", handlers.HandleGetPodStatus)    // GET /api/v1/pods/status/:name
+				pods.PUT("/status/:name", handlers.HandleModifyPodStatus) // PUT /api/v1/pods/status/:name
 			}
 			services := v1.Group("/services")
 			{
-				services.GET("/get")
-				services.GET("/get/:name")
-				services.POST("/create")
-				services.PUT("/create/:name")
-				services.DELETE("/delete")
-				services.DELETE("/delete/:name")
-				services.GET("/watch")
-				services.GET("/watch/:name")
-				services.GET("/status/:name")
-				services.PUT("/status/:name")
+				services.GET("/get", handlers.HandleGetServices)                  // GET /api/v1/services/get
+				services.GET("/get/:name", handlers.HandleGetService)             // GET /api/v1/services/get/:name
+				services.POST("/create", handlers.HandleCreateService)            // POST /api/v1/services/create
+				services.PUT("/create/:name", handlers.HandleModifyService)       // PUT /api/v1/services/create/:name
+				services.DELETE("/delete", handlers.HandleDeleteServices)         // DELETE /api/v1/services/delete
+				services.DELETE("/delete/:name", handlers.HandleDeleteService)    // DELETE /api/v1/services/delete/:name
+				services.GET("/watch", handlers.HandleWatchServices)              // GET /api/v1/services/watch
+				services.GET("/watch/:name", handlers.HandleWatchService)         // GET /api/v1/services/watch/:name
+				services.GET("/status/:name", handlers.HandleGetServiceStatus)    // GET /api/v1/services/status/:name
+				services.PUT("/status/:name", handlers.HandleModifyServiceStatus) // PUT /api/v1/services/status/:name
 			}
 			deployments := v1.Group("/deployments")
 			{
-				deployments.GET("/get")
-				deployments.GET("/get/:name")
-				deployments.POST("/create")
-				deployments.PUT("/create/:name")
-				deployments.DELETE("/delete")
-				deployments.DELETE("/delete/:name")
-				deployments.GET("/watch")
-				deployments.GET("/watch/:name")
-				deployments.GET("/status/:name")
-				deployments.PUT("/status/:name")
+				deployments.GET("/get", handlers.HandleGetDeployments)                  // GET /api/v1/deployments/get
+				deployments.GET("/get/:name", handlers.HandleDeleteDeployment)          // GET /api/v1/deployments/get/:name
+				deployments.POST("/create", handlers.HandleCreateDeployment)            // POST /api/v1/deployments/create
+				deployments.PUT("/create/:name", handlers.HandleModifyDeployment)       // PUT /api/v1/deployments/create/:name
+				deployments.DELETE("/delete", handlers.HandleDeleteDeployments)         // DELETE /api/v1/deployments/delete
+				deployments.DELETE("/delete/:name", handlers.HandleDeleteDeployment)    // DELETE /api/v1/deployments/delete/:name
+				deployments.GET("/watch", handlers.HandleWatchDeployments)              // GET /api/v1/deployments/watch
+				deployments.GET("/watch/:name", handlers.HandleWatchDeployment)         // GET /api/v1/deployments/watch/:name
+				deployments.GET("/status/:name", handlers.HandleGetDeploymentStatus)    // GET /api/v1/deployments/status/:name
+				deployments.PUT("/status/:name", handlers.HandleModifyDeploymentStatus) // PUT /api/v1/deployments/status/:name
 			}
 			hpas := v1.Group("/hpa")
 			{
-				hpas.GET("/get")
-				hpas.GET("/get/:name")
-				hpas.POST("/create")
-				hpas.PUT("/create/:name")
-				hpas.DELETE("/delete")
-				hpas.DELETE("/delete/:name")
-				hpas.GET("/watch")
-				hpas.GET("/watch/:name")
-				hpas.GET("/status/:name")
-				hpas.PUT("/status/:name")
+				hpas.GET("/get", handlers.HandleGetHPAs)                  // GET /api/v1/hpa/get
+				hpas.GET("/get/:name", handlers.HandleGetHPA)             // GET /api/v1/hpa/get/:name
+				hpas.POST("/create", handlers.HandleCreateHPA)            // POST /api/v1/hpa/create
+				hpas.PUT("/create/:name", handlers.HandleModifyHPA)       // PUT /api/v1/hpa/create/:name
+				hpas.DELETE("/delete", handlers.HandleDeleteHPAs)         // DELETE /api/v1/hpa/delete
+				hpas.DELETE("/delete/:name", handlers.HandleDeleteHPA)    // DELETE /api/v1/hpa/delete/:name
+				hpas.GET("/watch", handlers.HandleWatchHPAs)              // GET /api/v1/hpa/watch
+				hpas.GET("/watch/:name", handlers.HandleWatchHPA)         // GET /api/v1/hpa/watch/:name
+				hpas.GET("/status/:name", handlers.HandleGetHPAStatus)    // GET /api/v1/hpa/status/:name
+				hpas.PUT("/status/:name", handlers.HandleModifyHPAStatus) // PUT /api/v1/hpa/status/:name
 			}
 			nodes := v1.Group("/nodes")
 			{
-				nodes.GET("/get")
-				nodes.GET("/get/:name")
-				nodes.POST("/create")
-				nodes.PUT("/create/:name")
-				nodes.DELETE("/delete")
-				nodes.DELETE("/delete/:name")
-				nodes.GET("/watch")
-				nodes.GET("/watch/:name")
-				nodes.GET("/status/:name")
-				nodes.PUT("/status/:name")
+				nodes.GET("/get", handlers.HandleGetNodes)                  // GET /api/v1/nodes/get
+				nodes.GET("/get/:name", handlers.HandleGetNode)             // GET /api/v1/nodes/get/:name
+				nodes.POST("/create", handlers.HandleCreateNode)            // POST /api/v1/nodes/create
+				nodes.PUT("/create/:name", handlers.HandleModifyNode)       // PUT /api/v1/nodes/create/:name
+				nodes.DELETE("/delete", handlers.HandleDeleteNodes)         // DELETE /api/v1/nodes/delete
+				nodes.DELETE("/delete/:name", handlers.HandleDeleteNode)    // DELETE /api/v1/nodes/delete/:name
+				nodes.GET("/watch", handlers.HandleWatchNodes)              // GET /api/v1/nodes/watch
+				nodes.GET("/watch/:name", handlers.HandleWatchNode)         // GET /api/v1/nodes/watch/:name
+				nodes.GET("/status/:name", handlers.HandleGetNodeStatus)    // GET /api/v1/nodes/status/:name
+				nodes.PUT("/status/:name", handlers.HandleModifyNodeStatus) // PUT /api/v1/nodes/status/:name
 			}
 		}
 	}
