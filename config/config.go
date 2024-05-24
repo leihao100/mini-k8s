@@ -6,7 +6,7 @@ const (
 	etcdPort string = ":2379"
 )
 const (
-	apiServerHost string = "localhost"
+	apiServerHost string = "http://127.0.0.1"
 	apiServerPort string = ":8080"
 )
 

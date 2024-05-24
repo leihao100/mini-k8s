@@ -3,6 +3,7 @@ package config
 import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/status"
+	"encoding/json"
 )
 
 type Pod struct {
@@ -11,6 +12,15 @@ type Pod struct {
 	Metadata   meta.ObjectMeta  `json:"metadata,omitempty"`
 	Spec       PodSpec          `json:"spec,omitempty"`
 	Status     status.PodStatus `json:"status,omitempty"`
+}
+
+func (p *Pod) Marshal() []byte {
+	buf, _ := json.Marshal(p)
+	return buf
+}
+
+func (p *Pod) Unmarshal(b []byte) error {
+	return json.Unmarshal(b, p)
 }
 
 /*

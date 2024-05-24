@@ -1,6 +1,7 @@
 package apiClient
 
 import (
+	"MiniK8S/config"
 	"MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/url"
 	"bytes"
@@ -28,8 +29,9 @@ func NewRESTClient(ty types.ApiObjectType) *Client {
 	newURL := url.URL{}
 	field := ty
 	newURL.Init("v1", string(field))
+	apiserverURL := config.ApiServerHost() + config.ApiServerPort()
 	return &Client{
-		ApiServerUrl: url.ApiServerURL,
+		ApiServerUrl: apiserverURL,
 		ResourceUrl:  newURL,
 		ResourceType: ty,
 	}
@@ -40,23 +42,24 @@ func (c *Client) URL() string {
 }
 
 func (c *Client) BuildURL(requestType RequestType) string {
+	res := c.ApiServerUrl
 	switch requestType {
 	case Create:
-		return c.ResourceUrl.CreateURL()
+		return res + c.ResourceUrl.CreateURL()
 	case Delete:
-		return c.ResourceUrl.DeleteURL()
+		return res + c.ResourceUrl.DeleteURL()
 	case Get:
-		return c.ResourceUrl.GetURL()
+		return res + c.ResourceUrl.GetURL()
 	case Watch:
-		return c.ResourceUrl.WatchURL()
+		return res + c.ResourceUrl.WatchURL()
 	case Status:
-		return c.ResourceUrl.StatusURL()
+		return res + c.ResourceUrl.StatusURL()
 	default:
 		return ""
 	}
 }
 
-func (c *Client) Post(resourceURL string, context []byte) {
+func (c *Client) Post(resourceURL string, context []byte) io.ReadCloser {
 	postUrl := resourceURL
 	cli := &http.Client{}
 	//创建请求
@@ -70,17 +73,18 @@ func (c *Client) Post(resourceURL string, context []byte) {
 		panic(err)
 	}
 	//检查返回
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(response.Body)
+	/*//defer func(Body io.ReadCloser) {
+	//	err := Body.Close()
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//}(response.Body)
+	*/
 	//response即为返回
-	//todo
+	return response.Body
 }
 
-func (c *Client) Get(resourceURL string, context []byte) {
+func (c *Client) Get(resourceURL string, context []byte) io.ReadCloser {
 	getUrl := resourceURL
 	cli := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet, getUrl, bytes.NewReader(context))
@@ -91,16 +95,11 @@ func (c *Client) Get(resourceURL string, context []byte) {
 	if err != nil {
 		panic(err)
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(response.Body)
-	//todo
+
+	return response.Body
 }
 
-func (c *Client) Put(resourceURL string, context []byte) {
+func (c *Client) Put(resourceURL string, context []byte) io.ReadCloser {
 	putUrl := resourceURL
 	cli := &http.Client{}
 	req, err := http.NewRequest(http.MethodPut, putUrl, bytes.NewReader(context))
@@ -111,16 +110,11 @@ func (c *Client) Put(resourceURL string, context []byte) {
 	if err != nil {
 		panic(err)
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(response.Body)
-	//todo
+
+	return response.Body
 }
 
-func (c *Client) Delete(resourceURL string, context []byte) {
+func (c *Client) Delete(resourceURL string, context []byte) io.ReadCloser {
 	deleteUrl := resourceURL
 	cli := &http.Client{}
 	req, err := http.NewRequest(http.MethodDelete, deleteUrl, bytes.NewReader(context))
@@ -131,10 +125,6 @@ func (c *Client) Delete(resourceURL string, context []byte) {
 	if err != nil {
 		panic(err)
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(response.Body)
+
+	return response.Body
 }
