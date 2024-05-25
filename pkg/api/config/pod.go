@@ -3,6 +3,9 @@ package config
 import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/status"
+	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
 type Pod struct {
@@ -40,4 +43,20 @@ type PodSpec struct {
 type PodTemplateSpec struct {
 	Metadata meta.ObjectMeta `json:"metadata,omitempty"`
 	Spec     PodSpec         `json:"spec,omitempty"`
+}
+
+func (p *Pod) JsonMarshal() ([]byte, error) {
+	return json.Marshal(p)
+}
+
+func (p *Pod) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &p)
+}
+
+func (p *Pod) SetUID(uid uuid.UUID) {
+	p.Metadata.Uid = uid
+}
+
+func (p *Pod) GetUID() uuid.UUID {
+	return p.Metadata.Uid
 }

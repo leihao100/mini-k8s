@@ -4,6 +4,9 @@ import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/selector"
 	"MiniK8S/pkg/api/status"
+	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
 type Deployment struct {
@@ -28,3 +31,19 @@ template 描述将要创建的 Pod。template.spec.restartPolicy 唯一被允许
 replicas (int32)
 预期 Pod 的数量。这是一个指针，用于辨别显式零和未指定的值。默认为 1
 */
+
+func (d *Deployment) JsonMarshal() ([]byte, error) {
+	return json.Marshal(d)
+}
+
+func (d *Deployment) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &d)
+}
+
+func (d *Deployment) SetUID(uid uuid.UUID) {
+	d.Metadata.Uid = uid
+}
+
+func (d *Deployment) GetUID() uuid.UUID {
+	return d.Metadata.Uid
+}
