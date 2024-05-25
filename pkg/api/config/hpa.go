@@ -4,6 +4,9 @@ import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/status"
 	"MiniK8S/pkg/api/types"
+	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
 type HorizontalPodAutoscaler struct {
@@ -145,3 +148,19 @@ metrics.containerResource.target.averageValue (Quantity)
 metrics.containerResource.target.value (Quantity)
 value 是指标的目标值（以数量形式给出）。
 */
+
+func (h *HorizontalPodAutoscaler) JsonMarshal() ([]byte, error) {
+	return json.Marshal(h)
+}
+
+func (h *HorizontalPodAutoscaler) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &h)
+}
+
+func (h *HorizontalPodAutoscaler) SetUID(uid uuid.UUID) {
+	h.Metadata.Uid = uid
+}
+
+func (h *HorizontalPodAutoscaler) GetUID() uuid.UUID {
+	return h.Metadata.Uid
+}

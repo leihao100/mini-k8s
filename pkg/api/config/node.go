@@ -3,7 +3,10 @@ package config
 import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/status"
+	"encoding/json"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Node struct {
@@ -42,4 +45,20 @@ type Taint struct {
 	Value     string    `yaml:"value"`
 	Effect    string    `yaml:"effect"`
 	TimeAdded time.Time `yaml:"timeAdded"`
+}
+
+func (n *Node) JsonMarshal() ([]byte, error) {
+	return json.Marshal(n)
+}
+
+func (n *Node) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &n)
+}
+
+func (n *Node) SetUID(uid uuid.UUID) {
+	n.Metadata.Uid = uid
+}
+
+func (n *Node) GetUID() uuid.UUID {
+	return n.Metadata.Uid
 }
