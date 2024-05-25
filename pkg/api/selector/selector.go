@@ -6,6 +6,7 @@ type LabelSelector struct {
 }
 
 /*
+LabelSelectorRequirement
 matchExpressions ([]LabelSelectorRequirement)
 matchExpressions 是标签选择器要求的列表，这些要求的结果按逻辑与的关系来计算。
 标签选择器要求是包含值、键和关联键和值的运算符的选择器。

@@ -2,11 +2,9 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func HandleGetPods(c *gin.Context) {
-	c.JSON(http.StatusOK, "I'm OK")
 }
 func HandleGetPod(c *gin.Context) {
 
