@@ -100,6 +100,10 @@ func (h httpServer) BindHandlers() {
 				nodes.GET("/status/:name", handlers.HandleGetNodeStatus)    // GET /api/v1/nodes/status/:name
 				nodes.PUT("/status/:name", handlers.HandleModifyNodeStatus) // PUT /api/v1/nodes/status/:name
 			}
+			heartbeats := v1.Group("/nodes")
+			{
+				heartbeats.PUT("/get", handlers.HandleCreateHeartbeat)
+			}
 		}
 	}
 }

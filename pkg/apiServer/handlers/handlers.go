@@ -29,9 +29,6 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
 	}
 	newApiObject := config.NewApiObject(ty)
-	if newApiObject {
-
-	}
 	err = newApiObject.JsonUnmarshal(buf)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
@@ -82,8 +79,16 @@ func HandleGetApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 }
 
 func HandleModifyApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
-	switch ty {
-	case types.PodObjectType:
-	case types.DeploymentObjectType:
+	buf, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
 	}
+	newApiObject := config.NewApiObject(ty)
+	err = newApiObject.JsonUnmarshal(buf)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
+		return
+	}
+	//key := ty + "/" + "Status"
+	//etcd.Put(key, newApiObject)
 }

@@ -9,6 +9,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type NodeType string
+
+const (
+	Master NodeType = "master"
+	Worker NodeType = "worker"
+)
+
 type Node struct {
 	ApiVersion string `yaml:"apiVersion"`
 	Kind       string `yaml:"kind"`
