@@ -4,6 +4,7 @@ import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/selector"
 	"MiniK8S/pkg/api/status"
+	"encoding/json"
 )
 
 type Deployment struct {
@@ -14,10 +15,27 @@ type Deployment struct {
 	Status     status.DeploymentStatus `json:"status,omitempty"`
 }
 
+func (d *Deployment) Marshal() []byte {
+	buf, _ := json.Marshal(d)
+	return buf
+}
+
+func (d *Deployment) Unmarshal(buf []byte) error {
+	return json.Unmarshal(buf, d)
+}
+
 type DeploymentSpec struct {
 	Selector selector.LabelSelector `json:"selector,omitempty"`
 	Template PodTemplateSpec        `json:"template,omitempty"`
 	Replicas int32                  `json:"replicas,omitempty"`
+}
+
+func (d *DeploymentSpec) Marshal() []byte {
+	buf, _ := json.Marshal(d)
+	return buf
+}
+func (d *DeploymentSpec) Unmarshal(buf []byte) error {
+	return json.Unmarshal(buf, d)
 }
 
 /*

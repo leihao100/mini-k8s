@@ -11,6 +11,19 @@ type ObjectMeta struct {
 	CreationTimestamp string            `json:"creationTimestamp,omitempty"`
 	DeletionTimestamp string            `json:"deletionTimestamp,omitempty"`
 	Labels            map[string]string `json:"labels,omitempty"`
+	OwnerReferences   []OwnerReference  `json:"ownerReferences,omitempty"`
+}
+
+type OwnerReference struct {
+	Name       string    `json:"name"`
+	UID        uuid.UUID `json:"uid"`
+	APIGroup   string    `json:"apiGroup"`
+	Kind       string    `json:"kind"`
+	Controller bool      `json:"controller"`
+}
+
+func LabelCompare(Labels, LabelSelector map[string]string) {
+
 }
 
 /*

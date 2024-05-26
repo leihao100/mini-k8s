@@ -25,7 +25,7 @@ func (k *Kubelet) Run() {
 	//cli, _ := cri.GetClient()
 	var err error
 	k.cli, err = cri.GetClient()
-	k.podClient = apiClient.NewRESTClient(apitypes.ApiObjectType("pods"))
+	k.podClient = apiClient.NewRESTClient(apitypes.PodObjectType)
 	if err != nil {
 		panic(err)
 		fmt.Println("error:", err)
