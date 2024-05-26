@@ -2,8 +2,10 @@ package apiClient
 
 import (
 	"MiniK8S/config"
+	core "MiniK8S/pkg/api/config"
 	"MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/url"
+	"MiniK8S/pkg/api/watch"
 	"bytes"
 	"io"
 	"net/http"
@@ -147,4 +149,19 @@ func (c *Client) Delete(resourceURL string, context []byte) io.ReadCloser {
 	}
 
 	return response.Body
+}
+
+func (c *Client) GetAll() (objectList core.ApiObjectList, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *Client) WatchAll() (watch.Interface, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *Client) Watch(name string) (watch.Interface, error) {
+	//TODO implement me
+	panic("implement me")
 }
