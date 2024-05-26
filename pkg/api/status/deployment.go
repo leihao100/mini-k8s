@@ -1,6 +1,9 @@
 package status
 
-import "MiniK8S/pkg/api/types"
+import (
+	"MiniK8S/pkg/api/types"
+	"encoding/json"
+)
 
 type DeploymentStatus struct {
 	Replicas            int32                 `json:"replicas,omitempty"`
@@ -55,3 +58,11 @@ conditions.message (string)
 conditions.reason (string)
 状况上次转换的原因。
 */
+
+func (d *DeploymentStatus) JsonMarshal() ([]byte, error) {
+	return json.Marshal(d)
+}
+
+func (d *DeploymentStatus) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &d)
+}

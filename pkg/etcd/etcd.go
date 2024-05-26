@@ -15,7 +15,8 @@ var etcdConfig clientv3.Config
 var etcdClient *clientv3.Client
 var requestTimeout = time.Second
 var err error
-var resourceVersionManager ResourceVersionManager
+var RVM ResourceVersionManager
+var VersionLock sync.RWMutex
 
 type ResourceVersionManager struct {
 	version int64
@@ -42,8 +43,14 @@ func (resourceVersionManager *ResourceVersionManager) GetResourceVersion() int64
 	return resourceVersionManager.version
 }
 
+func (resourceVersionManager *ResourceVersionManager) GetNextResourceVersion() int64 {
+	resourceVersionManager.mutex.RLock()
+	defer resourceVersionManager.mutex.RUnlock()
+	return resourceVersionManager.version + 1
+}
+
 func Init() {
-	var etcdConfig = clientv3.Config{
+	etcdConfig = clientv3.Config{
 		Endpoints:            []string{etcdEndpoint},
 		DialTimeout:          60 * time.Second,
 		DialKeepAliveTimeout: 60 * time.Second,
@@ -60,7 +67,7 @@ func Init() {
 	if err != nil {
 		fmt.Printf("[etcd]%v\n", err)
 	}
-	resourceVersionManager.Init(status.Header.Revision)
+	RVM.Init(status.Header.Revision)
 }
 
 func Close() {
@@ -80,7 +87,7 @@ func Put(key string, value string) (version int64, err error) {
 		fmt.Printf("[etcd]%v\n", err)
 	}
 	version = res.Header.Revision
-	resourceVersionManager.SetResourceVersion(version)
+	RVM.SetResourceVersion(version)
 	return version, err
 }
 
@@ -97,6 +104,20 @@ func Get(key string) (value string, err error) {
 	} else {
 		return "", err
 	}
+}
+
+func GetAllWithPrefix(key string) (values []string, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	res, err := etcdClient.Get(ctx, key, clientv3.WithPrefix())
+	defer cancel()
+	if err != nil {
+		fmt.Printf("[etcd]%v\n", err)
+		return nil, err
+	}
+	for _, kv := range res.Kvs {
+		values = append(values, string(kv.Value))
+	}
+	return values, err
 }
 
 func Exist(key string) (value bool, err error) {
@@ -118,7 +139,7 @@ func Delete(key string) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	res, err := etcdClient.Delete(ctx, key)
 	defer cancel()
-	resourceVersionManager.SetResourceVersion(res.Header.Revision)
+	RVM.SetResourceVersion(res.Header.Revision)
 	if err != nil {
 		fmt.Printf("[etcd]%v\n", err)
 	}
@@ -129,7 +150,7 @@ func DeleteAllWithPrefix(key string) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	res, err := etcdClient.Delete(ctx, key, clientv3.WithPrefix())
 	defer cancel()
-	resourceVersionManager.SetResourceVersion(res.Header.Revision)
+	RVM.SetResourceVersion(res.Header.Revision)
 
 	if err != nil {
 		fmt.Printf("[etcd]%v\n", err)
@@ -149,7 +170,7 @@ func PutWithVersion(key string, value string, oldVersion int64) (newVersion int6
 		fmt.Printf("[etcd]%v\n", err)
 	}
 	newVersion = res.Header.Revision
-	resourceVersionManager.SetResourceVersion(newVersion)
+	RVM.SetResourceVersion(newVersion)
 	if oldVersion != res.PrevKv.ModRevision {
 		fmt.Printf("[etcd] OldVersion %v and res.PrevKv.ModRevision %v mismatch\n", oldVersion, res.PrevKv.ModRevision)
 		return newVersion, false, err
@@ -187,4 +208,32 @@ func ExistWithVersion(key string) (value bool, version int64, err error) {
 		version = res.Kvs[0].ModRevision
 		return true, version, err
 	}
+}
+
+func Watch(key string) (context.CancelFunc, chan *clientv3.Event) {
+	ctx, cancel := context.WithCancel(context.Background())
+	rch := etcdClient.Watch(ctx, key, clientv3.WithPrevKV())
+	ch := make(chan *clientv3.Event)
+	go func(rch clientv3.WatchChan, ch chan *clientv3.Event) {
+		for res := range rch {
+			for _, ev := range res.Events {
+				ch <- (*clientv3.Event)(ev)
+			}
+		}
+	}(rch, ch)
+	return cancel, ch
+}
+
+func WatchAllWithPrefix(key string) (context.CancelFunc, chan *clientv3.Event) {
+	ctx, cancel := context.WithCancel(context.Background())
+	rch := etcdClient.Watch(ctx, key, clientv3.WithPrefix(), clientv3.WithPrevKV())
+	ch := make(chan *clientv3.Event)
+	go func(rch clientv3.WatchChan, ch chan *clientv3.Event) {
+		for res := range rch {
+			for _, ev := range res.Events {
+				ch <- (*clientv3.Event)(ev)
+			}
+		}
+	}(rch, ch)
+	return cancel, ch
 }

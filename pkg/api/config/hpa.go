@@ -5,6 +5,8 @@ import (
 	"MiniK8S/pkg/api/status"
 	"MiniK8S/pkg/api/types"
 	"encoding/json"
+	"fmt"
+	"strconv"
 
 	"github.com/google/uuid"
 )
@@ -149,6 +151,14 @@ metrics.containerResource.target.value (Quantity)
 value 是指标的目标值（以数量形式给出）。
 */
 
+type HorizontalPodAutoscalerList struct {
+	ApiVersion      string                    `json:"apiVersion,omitempty"`
+	Kind            string                    `json:"kind,omitempty"`
+	ResourceVersion string                    `json:"resourceVersion,omitempty"`
+	Continue        string                    `json:"continue,omitempty"`
+	Items           []HorizontalPodAutoscaler `json:"items"`
+}
+
 func (h *HorizontalPodAutoscaler) JsonMarshal() ([]byte, error) {
 	return json.Marshal(h)
 }
@@ -163,4 +173,64 @@ func (h *HorizontalPodAutoscaler) SetUID(uid uuid.UUID) {
 
 func (h *HorizontalPodAutoscaler) GetUID() uuid.UUID {
 	return h.Metadata.Uid
+}
+
+func (h *HorizontalPodAutoscaler) SetResourceVersion(version int64) {
+	h.Metadata.ResourceVersion = strconv.FormatInt(version, 10)
+}
+func (h *HorizontalPodAutoscaler) GetResourceVersion() int64 {
+	res, err := strconv.ParseInt(h.Metadata.ResourceVersion, 10, 64)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return 0
+	}
+	return res
+}
+func (h *HorizontalPodAutoscaler) JsonUnmarshalStatus(data []byte) error {
+	return json.Unmarshal(data, &(h.Status))
+}
+
+func (h *HorizontalPodAutoscaler) JsonMarshalStatus() ([]byte, error) {
+	return json.Marshal(h.Status)
+}
+func (h *HorizontalPodAutoscaler) SetStatus(s ApiObjectStatus) bool {
+	status, ok := s.(*status.HorizontalPodAutoscalerStatus)
+	if ok {
+		h.Status = *status
+	}
+	return ok
+}
+func (h *HorizontalPodAutoscaler) GetStatus() ApiObjectStatus {
+	return &h.Status
+}
+func (h *HorizontalPodAutoscaler) Info() {
+	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "REFERENCE", "MINPODS", "MAXPODS", "REPLICAS")
+	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20d\t%-20d\t%-20d\n", h.Metadata.Name, h.Metadata.Uid, h.Spec.ScaleTargetRef.Kind+"/"+h.Spec.ScaleTargetRef.Name, h.Spec.MinReplicas, h.Spec.MaxReplicas, h.Status.CurrentReplicas)
+}
+func (h *HorizontalPodAutoscalerList) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &h)
+}
+
+func (h *HorizontalPodAutoscalerList) JsonMarshal() ([]byte, error) {
+	return json.Marshal(h)
+}
+func (h *HorizontalPodAutoscalerList) AppendItems(objects []string) error {
+	for _, object := range objects {
+		ApiObject := &HorizontalPodAutoscaler{}
+		err := ApiObject.JsonUnmarshal([]byte(object))
+		if err != nil {
+			return err
+		}
+		h.Items = append(h.Items, *ApiObject)
+	}
+	return nil
+}
+func (h *HorizontalPodAutoscalerList) GetItems() any {
+	return h.Items
+}
+func (h *HorizontalPodAutoscalerList) Info() {
+	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "REFERENCE", "MINPODS", "MAXPODS", "REPLICAS")
+	for _, item := range h.Items {
+		fmt.Printf("%-10s\t%-10s\t%-10s\t%-20d\t%-20d\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.ScaleTargetRef.Kind+"/"+item.Spec.ScaleTargetRef.Name, item.Spec.MinReplicas, item.Spec.MaxReplicas, item.Status.CurrentReplicas)
+	}
 }
