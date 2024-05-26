@@ -19,7 +19,7 @@ type Informer struct {
 	queue WorkQueue
 }
 
-func NewInformer(ty types.ApiObjectType, store Store, queue WorkQueue, lw listWatcher.ListWatcher, h EventHandler) *Informer {
+func NewInformer(ty types.ApiObjectType, store Store, queue WorkQueue, lw listWatcher.ListWatch, h EventHandler) *Informer {
 	return &Informer{
 		ty:        ty,
 		queue:     queue,
