@@ -5,7 +5,7 @@ import (
 	"MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
-	"MiniK8S/pkg/apiClient/listWatcher"
+	"MiniK8S/pkg/apiClient/listWatch"
 	"MiniK8S/pkg/kubelet"
 	"MiniK8S/pkg/kubeproxy/ipInterface"
 	ipvsManager "MiniK8S/pkg/kubeproxy/ipvs"
@@ -21,8 +21,8 @@ type KubeProxy struct {
 
 	serviceClient      *apiClient.Client
 	podClient          *apiClient.Client
-	serviceListWatcher listWatcher.ListerWatcher
-	podListWatcher     listWatcher.ListerWatcher
+	serviceListWatcher listwatch.ListerWatcher
+	podListWatcher     listwatch.ListerWatcher
 }
 
 func NewKubeProxy(kl *kubelet.Kubelet) *KubeProxy {

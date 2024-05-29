@@ -4,7 +4,7 @@ import (
 	"MiniK8S/pkg/api/config"
 	apitypes "MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
-	"MiniK8S/pkg/apiClient/listWatcher"
+	"MiniK8S/pkg/apiClient/listWatch"
 	"errors"
 	"time"
 )
@@ -25,7 +25,7 @@ type Reflector struct {
 	// The destination to sync up with the watch source
 	store Store
 	// listerWatcher is used to perform lists and watches.
-	listerWatcher listWatcher.ListerWatcher
+	listerWatcher listwatch.ListerWatcher
 
 	// MaxInternalErrorRetryDuration defines how long we should retry internal errors returned by watch.
 	MaxInternalErrorRetryDuration time.Duration
@@ -33,7 +33,7 @@ type Reflector struct {
 	WorkQueue WorkQueue
 }
 
-func NewReflector(lw listWatcher.ListerWatcher, expectedType apitypes.ApiObjectType, store Store, queue WorkQueue) *Reflector {
+func NewReflector(lw listwatch.ListerWatcher, expectedType apitypes.ApiObjectType, store Store, queue WorkQueue) *Reflector {
 	return &Reflector{
 		name:            string(expectedType) + "Reflector",
 		typeDescription: string(expectedType),
@@ -115,7 +115,8 @@ func (r *Reflector) HandleWatch(w watch.Interface, stopCh <-chan struct{}) error
 }
 
 func (r *Reflector) HandleList(l config.ApiObjectList) error {
-	list := l.GetIApiObjectArr()
+	list := l.GetItems().([]config.ApiObject)
+
 	for _, obj := range list {
 		key := obj.GetUID()
 		r.store.Add(key.String(), obj)

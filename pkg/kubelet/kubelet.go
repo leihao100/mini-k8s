@@ -6,7 +6,7 @@ import (
 	apitypes "MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
-	"MiniK8S/pkg/apiClient/listWatcher"
+	"MiniK8S/pkg/apiClient/listWatch"
 	"MiniK8S/pkg/kubelet/cri"
 	"MiniK8S/pkg/kubelet/pod"
 	"context"
@@ -27,7 +27,7 @@ type Kubelet struct {
 	cli            cri.Client
 	podManager     *pod.PodManager
 	podClient      *apiClient.Client
-	podListWatcher listWatcher.ListerWatcher
+	podListWatcher listwatch.ListerWatcher
 	lock           sync.Locker
 }
 
@@ -286,7 +286,7 @@ func (k *Kubelet) ListAndWatch(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
-	list := podList.GetIApiObjectArr()
+	list := podList.GetItems().([]config.ApiObject)
 	for _, p := range list {
 		pod := p.(*config.Pod)
 		k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)

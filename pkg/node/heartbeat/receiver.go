@@ -4,7 +4,7 @@ import (
 	"MiniK8S/pkg/api/config"
 	apitypes "MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
-	"MiniK8S/pkg/apiClient/listWatcher"
+	"MiniK8S/pkg/apiClient/listWatch"
 	"context"
 	"github.com/google/uuid"
 	"time"
@@ -12,7 +12,7 @@ import (
 
 type HeartbeatReceiver struct {
 	times         map[uuid.UUID]time.Time
-	HbListWatcher listWatcher.ListerWatcher
+	HbListWatcher listwatch.ListerWatcher
 }
 
 func NewHeartbeatReceiver() *HeartbeatReceiver {
@@ -49,7 +49,7 @@ func (hbr *HeartbeatReceiver) Check(ctx context.Context) {
 	}
 }
 
-func (hbr *HeartbeatReceiver) WatchList(ctx context.Context, listWatcher listWatcher.ListerWatcher) {
+func (hbr *HeartbeatReceiver) WatchList(ctx context.Context, listWatcher listwatch.ListerWatcher) {
 	podList, err := hbr.HbListWatcher.List(config.ListOptions{
 		Kind:            string(apitypes.HeartbeatObjectType),
 		APIVersion:      "",
@@ -62,9 +62,9 @@ func (hbr *HeartbeatReceiver) WatchList(ctx context.Context, listWatcher listWat
 	if err != nil {
 		panic(err)
 	}
-	list := podList.GetIApiObjectArr()
+	list := podList.GetItems().([]config.Heartbeat)
 	for _, object := range list {
-		hb := object.(*config.Heartbeat)
+		hb := object
 		hbr.times[hb.Metadata.Uid], _ = time.Parse(time.DateTime, hb.Metadata.CreationTimestamp)
 	}
 	w, err := listWatcher.Watch(config.ListOptions{

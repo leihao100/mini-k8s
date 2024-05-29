@@ -3,7 +3,7 @@ package cache
 import (
 	"MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
-	"MiniK8S/pkg/apiClient/listWatcher"
+	"MiniK8S/pkg/apiClient/listWatch"
 )
 
 type Informer struct {
@@ -20,7 +20,7 @@ type Informer struct {
 	queue WorkQueue
 }
 
-func NewInformer(ty types.ApiObjectType, store Store, queue WorkQueue, lw listWatcher.ListerWatcher, h EventHandler) *Informer {
+func NewInformer(ty types.ApiObjectType, store Store, queue WorkQueue, lw listwatch.ListerWatcher, h EventHandler) *Informer {
 	return &Informer{
 		ty:        ty,
 		queue:     queue,
