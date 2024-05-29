@@ -6,9 +6,8 @@ import (
 	"MiniK8S/pkg/api/status"
 	"MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/apiClient"
-	"encoding/base64"
+	"github.com/docker/docker/testutil"
 	"github.com/google/uuid"
-	"math/rand"
 )
 
 type NodeManager struct {
@@ -78,10 +77,5 @@ func (nm *NodeManager) Init() {
 }
 
 func GenerateRandomString(length int) string {
-	b := make([]byte, length)
-	_, err := rand.Read(b)
-	if err != nil {
-		panic(err)
-	}
-	return base64.StdEncoding.EncodeToString(b)
+	return testutil.GenerateRandomAlphaOnlyString(length)
 }

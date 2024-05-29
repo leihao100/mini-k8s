@@ -2,6 +2,7 @@ package cache
 
 import (
 	"MiniK8S/pkg/api/types"
+	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient/listWatcher"
 )
 
@@ -19,7 +20,7 @@ type Informer struct {
 	queue WorkQueue
 }
 
-func NewInformer(ty types.ApiObjectType, store Store, queue WorkQueue, lw listWatcher.ListWatch, h EventHandler) *Informer {
+func NewInformer(ty types.ApiObjectType, store Store, queue WorkQueue, lw listWatcher.ListerWatcher, h EventHandler) *Informer {
 	return &Informer{
 		ty:        ty,
 		queue:     queue,
@@ -30,7 +31,58 @@ func NewInformer(ty types.ApiObjectType, store Store, queue WorkQueue, lw listWa
 }
 
 func (i *Informer) Run(stopCh <-chan struct{}) {
+	syncChan := make(chan bool)
 
+	go func() {
+		i.reflector.Run(stopCh, syncChan)
+	}()
+	//waiting for list
+	<-syncChan
+
+	for true {
+		select {
+		case <-stopCh:
+			return
+
+		default:
+			if i.queue.Len() == 0 {
+				continue
+			}
+			obj, shutdown := i.queue.Get()
+			if shutdown {
+				continue
+			}
+			event, ok := obj.(watch.Event)
+			if !ok {
+				panic("informer translate object to watch.event failed")
+			}
+			switch event.Type {
+			case watch.Added:
+				i.store.Update(event.Object.GetUID().String(), event.Object)
+				for _, h := range i.handlers {
+					h.OnAdd(event.Object)
+				}
+			case watch.Modified:
+				old, _, _ := i.store.Get(event.Object.GetUID().String())
+				i.store.Update(event.Object.GetUID().String(), event.Object)
+				for _, h := range i.handlers {
+					h.OnUpdate(old, event.Object)
+				}
+			case watch.Deleted:
+				obj, exist, _ := i.store.Get(event.Object.GetUID().String())
+
+				if exist {
+					err := i.store.Delete(event.Object.GetUID().String())
+					if err != nil {
+						return
+					}
+					for _, handler := range i.handlers {
+						handler.OnDelete(obj)
+					}
+				}
+			}
+		}
+	}
 }
 
 func (i *Informer) Get(key string) (item interface{}, exists bool, err error) {
@@ -39,6 +91,10 @@ func (i *Informer) Get(key string) (item interface{}, exists bool, err error) {
 
 func (i *Informer) List() []interface{} {
 	return i.store.List()
+}
+
+func (i *Informer) AddEventHandler(h EventHandler) {
+	i.handlers = append(i.handlers, h)
 }
 
 type EventHandler interface {

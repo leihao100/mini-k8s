@@ -5,11 +5,15 @@ import (
 	"MiniK8S/pkg/api/types"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func HandleGetApiObjects(c *gin.Context, ty types.ApiObjectType) {
+	c.JSON(http.StatusOK, "hello world")
+	time.Sleep(1 * time.Second)
+	c.JSON(http.StatusOK, "hello world2")
 	switch ty {
 	case types.PodObjectType:
 	case types.DeploymentObjectType:

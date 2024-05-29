@@ -9,7 +9,7 @@ import (
 type Store interface {
 	Add(key string, obj interface{}) error
 	Update(key string, obj interface{}) error
-	Delete(key string, obj interface{}) error
+	Delete(key string) error
 	List() []interface{}
 	Get(key string) (item interface{}, exists bool, err error)
 }
@@ -21,7 +21,9 @@ type simpleStore struct {
 
 // NewSimpleStore creates a new simpleStore.
 func NewSimpleStore() Store {
-	return &simpleStore{}
+	return &simpleStore{
+		items: sync.Map{},
+	}
 }
 
 // Add inserts an object into the store.
@@ -44,7 +46,7 @@ func (s *simpleStore) Update(key string, obj interface{}) error {
 }
 
 // Delete removes an object from the store.
-func (s *simpleStore) Delete(key string, obj interface{}) error {
+func (s *simpleStore) Delete(key string) error {
 
 	s.items.Delete(key)
 	return nil

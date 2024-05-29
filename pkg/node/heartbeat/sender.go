@@ -53,7 +53,14 @@ func (hbs *HeartBeatSender) SendHeartbeat() error {
 	hbs.Hb.Metadata.CreationTimestamp = time.Now().String()
 	url := hbs.Client.BuildURL(apiClient.Create)
 	buf, _ := hbs.Hb.JsonMarshal()
-	hbs.Client.Put(url, buf)
+	res := hbs.Client.Put(url, buf)
+	defer func() {
+		err := res.Close()
+		if err != nil {
+			panic("send heartbeat func close http fail")
+		}
+	}()
+
 	//todo error handle and version update
 	return nil
 
