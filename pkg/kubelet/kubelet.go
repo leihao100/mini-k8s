@@ -6,7 +6,7 @@ import (
 	apitypes "MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
-	"MiniK8S/pkg/apiClient/listWatch"
+	"MiniK8S/pkg/apiClient/listwatch"
 	"MiniK8S/pkg/kubelet/cri"
 	"MiniK8S/pkg/kubelet/pod"
 	"context"

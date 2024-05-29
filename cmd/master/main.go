@@ -21,4 +21,5 @@ func main() {
 	node.CreateMasterNode()
 	heartbeatRecevier := heartbeat.NewHeartbeatReceiver()
 	heartbeatRecevier.Run(ctx, cancel)
+	<-ctx.Done()
 }

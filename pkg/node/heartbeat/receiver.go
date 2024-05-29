@@ -4,7 +4,8 @@ import (
 	"MiniK8S/pkg/api/config"
 	apitypes "MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
-	"MiniK8S/pkg/apiClient/listWatch"
+	"MiniK8S/pkg/apiClient"
+	"MiniK8S/pkg/apiClient/listwatch"
 	"context"
 	"github.com/google/uuid"
 	"time"
@@ -17,7 +18,8 @@ type HeartbeatReceiver struct {
 
 func NewHeartbeatReceiver() *HeartbeatReceiver {
 	return &HeartbeatReceiver{
-		times: make(map[uuid.UUID]time.Time),
+		times:         make(map[uuid.UUID]time.Time),
+		HbListWatcher: listwatch.NewListWatchFromClient(apiClient.NewRESTClient(apitypes.HeartbeatObjectType)),
 	}
 }
 

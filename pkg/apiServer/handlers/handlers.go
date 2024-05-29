@@ -8,12 +8,11 @@ import (
 	"MiniK8S/pkg/etcd"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"io"
+	"net/http"
 )
 
 func HandleGetApiObjects(c *gin.Context, ty types.ApiObjectType) {
@@ -78,6 +77,7 @@ func HandleGetApiObject(c *gin.Context, ty types.ApiObjectType) {
 }
 
 func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
+
 	buf, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})

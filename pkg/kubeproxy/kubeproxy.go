@@ -5,7 +5,7 @@ import (
 	"MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
-	"MiniK8S/pkg/apiClient/listWatch"
+	"MiniK8S/pkg/apiClient/listwatch"
 	"MiniK8S/pkg/kubelet"
 	"MiniK8S/pkg/kubeproxy/ipInterface"
 	ipvsManager "MiniK8S/pkg/kubeproxy/ipvs"
@@ -40,6 +40,8 @@ func NewKubeProxy(kl *kubelet.Kubelet) *KubeProxy {
 
 func (kp *KubeProxy) Run(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
+	kp.podListWatcher = listwatch.NewListWatchFromClient(kp.podClient)
+	kp.serviceListWatcher = listwatch.NewListWatchFromClient(kp.serviceClient)
 	go kp.PodListWatch(ctx, cancel)
 	go kp.ServiceListWatcher(ctx, cancel)
 	return

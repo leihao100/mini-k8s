@@ -10,13 +10,13 @@ import (
 func main() {
 	//go func() {
 	api := apiserver.NewApiServer()
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	api.Run(cancel)
 	//<-context.Done()
 	//}()
 	time.Sleep(3 * time.Second)
 	k := kubelet.Kubelet{}
-	k.Run()
+	k.Run(ctx, cancel)
 	k.SendMessage()
 }
 

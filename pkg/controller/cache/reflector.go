@@ -4,7 +4,7 @@ import (
 	"MiniK8S/pkg/api/config"
 	apitypes "MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
-	"MiniK8S/pkg/apiClient/listWatch"
+	"MiniK8S/pkg/apiClient/listwatch"
 	"errors"
 	"time"
 )
