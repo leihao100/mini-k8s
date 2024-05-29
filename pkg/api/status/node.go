@@ -1,16 +1,18 @@
 package status
 
-import "MiniK8S/pkg/api/address"
+import (
+	"MiniK8S/pkg/api/address"
+	"encoding/json"
+)
 
 type NodeStatus struct {
-	Addresses address.NodeAddress
+	Addresses address.NodeAddress `json:"addresses,omitempty"`
 	//Allocatable object
-	DaemonEndpoints int64 //其对应了kubelet所监听的端口
-	Phase           string
+	DaemonEndpoints int64  `json:"daemonEndpoints,omitempty"` //其对应了kubelet所监听的端口
+	Phase           string `json:"phase,omitempty"`
 }
 
 /*
-
 Field	Description
 addresses
 NodeAddress array
@@ -39,3 +41,10 @@ AttachedVolume array	List of volumes that are attached to the node.
 volumesInUse
 string array	List of attachable volumes in use (mounted) by the node.
 */
+func (n *NodeStatus) JsonMarshal() ([]byte, error) {
+	return json.Marshal(n)
+}
+
+func (n *NodeStatus) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &n)
+}

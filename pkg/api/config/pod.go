@@ -4,6 +4,10 @@ import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/status"
 	"encoding/json"
+	"fmt"
+	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type Pod struct {
@@ -12,15 +16,6 @@ type Pod struct {
 	Metadata   meta.ObjectMeta  `json:"metadata,omitempty"`
 	Spec       PodSpec          `json:"spec,omitempty"`
 	Status     status.PodStatus `json:"status,omitempty"`
-}
-
-func (p *Pod) Marshal() []byte {
-	buf, _ := json.Marshal(p)
-	return buf
-}
-
-func (p *Pod) Unmarshal(b []byte) error {
-	return json.Unmarshal(b, p)
 }
 
 /*
@@ -35,7 +30,7 @@ ObjectMeta	Standard object's metadata. More info: https://git.k8s.io/community/c
 spec
 PodSpec	Specification of the desired behavior of the pod. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 status
-PodStatus	Most recently observed status of the pod. This data may not be up-to-date. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+PodStatus	Most recently observed status of the pod. This data may not be up to date. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 */
 
 type PodSpec struct {
@@ -50,4 +45,89 @@ type PodSpec struct {
 type PodTemplateSpec struct {
 	Metadata meta.ObjectMeta `json:"metadata,omitempty"`
 	Spec     PodSpec         `json:"spec,omitempty"`
+}
+
+type PodList struct {
+	ApiVersion      string `json:"apiVersion,omitempty"`
+	Kind            string `json:"kind,omitempty"`
+	ResourceVersion string `json:"resourceVersion,omitempty"`
+	Continue        string `json:"continue,omitempty"`
+	Items           []Pod  `json:"items"`
+}
+
+func (p *Pod) JsonMarshal() ([]byte, error) {
+	return json.Marshal(p)
+}
+
+func (p *Pod) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &p)
+}
+
+func (p *Pod) SetUID(uid uuid.UUID) {
+	p.Metadata.Uid = uid
+}
+
+func (p *Pod) GetUID() uuid.UUID {
+	return p.Metadata.Uid
+}
+
+func (p *Pod) SetResourceVersion(version int64) {
+	p.Metadata.ResourceVersion = strconv.FormatInt(version, 10)
+}
+func (p *Pod) GetResourceVersion() int64 {
+	res, err := strconv.ParseInt(p.Metadata.ResourceVersion, 10, 64)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return 0
+	}
+	return res
+}
+func (p *Pod) JsonUnmarshalStatus(data []byte) error {
+	return json.Unmarshal(data, &(p.Status))
+}
+
+func (p *Pod) JsonMarshalStatus() ([]byte, error) {
+	return json.Marshal(p.Status)
+}
+func (p *Pod) SetStatus(s ApiObjectStatus) bool {
+	status, ok := s.(*status.PodStatus)
+	if ok {
+		p.Status = *status
+	}
+	return ok
+}
+func (p *Pod) GetStatus() ApiObjectStatus {
+	return &p.Status
+}
+func (p *Pod) Info() {
+	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", p.Metadata.Name, p.Metadata.Uid, p.Spec.NodeName, p.Status.Phase, p.Status.PodIP)
+}
+
+func (p *PodList) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &p)
+}
+
+func (p *PodList) JsonMarshal() ([]byte, error) {
+	return json.Marshal(p)
+}
+func (p *PodList) AppendItems(objects []string) error {
+	for _, object := range objects {
+		ApiObject := &Pod{}
+		err := ApiObject.JsonUnmarshal([]byte(object))
+		if err != nil {
+			return err
+		}
+		p.Items = append(p.Items, *ApiObject)
+	}
+	return nil
+}
+func (p *PodList) GetItems() any {
+	return p.Items
+}
+func (p *PodList) Info() {
+	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
+	for _, item := range p.Items {
+		fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.NodeName, item.Status.Phase, item.Status.PodIP)
+	}
 }

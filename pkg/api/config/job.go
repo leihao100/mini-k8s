@@ -3,9 +3,9 @@ package config
 import "MiniK8S/pkg/api/meta"
 
 type Job struct {
-	ApiVersion string `yaml:"apiVersion"`
-	Kind       string `yaml:"kind"`
-	Metadata   meta.ObjectMeta
+	ApiVersion string          `yaml:"apiVersion" json:"apiVersion,omitempty"`
+	Kind       string          `yaml:"kind" json:"kind,omitempty"`
+	Metadata   meta.ObjectMeta `json:"metadata,omitempty"`
 }
 
 /*
@@ -25,14 +25,14 @@ JobStatus	Current status of a job. More info: https://git.k8s.io/community/contr
 
 // JobSpec  from https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#jobspec-v1-batch
 type JobSpec struct {
-	ActiveDeadlineSeconds   int64  `yaml:"activeDeadlineSeconds"`
-	BackoffLimit            int64  `yaml:"backoffLimit"`
-	CompletionMode          string `yaml:"completionMode"`
-	Parallelism             int64  `yaml:"parallelism"`
-	Suspend                 bool   `yaml:"suspend"`
-	TtlSecondsAfterFinished int64  `yaml:"ttlSecondsAfterFinished"`
-	Completions             int64  `yaml:"completions"`
-	ManualSelector          bool   `yaml:"manualSelector"`
+	ActiveDeadlineSeconds   int64  `yaml:"activeDeadlineSeconds" json:"activeDeadlineSeconds,omitempty"`
+	BackoffLimit            int64  `yaml:"backoffLimit" json:"backoffLimit,omitempty"`
+	CompletionMode          string `yaml:"completionMode" json:"completionMode,omitempty"`
+	Parallelism             int64  `yaml:"parallelism" json:"parallelism,omitempty"`
+	Suspend                 bool   `yaml:"suspend" json:"suspend,omitempty"`
+	TtlSecondsAfterFinished int64  `yaml:"ttlSecondsAfterFinished" json:"ttlSecondsAfterFinished,omitempty"`
+	Completions             int64  `yaml:"completions" json:"completions,omitempty"`
+	ManualSelector          bool   `yaml:"manualSelector" json:"manualSelector,omitempty"`
 	//todo labelseletor and template
 }
 
