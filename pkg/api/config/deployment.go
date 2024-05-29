@@ -4,11 +4,11 @@ import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/selector"
 	"MiniK8S/pkg/api/status"
+
+	"github.com/google/uuid"
 	"encoding/json"
 	"fmt"
 	"strconv"
-
-	"github.com/google/uuid"
 )
 
 type Deployment struct {
