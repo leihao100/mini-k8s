@@ -3,12 +3,14 @@ package kubelet
 import (
 	"MiniK8S/pkg/api/config"
 	"MiniK8S/pkg/api/status"
+	apitypes "MiniK8S/pkg/api/types"
+	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/kubelet/cri"
 	"MiniK8S/pkg/kubelet/pod"
 	"fmt"
-
 	"github.com/docker/docker/api/types"
 	"github.com/google/uuid"
+	"io"
 )
 
 const pauseName = "mirrorgooglecontainers/pause:latest"
@@ -16,12 +18,14 @@ const pauseName = "mirrorgooglecontainers/pause:latest"
 type Kubelet struct {
 	cli        cri.Client
 	podManager *pod.PodManager
+	podClient  *apiClient.Client
 }
 
 func (k *Kubelet) Run() {
 	//cli, _ := cri.GetClient()
 	var err error
 	k.cli, err = cri.GetClient()
+	k.podClient = apiClient.NewRESTClient(apitypes.PodObjectType)
 	if err != nil {
 		panic(err)
 		fmt.Println("error:", err)
@@ -29,6 +33,18 @@ func (k *Kubelet) Run() {
 	k.podManager = pod.NewPodManager()
 
 }
+
+// just for test
+func (k *Kubelet) SendMessage() {
+	url := k.podClient.BuildURL("get")
+	res := k.podClient.Get(url, nil)
+	body, err := io.ReadAll(res)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(body))
+}
+
 func (k *Kubelet) Stop() {
 
 }
@@ -57,6 +73,16 @@ func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 	if err != nil {
 		panic(err)
 	}
+	newContainerStatus := status.ContainerStatus{
+		Name:         name,
+		ContainerID:  response.ID,
+		ImageID:      "",
+		Image:        container.Image,
+		State:        types.ContainerState{},
+		Started:      false,
+		RestartCount: 0,
+	}
+	pod.Status.ContainerStatuses = append(pod.Status.ContainerStatuses, newContainerStatus)
 	k.podManager.AddContainer(pod.Metadata.Uid, name, response.ID)
 	return response.ID
 }
@@ -168,6 +194,7 @@ func (k *Kubelet) UpdatePodStatusByID(id uuid.UUID) {
 				FinishedAt: json.State.FinishedAt,
 				Health:     json.State.Health,
 			},
+			Started: json.State.Running,
 			//todo :may add net config
 		}
 

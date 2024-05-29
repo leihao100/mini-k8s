@@ -1,12 +1,18 @@
 package main
 
 import (
-	"MiniK8S/pkg/api/config"
-	"MiniK8S/pkg/api/meta"
-	"MiniK8S/pkg/api/status"
-	"MiniK8S/pkg/kubelet"
+	"fmt"
+	"time"
 )
 
+func main() {
+	fmt.Println("a test")
+	go fmt.Println("Hello World")
+	time.Sleep(10 * time.Second)
+
+}
+
+/*
 func main() {
 	//cl, err := client.NewClientWithOpts(client.WithVersion("1.43"))
 	//if err != nil {
@@ -18,7 +24,7 @@ func main() {
 		Cmd:          nil,
 		Entrypoint:   nil,
 		Env:          nil,
-		Image:        "mysql:latest",
+		Image:        "hello-world:latest",
 		Volumes:      nil,
 		Labels:       nil,
 		PortBindings: nil,
@@ -96,3 +102,4 @@ func main() {
 	//
 	//}
 }
+*/
