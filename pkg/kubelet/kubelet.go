@@ -42,17 +42,14 @@ func NewKubelet(node config.Node) *Kubelet {
 	}
 }
 
-func (k *Kubelet) Run() {
+func (k *Kubelet) Run(ctx context.Context, cancel context.CancelFunc) error {
 	//cli, _ := cri.GetClient()
-	var err error
-	k.cli, err = cri.GetClient()
-	k.podClient = apiClient.NewRESTClient(apitypes.PodObjectType)
-	if err != nil {
-		panic(err)
-		fmt.Println("error:", err)
-	}
-	k.podManager = pod.NewPodManager()
-
+	defer cancel()
+	k.podListWatcher = listwatch.NewListWatchFromClient(k.podClient)
+	go func() {
+		k.ListAndWatch(ctx)
+	}()
+	return nil
 }
 
 // just for test

@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"MiniK8S/config"
+	"MiniK8S/pkg/etcd"
 	"context"
 	"fmt"
 )
@@ -23,12 +24,12 @@ func NewApiServer() ApiServer {
 func (a apiServer) Run(cancel context.CancelFunc) {
 	fmt.Printf("[apiServer] apiServer start\n")
 	defer fmt.Printf("[apiServer] apiServer start finish")
-	//etcd.Init()
+	etcd.Init()
 	a.httpServer.BindHandlers()
 
 	go func() {
 		defer cancel()
-		//defer etcd.Close()
+		defer etcd.Close()
 		fmt.Printf("[apiServer] httpServer start\n")
 		err := a.httpServer.Run(config.ApiServerPort())
 		if err != nil {

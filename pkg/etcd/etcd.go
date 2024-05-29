@@ -10,7 +10,7 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-var etcdEndpoint = config.EtcdHost() + config.EtcdPort()
+var etcdEndpoint = "http://" + config.EtcdHost() + config.EtcdPort()
 var etcdConfig clientv3.Config
 var etcdClient *clientv3.Client
 var requestTimeout = time.Second
@@ -61,7 +61,9 @@ func Init() {
 	} else {
 		fmt.Printf("[etcd] connect to etcd success\n")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	//for test
+	fmt.Println("[debug] etcd endpoint:", etcdEndpoint)
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout*10)
 	status, err := etcdClient.Status(ctx, etcdEndpoint)
 	defer cancel()
 	if err != nil {
