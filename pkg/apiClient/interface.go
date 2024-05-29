@@ -6,9 +6,8 @@ import (
 	"io"
 )
 
+// TODO: 可能要改？
 type Interface interface {
-	URL() string
-	BuildURL(requestType RequestType) string
 	Post(resourceURL string, context []byte) io.ReadCloser
 	Get(resourceURL string, context []byte) io.ReadCloser
 	Put(resourceURL string, context []byte) io.ReadCloser

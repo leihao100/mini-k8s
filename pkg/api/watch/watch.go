@@ -14,6 +14,8 @@ type Interface interface {
 	ResultChan() <-chan Event
 }
 
+const SeparationChar = '\n'
+
 // EventType defines the possible types of events.
 type EventType string
 

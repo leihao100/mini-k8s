@@ -112,16 +112,6 @@ func NewApiObjectList(ty types.ApiObjectType) ApiObjectList {
 	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }
 
-type ApiObjectList interface {
-	JsonUnmarshal(data []byte) error
-	JsonMarshal() ([]byte, error)
-	AddItemFromStr(objectStr string) error
-	AppendItemsFromStr(objectStrs []string) error
-	GetItems() any
-	GetIApiObjectArr() []ApiObject
-	PrintBrief()
-}
-
 // ListOptions is the query options to a standard REST list call.
 type ListOptions struct {
 	Kind string `json:"kind,omitempty" protobuf:"bytes,1,opt,name=kind"`

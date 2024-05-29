@@ -8,7 +8,9 @@ import (
 	"MiniK8S/pkg/api/watch"
 	"bytes"
 	"io"
+	"log"
 	"net/http"
+	"time"
 )
 
 type RequestType string
@@ -21,9 +23,14 @@ const (
 	Status RequestType = "status"
 )
 
+const ReconnectInterval = 5
+
+// Client is a REST client for Kubernetes API
 type Client struct {
+	// ApiServerUrl is the URL of the API server
 	ApiServerUrl string
-	ResourceUrl  url.URL
+	// MiddleURL is a URL generator
+	MiddleURL    url.URL
 	ResourceType types.ApiObjectType
 }
 
@@ -54,7 +61,7 @@ func NewRESTClient(ty types.ApiObjectType) *Client {
 	apiserverURL := config.ApiServerHost() + config.ApiServerPort()
 	return &Client{
 		ApiServerUrl: apiserverURL,
-		ResourceUrl:  newURL,
+		MiddleURL:    newURL,
 		ResourceType: ty,
 	}
 }
@@ -67,18 +74,41 @@ func (c *Client) BuildURL(requestType RequestType) string {
 	res := c.ApiServerUrl
 	switch requestType {
 	case Create:
-		return res + c.ResourceUrl.CreateURL()
+		return res + c.MiddleURL.CreateURL()
 	case Delete:
-		return res + c.ResourceUrl.DeleteURL()
+		return res + c.MiddleURL.DeleteURL()
 	case Get:
-		return res + c.ResourceUrl.GetURL()
+		return res + c.MiddleURL.GetURL()
 	case Watch:
-		return res + c.ResourceUrl.WatchURL()
+		return res + c.MiddleURL.WatchURL()
 	case Status:
-		return res + c.ResourceUrl.StatusURL()
+		return res + c.MiddleURL.StatusURL()
 	default:
 		return ""
 	}
+}
+
+// BuildFullURL builds a full URL for a given request type and resource name
+func (c *Client) BuildFullURL(requestType RequestType, resourceName string) string {
+	res := c.ApiServerUrl
+	switch requestType {
+	case Create:
+		res = res + c.MiddleURL.CreateURL()
+	case Delete:
+		res = res + c.MiddleURL.DeleteURL()
+	case Get:
+		res = res + c.MiddleURL.GetURL()
+	case Watch:
+		res = res + c.MiddleURL.WatchURL()
+	case Status:
+		res = res + c.MiddleURL.StatusURL()
+	default:
+		return ""
+	}
+	if resourceName != "" {
+		res = res + "/" + resourceName
+	}
+	return res
 }
 
 func (c *Client) Post(resourceURL string, context []byte) io.ReadCloser {
@@ -152,16 +182,61 @@ func (c *Client) Delete(resourceURL string, context []byte) io.ReadCloser {
 }
 
 func (c *Client) GetAll() (objectList core.ApiObjectList, err error) {
-	//TODO implement me
-	panic("implement me")
+	getUrl := c.BuildFullURL(Get, "")
+	resp, err := http.Get(getUrl)
+	if err != nil {
+		log.Println("[RESTClient] WatchAll Failed: ", err)
+		return nil, err
+	}
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("[RESTClient] http.GetAll response io.ReadAll(resp.Body) failed", err)
+		return nil, err
+	}
+	objectList = core.NewApiObjectList(c.ResourceType)
+	if len(content) == 0 {
+		return objectList, nil
+	}
+	err = objectList.JsonUnmarshal(content)
+	if err != nil {
+		log.Printf("[RESTClient] http.Get response json.Unmarshal failed, err %v\n", err)
+		return nil, err
+	}
+	return objectList, nil
 }
 
 func (c *Client) WatchAll() (watch.Interface, error) {
-	//TODO implement me
-	panic("implement me")
+	watchUrl := c.BuildFullURL(Watch, "")
+	resp, err := http.Get(watchUrl)
+
+	if err != nil {
+		log.Println("[RESTClient] WatchAll Failed: ", err)
+		// sleep some time before retry
+		time.Sleep(time.Second * time.Duration(ReconnectInterval))
+		return nil, err
+	}
+
+	decoder := watch.NewEtcdEventDecoder(resp.Body, c.ResourceType)
+	streamWatcher := watch.NewStreamWatcher(decoder)
+
+	return streamWatcher, nil
 }
 
 func (c *Client) Watch(name string) (watch.Interface, error) {
-	//TODO implement me
-	panic("implement me")
+	watchURL := c.BuildFullURL(Watch, name)
+	resp, err := http.Get(watchURL)
+
+	if err != nil {
+		log.Printf("[RESTClient] Watch %v %v Failed: %v\n", c.ResourceType, name, err)
+		// sleep some time before retry
+		time.Sleep(time.Second * time.Duration(ReconnectInterval))
+		return nil, err
+	}
+
+	log.Printf("[RESTClient] Watch %v %v start\n", c.ResourceType, name)
+
+	decoder := watch.NewEtcdEventDecoder(resp.Body, c.ResourceType)
+	streamWatcher := watch.NewStreamWatcher(decoder)
+
+	return streamWatcher, nil
 }
