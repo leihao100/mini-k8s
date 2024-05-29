@@ -1,4 +1,4 @@
-package listWatcher
+package listwatch
 
 import (
 	"MiniK8S/pkg/api/config"

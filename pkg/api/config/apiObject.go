@@ -1,52 +1,68 @@
 package config
 
 import (
-	"MiniK8S/pkg/api/meta"
+	"MiniK8S/pkg/api/status"
 	"MiniK8S/pkg/api/types"
-	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
 )
 
 type ApiObject interface {
-	JsonUnmarshal(data []byte) error
+	JsonUnmarshal([]byte) error
 	JsonMarshal() ([]byte, error)
-	SetUID(uid uuid.UUID)
+	SetUID(uuid.UUID)
 	GetUID() uuid.UUID
+	SetResourceVersion(int64)
+	GetResourceVersion() int64
+	JsonUnmarshalStatus([]byte) error
+	JsonMarshalStatus() ([]byte, error)
+	SetStatus(ApiObjectStatus) bool
+	GetStatus() ApiObjectStatus
+	Info()
 }
 type ApiObjectSpec interface {
 }
 type ApiObjectStatus interface {
+	JsonUnmarshal([]byte) error
+	JsonMarshal() ([]byte, error)
+}
+type ApiObjectList interface {
+	JsonUnmarshal([]byte) error
+	JsonMarshal() ([]byte, error)
+	AppendItems(objects []string) error
+	GetItems() any
+	Info()
 }
 
-type ErrorApiObject struct {
-	ApiVersion string          `json:"apiVersion,omitempty"`
-	Kind       string          `json:"kind,omitempty"`
-	Metadata   meta.ObjectMeta `json:"metadata,omitempty"`
-	Spec       ErrorSpec       `json:"spec,omitempty"`
-	Status     ErrorStatus     `json:"status,omitempty"`
-}
+// type ErrorApiObject struct {
+// 	ApiVersion string          `json:"apiVersion,omitempty"`
+// 	Kind       string          `json:"kind,omitempty"`
+// 	Metadata   meta.ObjectMeta `json:"metadata,omitempty"`
+// 	Spec       ErrorSpec       `json:"spec,omitempty"`
+// 	Status     ErrorStatus     `json:"status,omitempty"`
+// }
 
-type ErrorSpec struct {
-}
-type ErrorStatus struct {
-}
+// type ErrorSpec struct {
+// }
+// type ErrorStatus struct {
+// }
 
-func (e *ErrorApiObject) JsonMarshal() ([]byte, error) {
-	return json.Marshal(e)
-}
+// func (e *ErrorApiObject) JsonMarshal() ([]byte, error) {
+// 	return json.Marshal(e)
+// }
 
-func (e *ErrorApiObject) JsonUnmarshal(data []byte) error {
-	return json.Unmarshal(data, &e)
-}
+// func (e *ErrorApiObject) JsonUnmarshal(data []byte) error {
+// 	return json.Unmarshal(data, &e)
+// }
 
-func (e *ErrorApiObject) SetUID(uid uuid.UUID) {
-	e.Metadata.Uid = uid
-}
+// func (e *ErrorApiObject) SetUID(uid uuid.UUID) {
+// 	e.Metadata.Uid = uid
+// }
 
-func (e *ErrorApiObject) GetUID() uuid.UUID {
-	return e.Metadata.Uid
-}
+// func (e *ErrorApiObject) GetUID() uuid.UUID {
+// 	return e.Metadata.Uid
+// }
 
 func NewApiObject(ty types.ApiObjectType) ApiObject {
 	switch ty {
@@ -61,17 +77,39 @@ func NewApiObject(ty types.ApiObjectType) ApiObject {
 	case types.NodeObjectType:
 		return &Node{}
 	}
-	return &ErrorApiObject{}
+	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }
 
-type ApiObjectList interface {
-	JsonUnmarshal(data []byte) error
-	JsonMarshal() ([]byte, error)
-	AddItemFromStr(objectStr string) error
-	AppendItemsFromStr(objectStrs []string) error
-	GetItems() any
-	GetIApiObjectArr() []ApiObject
-	PrintBrief()
+func NewApiObjectStatus(ty types.ApiObjectType) ApiObjectStatus {
+	switch ty {
+	case types.PodObjectType:
+		return &status.PodStatus{}
+	case types.ServiceObjectType:
+		return &status.ServiceStatus{}
+	case types.DeploymentObjectType:
+		return &status.DeploymentStatus{}
+	case types.HorizontalPodAutoscalerObjectType:
+		return &status.HorizontalPodAutoscalerStatus{}
+	case types.NodeObjectType:
+		return &status.NodeStatus{}
+	}
+	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
+}
+
+func NewApiObjectList(ty types.ApiObjectType) ApiObjectList {
+	switch ty {
+	case types.PodObjectType:
+		return &PodList{}
+	case types.ServiceObjectType:
+		return &ServiceList{}
+	case types.DeploymentObjectType:
+		return &DeploymentList{}
+	case types.HorizontalPodAutoscalerObjectType:
+		return &HorizontalPodAutoscalerList{}
+	case types.NodeObjectType:
+		return &NodeList{}
+	}
+	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }
 
 // ListOptions is the query options to a standard REST list call.

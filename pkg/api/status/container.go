@@ -1,6 +1,10 @@
 package status
 
-import "github.com/docker/docker/api/types"
+import (
+	"encoding/json"
+
+	"github.com/docker/docker/api/types"
+)
 
 type ContainerStatus struct {
 	Name         string               `json:"name,omitempty"`
@@ -13,7 +17,6 @@ type ContainerStatus struct {
 }
 
 /*
-
 containerID
 string	Container's ID in the format '<type>://<container_id>'.
 image
@@ -33,3 +36,10 @@ boolean	Specifies whether the container has passed its startup probe. Initialize
 state
 ContainerState	Details about the container's current condition.
 */
+func (c *ContainerStatus) JsonMarshal() ([]byte, error) {
+	return json.Marshal(c)
+}
+
+func (c *ContainerStatus) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &c)
+}

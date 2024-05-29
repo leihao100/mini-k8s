@@ -1,5 +1,7 @@
 package status
 
+import "encoding/json"
+
 type PodPhase string
 
 const (
@@ -16,4 +18,12 @@ type PodStatus struct {
 	HostIP            string            `json:"hostIP,omitempty"`
 	Phase             string            `json:"phase,omitempty"`
 	PodIP             string            `json:"podIP,omitempty"`
+}
+
+func (p *PodStatus) JsonMarshal() ([]byte, error) {
+	return json.Marshal(p)
+}
+
+func (p *PodStatus) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &p)
 }
