@@ -11,7 +11,3 @@ var applyCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run:   create,
 }
-
-func init() {
-	rootCmd.AddCommand(applyCmd)
-}
