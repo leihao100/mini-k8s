@@ -57,7 +57,7 @@ func Init() {
 	}
 	etcdClient, err = clientv3.New(etcdConfig)
 	if err != nil {
-		fmt.Printf("[etcd]%v", err)
+		fmt.Printf("[etcd] %v", err)
 	} else {
 		fmt.Printf("[etcd] connect to etcd success\n")
 	}

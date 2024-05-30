@@ -6,18 +6,18 @@ import (
 	apitypes "MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
-	"MiniK8S/pkg/apiClient/listWatcher"
 	"MiniK8S/pkg/kubelet/cri"
 	"MiniK8S/pkg/kubelet/pod"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/google/uuid"
 	"io"
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/docker/docker/api/types"
+	"github.com/google/uuid"
 )
 
 const pauseName = "mirrorgooglecontainers/pause:latest"
