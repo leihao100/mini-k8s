@@ -11,5 +11,7 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
+	rootCmd.PersistentFlags().StringP("filename", "f", "", "the name of yamlfile")
+	rootCmd.PersistentFlags().StringP("namespace", "n", "", "kube object' namespace")
 	rootCmd.Execute()
 }

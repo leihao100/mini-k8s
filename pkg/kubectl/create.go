@@ -11,6 +11,5 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("filename", "f", "", "the name of yamlfile")
 	rootCmd.AddCommand(createCmd)
 }

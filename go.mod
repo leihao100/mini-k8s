@@ -85,7 +85,8 @@ require github.com/cloudflare/ipvs v0.10.1
 
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
-	github.com/google/cadvisor v0.49.0 // indirect
+	github.com/ghodss/yaml v1.0.0
+	github.com/google/cadvisor v0.49.1 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1 // indirect
 	github.com/josharian/native v1.0.0 // indirect
@@ -102,6 +103,7 @@ require (
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/tools v0.14.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	k8s.io/klog/v2 v2.100.1 // indirect
 	modernc.org/cc/v4 v4.1.0 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/opt v0.1.3 // indirect
