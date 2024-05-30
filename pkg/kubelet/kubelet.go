@@ -12,12 +12,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/google/uuid"
 	"io"
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/docker/docker/api/types"
+	"github.com/google/uuid"
 )
 
 const pauseName = "mirrorgooglecontainers/pause:latest"
@@ -44,9 +45,9 @@ func NewKubelet(node config.Node) *Kubelet {
 
 func (k *Kubelet) Run(ctx context.Context, cancel context.CancelFunc) error {
 	//cli, _ := cri.GetClient()
-	defer cancel()
 	k.podListWatcher = listwatch.NewListWatchFromClient(k.podClient)
 	go func() {
+		defer cancel()
 		k.ListAndWatch(ctx)
 	}()
 	return nil
@@ -238,7 +239,7 @@ func (k *Kubelet) GetPods() []*config.Pod {
 */
 func (k *Kubelet) UpdatePodStatusByID(id uuid.UUID) {
 	pod := k.podManager.GetPodById(id)
-	fmt.Println(len(pod.Status.ContainerStatuses))
+	// fmt.Println(len(pod.Status.ContainerStatuses))
 	containerStatus := pod.Status.ContainerStatuses
 	for i, Status := range containerStatus {
 		json, err := k.cli.ContainerStatus(Status.ContainerID)

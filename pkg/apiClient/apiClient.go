@@ -40,22 +40,16 @@ func NewRESTClient(ty types.ApiObjectType) *Client {
 	switch ty {
 	case types.PodObjectType:
 		field = "pods"
-		break
 	case types.ServiceObjectType:
 		field = "services"
-		break
 	case types.DeploymentObjectType:
 		field = "deployments"
-		break
 	case types.HeartbeatObjectType:
 		field = "heartbeats"
-		break
 	case types.HorizontalPodAutoscalerObjectType:
 		field = "hpa"
-		break
 	case types.NodeObjectType:
 		field = "nodes"
-		break
 	}
 	newURL.Init("v1", string(field))
 	apiserverURL := config.ApiServerHost() + config.ApiServerPort()

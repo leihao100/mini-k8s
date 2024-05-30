@@ -4,6 +4,7 @@ import (
 	"MiniK8S/config"
 	apiConfig "MiniK8S/pkg/api/config"
 	"MiniK8S/pkg/apiClient"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -49,7 +50,7 @@ func delete(cmd *cobra.Command, args []string) {
 		return
 	}
 	cli := apiClient.NewRESTClient(apiObjectType)
-	serverPath := cli.BuildURL(apiClient.Delete) + name
+	serverPath := cli.BuildURL(apiClient.Delete) + "/" + name
 	cli.Delete(serverPath, nil)
 }
 
@@ -61,11 +62,24 @@ func get(cmd *cobra.Command, args []string) {
 		return
 	}
 	cli := apiClient.NewRESTClient(apiObjectType)
+	var buf bytes.Buffer
+	tempBuf := make([]byte, 1024)
 	if len(args) == 1 {
 		serverPath := cli.BuildURL(apiClient.Get)
 		res := cli.Get(serverPath, nil)
-		var jsonData []byte
-		res.Read(jsonData)
+		defer res.Close()
+		for {
+			n, err := res.Read(tempBuf)
+			if err != nil && err != io.EOF {
+				fmt.Printf("[kubectl] Error: %v\n", err)
+				return
+			}
+			if n == 0 {
+				break
+			}
+			buf.Write(tempBuf[:n])
+		}
+		jsonData := buf.Bytes()
 		apiObjectList := apiConfig.NewApiObjectList(apiObjectType)
 		err := apiObjectList.JsonUnmarshal(jsonData)
 		if err != nil {
@@ -74,9 +88,21 @@ func get(cmd *cobra.Command, args []string) {
 		apiObjectList.Info()
 	} else if len(args) >= 2 {
 		name := args[1]
-		serverPath := cli.BuildURL(apiClient.Get) + name
+		serverPath := cli.BuildURL(apiClient.Get) + "/" + name
 		res := cli.Get(serverPath, nil)
-		var jsonData []byte
+		defer res.Close()
+		for {
+			n, err := res.Read(tempBuf)
+			if err != nil && err != io.EOF {
+				fmt.Printf("[kubectl] Error: %v\n", err)
+				return
+			}
+			if n == 0 {
+				break
+			}
+			buf.Write(tempBuf[:n])
+		}
+		jsonData := buf.Bytes()
 		res.Read(jsonData)
 		apiObject := apiConfig.NewApiObject(apiObjectType)
 		err := apiObject.JsonUnmarshal(jsonData)
@@ -94,11 +120,24 @@ func describe(cmd *cobra.Command, args []string) {
 		fmt.Printf("[kubectl] Error: %v\n", err)
 	}
 	cli := apiClient.NewRESTClient(apiObjectType)
+	var buf bytes.Buffer
+	tempBuf := make([]byte, 1024)
 	if len(args) == 1 {
 		serverPath := cli.BuildURL(apiClient.Get)
 		res := cli.Get(serverPath, nil)
-		var jsonData []byte
-		res.Read(jsonData)
+		defer res.Close()
+		for {
+			n, err := res.Read(tempBuf)
+			if err != nil && err != io.EOF {
+				fmt.Printf("[kubectl] Error: %v\n", err)
+				return
+			}
+			if n == 0 {
+				break
+			}
+			buf.Write(tempBuf[:n])
+		}
+		jsonData := buf.Bytes()
 		yamlData, err := yaml.JSONToYAML(jsonData)
 		if err != nil {
 			fmt.Printf("[kubectl] Error: %v\n", err)
@@ -106,10 +145,21 @@ func describe(cmd *cobra.Command, args []string) {
 		fmt.Printf("%v\n", yamlData)
 	} else if len(args) >= 2 {
 		name := args[1]
-		serverPath := cli.BuildURL(apiClient.Get) + name
+		serverPath := cli.BuildURL(apiClient.Get) + "/" + name
 		res := cli.Get(serverPath, nil)
-		var jsonData []byte
-		res.Read(jsonData)
+		defer res.Close()
+		for {
+			n, err := res.Read(tempBuf)
+			if err != nil && err != io.EOF {
+				fmt.Printf("[kubectl] Error: %v\n", err)
+				return
+			}
+			if n == 0 {
+				break
+			}
+			buf.Write(tempBuf[:n])
+		}
+		jsonData := buf.Bytes()
 		yamlData, err := yaml.JSONToYAML(jsonData)
 		if err != nil {
 			fmt.Printf("[kubectl] Error: %v\n", err)

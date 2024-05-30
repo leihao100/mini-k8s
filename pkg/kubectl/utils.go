@@ -6,11 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
 func parseResourceType(ty string) (types.ApiObjectType, error) {
+	ty = strings.ToLower(ty)
 	switch ty {
 	case "pod", "pods":
 		return types.PodObjectType, nil

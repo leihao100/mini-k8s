@@ -9,7 +9,3 @@ var describeCmd = &cobra.Command{
 	Args:  cobra.RangeArgs(1, 2),
 	Run:   describe,
 }
-
-func init() {
-	rootCmd.AddCommand(describeCmd)
-}

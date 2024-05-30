@@ -6,10 +6,6 @@ var clearCmd = &cobra.Command{
 	Use:   "clear",
 	Short: "clear all resources",
 	Long:  "clear all resources",
-	Args:  cobra.MinimumNArgs(1),
+	Args:  cobra.ExactArgs(0),
 	Run:   clear,
-}
-
-func init() {
-	rootCmd.AddCommand(clearCmd)
 }

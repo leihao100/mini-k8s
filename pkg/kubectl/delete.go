@@ -9,7 +9,3 @@ var deleteCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	Run:   delete,
 }
-
-func init() {
-	rootCmd.AddCommand(deleteCmd)
-}

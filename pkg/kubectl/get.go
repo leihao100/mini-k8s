@@ -9,8 +9,3 @@ var getCmd = &cobra.Command{
 	Args:  cobra.RangeArgs(1, 2),
 	Run:   get,
 }
-
-func init() {
-	rootCmd.PersistentFlags().StringP("namespace", "n", "", "kube object' namespace")
-	rootCmd.AddCommand(getCmd)
-}
