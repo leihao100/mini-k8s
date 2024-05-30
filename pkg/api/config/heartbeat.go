@@ -5,9 +5,10 @@ import (
 	apitypes "MiniK8S/pkg/api/types"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const HeartbeatSendInterval = 10 * time.Second
@@ -15,10 +16,10 @@ const HeartbeatCheckInterval = 5 * time.Second
 const HeartbeatTimeoutInterval = 40 * time.Second
 
 type Heartbeat struct {
-	ApiVersion string `yaml:"apiVersion"`
-	Kind       string `yaml:"kind"`
-	Metadata   meta.ObjectMeta
-	Uid        uuid.UUID
+	ApiVersion string          `yaml:"apiVersion" json:"apiVersion,omitempty"`
+	Kind       string          `yaml:"kind" json:"kind,omitempty"`
+	Metadata   meta.ObjectMeta `json:"metadata,omitempty"`
+	Uid        uuid.UUID       `json:"uid,omitempty"`
 }
 
 type HeartbeatList struct {
