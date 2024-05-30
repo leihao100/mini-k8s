@@ -2,8 +2,12 @@ package kubectl
 
 import (
 	"MiniK8S/pkg/api/types"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 func parseResourceType(ty string) (types.ApiObjectType, error) {
@@ -19,7 +23,7 @@ func parseResourceType(ty string) (types.ApiObjectType, error) {
 	case "hpa", "hpas":
 		return types.HorizontalPodAutoscalerObjectType, nil
 	default:
-		errMsg := fmt.Sprintf("No ObjectType name %s", ty)
+		errMsg := fmt.Sprintf("No apiObjectType name %s", ty)
 		return types.ErrorObjectType, errors.New(errMsg)
 	}
 }
@@ -30,4 +34,33 @@ func getFileName() (string, error) {
 		return "", err
 	}
 	return filename, nil
+}
+
+func readFile(file string) (jsonData []byte, ty string, err error) {
+	yamlData, err := os.ReadFile(file)
+	if err != nil {
+		fmt.Printf("[kubectl] Error: %v", err)
+		return nil, "", err
+	}
+
+	var data map[string]interface{}
+	err = yaml.Unmarshal(yamlData, &data)
+	if err != nil {
+		fmt.Printf("[kubectl] Error: %v", err)
+		return nil, "", err
+	}
+
+	ty, ok := data["kind"].(string)
+	if !ok {
+		fmt.Printf("[kubectl] Error: kind field not found or is not a string\n")
+		return nil, "", fmt.Errorf("kind field not found or is not a string")
+	}
+
+	jsonData, err = json.Marshal(data)
+	if err != nil {
+		fmt.Printf("[kubectl] Error: %v", err)
+		return nil, "", err
+	}
+
+	return jsonData, ty, nil
 }
