@@ -334,6 +334,7 @@ func (k *Kubelet) HandleWatch(w watch.Interface, ctx context.Context) error {
 		case event := <-w.ResultChan():
 			pod := event.Object.(*config.Pod)
 			if pod.Spec.NodeName == k.node.Metadata.Name {
+				fmt.Println("[kubelet] Handle Pod Watch Event")
 				switch event.Type {
 				case watch.Added:
 					k.MakePod(pod)
@@ -346,7 +347,6 @@ func (k *Kubelet) HandleWatch(w watch.Interface, ctx context.Context) error {
 				case watch.Bookmark:
 				default:
 					panic("it should never happen")
-
 				}
 			}
 		}
