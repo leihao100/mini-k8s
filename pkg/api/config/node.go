@@ -131,8 +131,13 @@ func (n *NodeList) AppendItems(objects []string) error {
 	}
 	return nil
 }
-func (n *NodeList) GetItems() any {
-	return n.Items
+func (n *NodeList) GetItems() []ApiObject {
+	var items []ApiObject
+	items = make([]ApiObject, 0)
+	for _, item := range n.Items {
+		items = append(items, &item)
+	}
+	return items
 }
 func (n *NodeList) Info() {
 	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "STATUS", "IP")

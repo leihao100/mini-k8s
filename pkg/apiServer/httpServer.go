@@ -100,9 +100,18 @@ func (h httpServer) BindHandlers() {
 				nodes.GET("/status/:name", handlers.HandleGetNodeStatus)    // GET /api/v1/nodes/status/:name
 				nodes.PUT("/status/:name", handlers.HandleModifyNodeStatus) // PUT /api/v1/nodes/status/:name
 			}
-			heartbeats := v1.Group("/nodes")
+			heartbeats := v1.Group("/heartbeats")
 			{
-				heartbeats.PUT("/get", handlers.HandleCreateHeartbeat)
+				heartbeats.GET("/get", handlers.HandleGetHeartbeats)                  // GET /api/v1/heartbeats/get
+				heartbeats.GET("/get/:name", handlers.HandleGetHeartbeat)             // GET /api/v1/heartbeats/get/:name
+				heartbeats.POST("/create", handlers.HandleCreateHeartbeat)            // POST /api/v1/heartbeats/create
+				heartbeats.PUT("/create/:name", handlers.HandleModifyHeartbeat)       // PUT /api/v1/heartbeats/create/:name
+				heartbeats.DELETE("/delete", handlers.HandleDeleteHeartbeats)         // DELETE /api/v1/heartbeats/delete
+				heartbeats.DELETE("/delete/:name", handlers.HandleDeleteHeartbeat)    // DELETE /api/v1/heartbeats/delete/:name
+				heartbeats.GET("/watch", handlers.HandleWatchHeartbeats)              // GET /api/v1/heartbeats/watch
+				heartbeats.GET("/watch/:name", handlers.HandleWatchHeartbeat)         // GET /api/v1/heartbeats/watch/:name
+				heartbeats.GET("/status/:name", handlers.HandleGetHeartbeatStatus)    // GET /api/v1/heartbeats/status/:name
+				heartbeats.PUT("/status/:name", handlers.HandleModifyHeartbeatStatus) // PUT /api/v1/heartbeats/status/:name
 			}
 		}
 	}

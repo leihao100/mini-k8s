@@ -285,7 +285,7 @@ func (k *Kubelet) ListAndWatch(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
-	list := podList.GetItems().([]config.ApiObject)
+	list := podList.GetItems()
 	for _, p := range list {
 		pod := p.(*config.Pod)
 		k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)

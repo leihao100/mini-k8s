@@ -98,8 +98,13 @@ func (d *HeartbeatList) AppendItems(objects []string) error {
 	}
 	return nil
 }
-func (d *HeartbeatList) GetItems() any {
-	return d.Items
+func (d *HeartbeatList) GetItems() []ApiObject {
+	var items []ApiObject
+	items = make([]ApiObject, 0)
+	for _, item := range d.Items {
+		items = append(items, &item)
+	}
+	return items
 }
 func (d *HeartbeatList) Info() {
 	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")

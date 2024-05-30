@@ -5,6 +5,7 @@ import (
 	"MiniK8S/pkg/node"
 	"MiniK8S/pkg/node/heartbeat"
 	"context"
+	"time"
 )
 
 func main() {
@@ -13,6 +14,7 @@ func main() {
 	workNode := node.CreateWorkerNode()
 	hbSender := heartbeat.NewHbSender(workNode.GetNode().GetUID())
 	hbSender.Run(ctx, cancel)
-	kubelet.NewKubelet(*workNode.GetNode())
-
+	kubelet := kubelet.NewKubelet(*workNode.GetNode())
+	kubelet.Run(ctx, cancel)
+	time.Sleep(5 * time.Second)
 }

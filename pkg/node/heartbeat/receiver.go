@@ -64,7 +64,7 @@ func (hbr *HeartbeatReceiver) WatchList(ctx context.Context, listWatcher listwat
 	if err != nil {
 		panic(err)
 	}
-	list := podList.GetItems().([]config.ApiObject)
+	list := podList.GetItems()
 	for _, object := range list {
 		hb := object.(*config.Heartbeat)
 		hbr.times[hb.Metadata.Uid], _ = time.Parse(time.DateTime, hb.Metadata.CreationTimestamp)

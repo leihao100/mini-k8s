@@ -31,7 +31,7 @@ type ApiObjectList interface {
 	JsonUnmarshal([]byte) error
 	JsonMarshal() ([]byte, error)
 	AppendItems(objects []string) error
-	GetItems() any
+	GetItems() []ApiObject
 	Info()
 }
 
@@ -108,6 +108,8 @@ func NewApiObjectList(ty types.ApiObjectType) ApiObjectList {
 		return &HorizontalPodAutoscalerList{}
 	case types.NodeObjectType:
 		return &NodeList{}
+	case types.HeartbeatObjectType:
+		return &HeartbeatList{}
 	}
 	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }
