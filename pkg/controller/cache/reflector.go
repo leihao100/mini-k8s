@@ -115,7 +115,7 @@ func (r *Reflector) HandleWatch(w watch.Interface, stopCh <-chan struct{}) error
 }
 
 func (r *Reflector) HandleList(l config.ApiObjectList) error {
-	list := l.GetItems().([]config.ApiObject)
+	list := l.GetItems()
 
 	for _, obj := range list {
 		key := obj.GetUID()
