@@ -54,7 +54,9 @@ func (k *Kubelet) Run(ctx context.Context, cancel context.CancelFunc) error {
 
 // just for test
 func (k *Kubelet) SendMessage() {
-	url := k.podClient.BuildURL("get")
+
+	url := k.podClient.BuildURL(apiClient.Create)
+	fmt.Println("my yrl is" + url)
 	res := k.podClient.Get(url, nil)
 	for {
 		body, err := io.ReadAll(res)

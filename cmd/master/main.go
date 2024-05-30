@@ -6,6 +6,7 @@ import (
 	"MiniK8S/pkg/node/heartbeat"
 	"context"
 	"fmt"
+	"time"
 )
 
 /*
@@ -18,6 +19,7 @@ func main() {
 	server := apiserver.NewApiServer()
 	server.Run(cancel)
 	fmt.Println("server成功运行")
+	time.Sleep(5 * time.Second)
 	node.CreateMasterNode()
 	heartbeatRecevier := heartbeat.NewHeartbeatReceiver()
 	heartbeatRecevier.Run(ctx, cancel)

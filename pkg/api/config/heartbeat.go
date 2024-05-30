@@ -21,6 +21,14 @@ type Heartbeat struct {
 	Uid        uuid.UUID
 }
 
+type HeartbeatList struct {
+	ApiVersion      string      `json:"apiVersion,omitempty"`
+	Kind            string      `json:"kind,omitempty"`
+	ResourceVersion string      `json:"resourceVersion,omitempty"`
+	Continue        string      `json:"continue,omitempty"`
+	Items           []Heartbeat `json:"items"`
+}
+
 func (p *Heartbeat) JsonMarshal() ([]byte, error) {
 	return json.Marshal(p)
 }
@@ -70,4 +78,32 @@ func (p *Heartbeat) GetStatus() ApiObjectStatus {
 func (p *Heartbeat) Info() {
 	//fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
 	//fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", p.Metadata.Name, p.Metadata.Uid, p.Spec.NodeName, p.Status.Phase, p.Status.PodIP)
+}
+
+func (d *HeartbeatList) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &d)
+}
+
+func (d *HeartbeatList) JsonMarshal() ([]byte, error) {
+	return json.Marshal(d)
+}
+func (d *HeartbeatList) AppendItems(objects []string) error {
+	for _, object := range objects {
+		ApiObject := &Heartbeat{}
+		err := ApiObject.JsonUnmarshal([]byte(object))
+		if err != nil {
+			return err
+		}
+		d.Items = append(d.Items, *ApiObject)
+	}
+	return nil
+}
+func (d *HeartbeatList) GetItems() any {
+	return d.Items
+}
+func (d *HeartbeatList) Info() {
+	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
+	//for _, item := range d.Items {
+	//fmt.Printf("%-10s\t%-10s\t%-10d\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.Replicas, item.Status.Replicas)
+	//}
 }
