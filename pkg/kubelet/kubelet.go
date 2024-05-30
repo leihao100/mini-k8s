@@ -44,9 +44,10 @@ func NewKubelet(node config.Node) *Kubelet {
 
 func (k *Kubelet) Run(ctx context.Context, cancel context.CancelFunc) error {
 	//cli, _ := cri.GetClient()
-	defer cancel()
+
 	k.podListWatcher = listwatch.NewListWatchFromClient(k.podClient)
 	go func() {
+		defer cancel()
 		k.ListAndWatch(ctx)
 	}()
 	return nil
@@ -114,6 +115,7 @@ func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 }
 
 func (k *Kubelet) MakePod(pod *config.Pod) {
+	fmt.Println("[kubelet] makePod]" + pod.GetUID().String())
 	pod.Metadata.Uid, _ = uuid.NewUUID()
 	k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
 	podStatus := status.PodStatus{
@@ -160,6 +162,7 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 }
 
 func (k *Kubelet) ModifyPod(pod *config.Pod) {
+	fmt.Println("[kubelet] modifyPod" + pod.GetUID().String())
 	old := k.podManager.GetPodById(pod.GetUID())
 	if old == nil {
 		//it is a new pod
@@ -175,6 +178,7 @@ func (k *Kubelet) ModifyPod(pod *config.Pod) {
 }
 
 func (k *Kubelet) RemovePod(pod *config.Pod) {
+	fmt.Println("[kubelet] RemovePod" + pod.GetUID().String())
 	uid := pod.Metadata.Uid
 	k.podManager.GetPodById(uid)
 	for _, container := range pod.Status.ContainerStatuses {
@@ -350,7 +354,7 @@ func (k *Kubelet) HandleWatch(w watch.Interface, ctx context.Context) error {
 }
 
 func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
-
+	fmt.Println("[kubelet] inspectPod]")
 	old := make([]status.ContainerStatus, 0)
 	for _, podstatus := range pod.Status.ContainerStatuses {
 		old = append(old, podstatus)
@@ -366,10 +370,13 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 			}
 		}
 	}
+	if phase != status.PodRunning {
+
+	}
 	if phase != status.PodRunning || !reflect.DeepEqual(old, pod.Status.ContainerStatuses) {
 		msg, _ := pod.JsonMarshal()
 		url := k.podClient.BuildURL(apiClient.Status)
-		k.podClient.Post(url, msg)
+		k.podClient.Put(url, msg)
 	}
 	return nil
 }

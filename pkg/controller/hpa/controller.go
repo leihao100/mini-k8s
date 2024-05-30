@@ -6,7 +6,7 @@ import (
 	"MiniK8S/pkg/controller/cache"
 )
 
-type hpaController struct {
+type HpaController struct {
 	podClient    *apiClient.Client
 	hpaClient    *apiClient.Client
 	deployClient *apiClient.Client
@@ -16,8 +16,8 @@ type hpaController struct {
 	queue        *cache.WorkQueue
 }
 
-func NewController(pi *cache.Informer, hi *cache.Informer, pc *apiClient.Client, hc *apiClient.Client, dc *apiClient.Client) *hpaController {
-	hpc := &hpaController{
+func NewController(pi *cache.Informer, hi *cache.Informer, pc *apiClient.Client, hc *apiClient.Client, dc *apiClient.Client) *HpaController {
+	hpc := &HpaController{
 		hpaClient:    hc,
 		podClient:    pc,
 		deployClient: dc,
@@ -38,25 +38,25 @@ func NewController(pi *cache.Informer, hi *cache.Informer, pc *apiClient.Client,
 	return hpc
 }
 
-func (hpc *hpaController) AddPod(obj interface{}) {
+func (hpc *HpaController) AddPod(obj interface{}) {
 
 }
-func (hpc *hpaController) UpdatePod(oldObj, newObj interface{}) {
+func (hpc *HpaController) UpdatePod(oldObj, newObj interface{}) {
 
 }
-func (hpc *hpaController) DeletePod(obj interface{}) {
+func (hpc *HpaController) DeletePod(obj interface{}) {
 
 }
-func (hpc *hpaController) AddHpa(obj interface{}) {
+func (hpc *HpaController) AddHpa(obj interface{}) {
 
 }
-func (hpc *hpaController) UpdateHpa(oldObj, newObj interface{}) {
+func (hpc *HpaController) UpdateHpa(oldObj, newObj interface{}) {
 
 }
-func (hpc *hpaController) DeleteHpa(obj interface{}) {
+func (hpc *HpaController) DeleteHpa(obj interface{}) {
 
 }
 
-func (hpc *hpaController) CalculateTarget(hpa *config.HorizontalPodAutoscaler) {
+func (hpc *HpaController) CalculateTarget(hpa *config.HorizontalPodAutoscaler) {
 	//resource :=
 }

@@ -3,6 +3,7 @@ package cache
 import (
 	"MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
+	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/apiClient/listwatch"
 )
 
@@ -27,6 +28,21 @@ func NewInformer(ty types.ApiObjectType, store Store, queue WorkQueue, lw listwa
 		store:     store,
 		reflector: NewReflector(lw, ty, store, queue),
 		handlers:  []EventHandler{h},
+	}
+}
+
+func NewDefaultInformerAndCli(ty types.ApiObjectType) (*apiClient.Client, *Informer) {
+	cli := apiClient.NewRESTClient(ty)
+	lw := listwatch.NewListWatchFromClient(cli)
+	store := NewSimpleStore()
+	queue := NewWorkQueue()
+	ref := NewReflector(lw, ty, store, *queue)
+	return cli, &Informer{
+		ty:        ty,
+		reflector: ref,
+		handlers:  []EventHandler{},
+		store:     store,
+		queue:     WorkQueue{},
 	}
 }
 
