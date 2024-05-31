@@ -42,16 +42,14 @@ type ListWatch struct {
 }
 
 // List a set of apiserver resources
-func (lw *ListWatch) List() (config.ApiObjectList, error) {
+func (lw *ListWatch) List(options config.ListOptions) (config.ApiObjectList, error) {
 	// ListWatch is used in Reflector, which already supports pagination.
 	// Don't paginate here to avoid duplication.
-	var options config.ListOptions
 	return lw.ListFunc(options)
 }
 
 // Watch a set of apiserver resources
-func (lw *ListWatch) Watch() (watch.Interface, error) {
-	var options config.ListOptions
+func (lw *ListWatch) Watch(options config.ListOptions) (watch.Interface, error) {
 	return lw.WatchFunc(options)
 }
 
