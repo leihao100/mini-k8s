@@ -132,8 +132,13 @@ func (s *ServiceList) AppendItems(objects []string) error {
 	}
 	return nil
 }
-func (s *ServiceList) GetItems() any {
-	return s.Items
+func (s *ServiceList) GetItems() []ApiObject {
+	var items []ApiObject
+	items = make([]ApiObject, 0)
+	for _, item := range s.Items {
+		items = append(items, &item)
+	}
+	return items
 }
 func (s *ServiceList) Info() {
 	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "TYPE", "IP")

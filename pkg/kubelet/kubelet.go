@@ -4,45 +4,72 @@ import (
 	"MiniK8S/pkg/api/config"
 	"MiniK8S/pkg/api/status"
 	apitypes "MiniK8S/pkg/api/types"
+	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
+	"MiniK8S/pkg/apiClient/listwatch"
 	"MiniK8S/pkg/kubelet/cri"
 	"MiniK8S/pkg/kubelet/pod"
+	"context"
+	"errors"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/google/uuid"
 	"io"
+	"reflect"
+	"sync"
+	"time"
 )
 
 const pauseName = "mirrorgooglecontainers/pause:latest"
 
 type Kubelet struct {
-	cli        cri.Client
-	podManager *pod.PodManager
-	podClient  *apiClient.Client
+	node           config.Node
+	cli            cri.Client
+	podManager     *pod.PodManager
+	podClient      *apiClient.Client
+	podListWatcher listwatch.ListerWatcher
+	lock           sync.Locker
 }
 
-func (k *Kubelet) Run() {
-	//cli, _ := cri.GetClient()
-	var err error
-	k.cli, err = cri.GetClient()
-	k.podClient = apiClient.NewRESTClient(apitypes.PodObjectType)
-	if err != nil {
-		panic(err)
-		fmt.Println("error:", err)
+func NewKubelet(node config.Node) *Kubelet {
+	cli, _ := cri.GetClient()
+	return &Kubelet{
+		node:           node,
+		cli:            cli,
+		podManager:     pod.NewPodManager(),
+		podClient:      apiClient.NewRESTClient(apitypes.PodObjectType),
+		podListWatcher: nil,
 	}
-	k.podManager = pod.NewPodManager()
+}
 
+func (k *Kubelet) Run(ctx context.Context, cancel context.CancelFunc) error {
+	//cli, _ := cri.GetClient()
+	defer cancel()
+	k.podListWatcher = listwatch.NewListWatchFromClient(k.podClient)
+	go func() {
+		defer cancel()
+		k.ListAndWatch(ctx)
+	}()
+	return nil
 }
 
 // just for test
 func (k *Kubelet) SendMessage() {
-	url := k.podClient.BuildURL("get")
+
+	url := k.podClient.BuildURL(apiClient.Create)
+	fmt.Println("my yrl is" + url)
 	res := k.podClient.Get(url, nil)
-	body, err := io.ReadAll(res)
-	if err != nil {
-		panic(err)
+	for {
+		body, err := io.ReadAll(res)
+		if err != nil {
+			panic(err)
+		}
+		if len(body) == 0 {
+			continue
+		}
+		fmt.Println(string(body))
 	}
-	fmt.Println(string(body))
+
 }
 
 func (k *Kubelet) Stop() {
@@ -88,6 +115,7 @@ func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 }
 
 func (k *Kubelet) MakePod(pod *config.Pod) {
+	fmt.Println("[kubelet] makePod]" + pod.GetUID().String())
 	pod.Metadata.Uid, _ = uuid.NewUUID()
 	k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
 	podStatus := status.PodStatus{
@@ -121,6 +149,49 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 		pod.Status.ContainerStatuses = append(pod.Status.ContainerStatuses, newContainerStatus)
 		fmt.Println(len(pod.Status.ContainerStatuses))
 	}
+	newContainerStatus := status.ContainerStatus{
+		Name:         pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_",
+		ContainerID:  pauseID,
+		ImageID:      "",
+		Image:        pauseName,
+		State:        types.ContainerState{},
+		Started:      true,
+		RestartCount: 0,
+	}
+	pod.Status.ContainerStatuses = append(pod.Status.ContainerStatuses, newContainerStatus)
+}
+
+func (k *Kubelet) ModifyPod(pod *config.Pod) {
+	fmt.Println("[kubelet] modifyPod" + pod.GetUID().String())
+	old := k.podManager.GetPodById(pod.GetUID())
+	if old == nil {
+		//it is a new pod
+		k.MakePod(pod)
+		return
+	}
+	//compare spec
+	if reflect.DeepEqual(old.Status, pod.Status) {
+		return
+	}
+	k.RemovePod(old)
+	k.MakePod(pod)
+}
+
+func (k *Kubelet) RemovePod(pod *config.Pod) {
+	fmt.Println("[kubelet] RemovePod" + pod.GetUID().String())
+	uid := pod.Metadata.Uid
+	k.podManager.GetPodById(uid)
+	for _, container := range pod.Status.ContainerStatuses {
+		_, err := k.cli.StopContainer(container.ContainerID)
+		if err != nil {
+			panic(err)
+		}
+		err = k.cli.RemoveContainer(container.ContainerID)
+		if err != nil {
+			panic(err)
+		}
+	}
+	k.podManager.DeletePodById(uid)
 }
 
 func (k *Kubelet) GetPods() []*config.Pod {
@@ -203,4 +274,109 @@ func (k *Kubelet) UpdatePodStatusByID(id uuid.UUID) {
 	}
 	//pod.Status.ContainerStatuses = containerStatus
 
+}
+
+func (k *Kubelet) ListAndWatch(ctx context.Context) {
+	podList, err := k.podListWatcher.List(config.ListOptions{
+		Kind:            string(apitypes.PodObjectType),
+		APIVersion:      "",
+		LabelSelector:   "",
+		FieldSelector:   "",
+		Watch:           false,
+		ResourceVersion: "",
+		TimeoutSeconds:  nil,
+	})
+	if err != nil {
+		panic(err)
+	}
+	list := podList.GetItems()
+	for _, p := range list {
+		pod := p.(*config.Pod)
+		k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
+	}
+	go func(k *Kubelet) {
+		for {
+			for _, pod := range k.podManager.GetPods() {
+				err := k.inspectPod(ctx, pod)
+				if err != nil {
+					panic(err)
+					return
+				}
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}(k)
+
+	w, err := k.podListWatcher.Watch(config.ListOptions{
+		Kind:            string(apitypes.PodObjectType),
+		APIVersion:      "",
+		LabelSelector:   "",
+		FieldSelector:   "",
+		Watch:           true,
+		ResourceVersion: "",
+		TimeoutSeconds:  nil,
+	})
+	if err != nil {
+		panic("kubelet watch pod failed " + err.Error())
+	}
+
+	err = k.HandleWatch(w, ctx)
+	w.Stop() // stop watch
+
+}
+
+func (k *Kubelet) HandleWatch(w watch.Interface, ctx context.Context) error {
+
+	for {
+		select {
+		case <-ctx.Done():
+			return errors.New("kubelet watch context canceled")
+		case event := <-w.ResultChan():
+			pod := event.Object.(*config.Pod)
+			if pod.Spec.NodeName == k.node.Metadata.Name {
+				fmt.Println("[kubelet] Handle Pod Watch Event")
+				switch event.Type {
+				case watch.Added:
+					k.MakePod(pod)
+				case watch.Modified:
+					k.ModifyPod(pod)
+				case watch.Deleted:
+					k.RemovePod(pod)
+				case watch.Error:
+					panic("watch occur error")
+				case watch.Bookmark:
+				default:
+					panic("it should never happen")
+				}
+			}
+		}
+	}
+}
+
+func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
+	fmt.Println("[kubelet] inspectPod]")
+	old := make([]status.ContainerStatus, 0)
+	for _, podstatus := range pod.Status.ContainerStatuses {
+		old = append(old, podstatus)
+	}
+	k.UpdatePodStatusByID(pod.Metadata.Uid)
+	phase := status.PodRunning
+	for _, podstatus := range pod.Status.ContainerStatuses {
+		if podstatus.State.Running == false {
+			if podstatus.State.ExitCode != 0 {
+				phase = status.PodFailed
+			} else {
+				phase = status.PodSucceeded
+			}
+		}
+	}
+	if phase != status.PodRunning {
+
+	}
+	if phase != status.PodRunning || !reflect.DeepEqual(old, pod.Status.ContainerStatuses) {
+		msg, _ := pod.JsonMarshal()
+		url := k.podClient.BuildURL(apiClient.Status)
+		k.podClient.Put(url, msg)
+	}
+	return nil
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"MiniK8S/pkg/api/config"
 	apiserver "MiniK8S/pkg/apiServer"
 	"MiniK8S/pkg/kubelet"
 	"context"
@@ -10,13 +11,13 @@ import (
 func main() {
 	//go func() {
 	api := apiserver.NewApiServer()
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	api.Run(cancel)
 	//<-context.Done()
 	//}()
 	time.Sleep(3 * time.Second)
-	k := kubelet.Kubelet{}
-	k.Run()
+	k := kubelet.NewKubelet(config.Node{})
+	k.Run(ctx, cancel)
 	k.SendMessage()
 }
 

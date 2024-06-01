@@ -225,8 +225,13 @@ func (h *HorizontalPodAutoscalerList) AppendItems(objects []string) error {
 	}
 	return nil
 }
-func (h *HorizontalPodAutoscalerList) GetItems() any {
-	return h.Items
+func (h *HorizontalPodAutoscalerList) GetItems() []ApiObject {
+	var items []ApiObject
+	items = make([]ApiObject, 0)
+	for _, item := range h.Items {
+		items = append(items, &item)
+	}
+	return items
 }
 func (h *HorizontalPodAutoscalerList) Info() {
 	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "REFERENCE", "MINPODS", "MAXPODS", "REPLICAS")

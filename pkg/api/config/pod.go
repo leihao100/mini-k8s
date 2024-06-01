@@ -122,8 +122,13 @@ func (p *PodList) AppendItems(objects []string) error {
 	}
 	return nil
 }
-func (p *PodList) GetItems() any {
-	return p.Items
+func (p *PodList) GetItems() []ApiObject {
+	var items []ApiObject
+	items = make([]ApiObject, 0)
+	for _, item := range p.Items {
+		items = append(items, &item)
+	}
+	return items
 }
 func (p *PodList) Info() {
 	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")

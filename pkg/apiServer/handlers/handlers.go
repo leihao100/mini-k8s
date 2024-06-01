@@ -29,6 +29,8 @@ func HandleGetApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	buf, err := etcd.GetAllWithPrefix(etcdPath)
 	if err != nil {
@@ -59,6 +61,8 @@ func HandleGetApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	etcdPath += UID
 	buf, err := etcd.Get(etcdPath)
@@ -78,6 +82,7 @@ func HandleGetApiObject(c *gin.Context, ty types.ApiObjectType) {
 }
 
 func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
+
 	buf, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
@@ -132,6 +137,8 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	etcdPath += UID.String()
 	newVersion, err := etcd.Put(etcdPath, string(buf))
@@ -157,6 +164,8 @@ func HandleModifyApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	etcdPath += UID
 	exist, version, err := etcd.ExistWithVersion(etcdPath)
@@ -213,6 +222,8 @@ func HandleDeleteApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	err := etcd.DeleteAllWithPrefix(etcdPath)
 	if err != nil {
@@ -236,6 +247,8 @@ func HandleDeleteApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	etcdPath += UID
 	exist, err := etcd.Exist(etcdPath)
@@ -267,6 +280,8 @@ func HandleWatchApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	fmt.Printf("[apiServer]start watch,type: %v etcdPath: %v\n", ty, etcdPath)
 	cancel, ch := etcd.WatchAllWithPrefix(etcdPath)
@@ -319,6 +334,8 @@ func HandleWatchApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	etcdPath += UID
 	exixt, err := etcd.Exist(etcdPath)
@@ -385,6 +402,8 @@ func HandleGetApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	etcdPath += UID
 	buf, err := etcd.Get(etcdPath)
@@ -417,6 +436,8 @@ func HandleModifyApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/deployments/"
 	case types.HorizontalPodAutoscalerObjectType:
 		etcdPath = "/api/hpas/"
+	case types.HeartbeatObjectType:
+		etcdPath = "/api/heartbeats/"
 	}
 	etcdPath += UID
 	exixt, version, err := etcd.ExistWithVersion(etcdPath)

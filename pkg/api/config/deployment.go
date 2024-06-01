@@ -4,11 +4,11 @@ import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/selector"
 	"MiniK8S/pkg/api/status"
+
 	"encoding/json"
 	"fmt"
-	"strconv"
-
 	"github.com/google/uuid"
+	"strconv"
 )
 
 type Deployment struct {
@@ -108,8 +108,13 @@ func (d *DeploymentList) AppendItems(objects []string) error {
 	}
 	return nil
 }
-func (d *DeploymentList) GetItems() any {
-	return d.Items
+func (d *DeploymentList) GetItems() []ApiObject {
+	var items []ApiObject
+	items = make([]ApiObject, 0)
+	for _, item := range d.Items {
+		items = append(items, &item)
+	}
+	return items
 }
 func (d *DeploymentList) Info() {
 	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
