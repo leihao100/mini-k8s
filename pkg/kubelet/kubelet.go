@@ -44,7 +44,7 @@ func NewKubelet(node config.Node) *Kubelet {
 
 func (k *Kubelet) Run(ctx context.Context, cancel context.CancelFunc) error {
 	//cli, _ := cri.GetClient()
-	defer cancel()
+	// defer cancel()
 	k.podListWatcher = listwatch.NewListWatchFromClient(k.podClient)
 	go func() {
 		defer cancel()
