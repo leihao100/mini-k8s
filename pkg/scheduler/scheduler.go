@@ -88,14 +88,15 @@ func (s *Scheduler) listAndWatchNodes(listDone chan<- struct{}, stopCh <-chan st
 	if err != nil {
 		return err
 	}
-	nodeItems := nodesList.GetItems().([]config.Node)
+	nodeItems := nodesList.GetItems()
 
 	s.nodesToScheduleLock.Lock()
-	for _, node := range nodeItems {
-		if isMaster(&node) {
+	for _, nodeItem := range nodeItems {
+		node := nodeItem.(*config.Node)
+		if isMaster(node) {
 			continue
 		}
-		s.nodesToSchedule = append(s.nodesToSchedule, &node)
+		s.nodesToSchedule = append(s.nodesToSchedule, node)
 	}
 	s.nodesToScheduleLock.Unlock()
 
@@ -199,10 +200,10 @@ func (s *Scheduler) listAndWatchPods(stopCh <-chan struct{}) error {
 		return err
 	}
 
-	podItems := podsList.GetItems().([]config.Pod)
-	for _, item := range podItems {
-		pod := item
-		s.doSchedule(&pod)
+	podItems := podsList.GetItems()
+	for _, podItem := range podItems {
+		pod := podItem.(*config.Pod)
+		s.doSchedule(pod)
 	}
 
 	// start watch pods change
