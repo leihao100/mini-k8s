@@ -21,8 +21,10 @@ type KubeProxy struct {
 
 	serviceClient      *apiClient.Client
 	podClient          *apiClient.Client
+	dnsClient          *apiClient.Client
 	serviceListWatcher listwatch.ListerWatcher
 	podListWatcher     listwatch.ListerWatcher
+	dnsListWatcher     listwatch.ListerWatcher
 }
 
 func NewKubeProxy(kl *kubelet.Kubelet) *KubeProxy {
@@ -33,6 +35,7 @@ func NewKubeProxy(kl *kubelet.Kubelet) *KubeProxy {
 		serviceToPods:      make(map[uuid.UUID][]*config.Pod),
 		serviceClient:      apiClient.NewRESTClient(types.ServiceObjectType),
 		podClient:          apiClient.NewRESTClient(types.PodObjectType),
+		dnsClient:          apiClient.NewRESTClient(types.DnsObjectType),
 		serviceListWatcher: nil,
 		podListWatcher:     nil,
 	}
@@ -42,6 +45,7 @@ func (kp *KubeProxy) Run(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
 	kp.podListWatcher = listwatch.NewListWatchFromClient(kp.podClient)
 	kp.serviceListWatcher = listwatch.NewListWatchFromClient(kp.serviceClient)
+	kp.dnsListWatcher = listwatch.NewListWatchFromClient(kp.dnsClient)
 	go kp.PodListWatch(ctx, cancel)
 	go kp.ServiceListWatcher(ctx, cancel)
 	return
@@ -116,6 +120,41 @@ func (kp *KubeProxy) ServiceListWatcher(ctx context.Context, cancel context.Canc
 	w.Stop()
 }
 
+func (kp *KubeProxy) DnsListWatch(ctx context.Context, cancel context.CancelFunc) {
+	defer cancel()
+	_, err := kp.podListWatcher.List(config.ListOptions{
+		Kind:            string(types.DnsObjectType),
+		APIVersion:      "",
+		LabelSelector:   "",
+		FieldSelector:   "",
+		Watch:           false,
+		ResourceVersion: "",
+		TimeoutSeconds:  nil,
+	})
+	if err != nil {
+		return
+	}
+
+	w, err := kp.podListWatcher.Watch(config.ListOptions{
+		Kind:            string(types.DnsObjectType),
+		APIVersion:      "",
+		LabelSelector:   "",
+		FieldSelector:   "",
+		Watch:           true,
+		ResourceVersion: "",
+		TimeoutSeconds:  nil,
+	})
+	if err != nil {
+		panic("kube-proxy: failed to watch pod list")
+	}
+	err = kp.HandleDnsWatch(w, ctx)
+	if err != nil {
+		return
+	}
+	w.Stop()
+
+}
+
 func (kp *KubeProxy) CreateService(service *config.Service) {
 	kp.services[service.Metadata.Uid] = service
 	kp.ipManager.AddService(service)
@@ -178,6 +217,10 @@ func (kp *KubeProxy) GetSvc() {
 
 }
 
+func (kp *KubeProxy) CreateDns(dns *config.DNS) {
+
+}
+
 func (kp *KubeProxy) HandlePodWatch(w watch.Interface, ctx context.Context) error {
 	for {
 		select {
@@ -210,6 +253,29 @@ func (kp *KubeProxy) HandleServiceWatch(w watch.Interface, ctx context.Context) 
 			switch event.Type {
 			case watch.Added:
 				kp.CreateService(event.Object.(*config.Service))
+			case watch.Modified:
+			case watch.Deleted:
+				kp.RemoveService(event.Object.(*config.Service))
+			case watch.Error:
+				panic("kube-proxy: watch svc error")
+			case watch.Bookmark:
+			default:
+				panic("should never get here")
+
+			}
+		}
+	}
+}
+
+func (kp *KubeProxy) HandleDnsWatch(w watch.Interface, ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case event := <-w.ResultChan():
+			switch event.Type {
+			case watch.Added:
+				kp.CreateDns(event.Object.(*config.DNS))
 			case watch.Modified:
 			case watch.Deleted:
 				kp.RemoveService(event.Object.(*config.Service))

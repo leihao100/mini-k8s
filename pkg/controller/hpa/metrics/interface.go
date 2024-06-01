@@ -21,7 +21,6 @@ import (
 	"MiniK8S/pkg/api/selector"
 	apitypes "MiniK8S/pkg/api/types"
 	"context"
-	"github.com/google/uuid"
 	"time"
 )
 
@@ -36,12 +35,12 @@ const (
 type PodMetric struct {
 	Timestamp time.Time
 	Window    time.Duration
-	CPU       int64
-	Memory    int64
+	CPU       uint64
+	Memory    uint64
 }
 
-// PodMetricsInfo contains pod metrics as a map from pod uid to PodMetricsInfo
-type PodMetricsInfo map[uuid.UUID]PodMetric
+// ConatinerMetricsInfo contains pod metrics as a map from Container name to PodMetric
+type ConatinerMetricsInfo map[string]PodMetric
 
 // MetricsClient knows how to query a remote interface to retrieve container-level
 // resource metrics as well as pod-level arbitrary metrics
@@ -49,11 +48,11 @@ type MetricsClient interface {
 	// GetResourceMetric gets the given resource metric (and an associated oldest timestamp)
 	// for the specified named container in all pods matching the specified selector in the given namespace and when
 	// the container is an empty string it returns the sum of all the container metrics.
-	GetResourceMetric(ctx context.Context, resource apitypes.ApiObjectType, namespace string, selector selector.LabelSelector, container string) (PodMetricsInfo, time.Time, error)
+	GetResourceMetric(ctx context.Context, resource apitypes.ApiObjectType, namespace string, selector selector.LabelSelector, container string) (ConatinerMetricsInfo, time.Time, error)
 
 	// GetRawMetric gets the given metric (and an associated oldest timestamp)
 	// for all pods matching the specified selector in the given namespace
-	GetRawMetric(metricName string, namespace string, selector selector.LabelSelector, metricSelector selector.LabelSelector) (PodMetricsInfo, time.Time, error)
+	GetRawMetric(metricName string, namespace string, selector selector.LabelSelector, metricSelector selector.LabelSelector) (ConatinerMetricsInfo, time.Time, error)
 
 	// GetObjectMetric gets the given metric (and an associated timestamp) for the given
 	// object in the given namespace

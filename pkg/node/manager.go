@@ -1,11 +1,13 @@
 package node
 
 import (
+	"MiniK8S/pkg/api/address"
 	"MiniK8S/pkg/api/config"
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/status"
 	"MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/apiClient"
+	"MiniK8S/utils/net"
 	"github.com/docker/docker/testutil"
 	"github.com/google/uuid"
 )
@@ -51,6 +53,7 @@ func (nm *NodeManager) Init() {
 	default:
 		name = "Master"
 	}
+	ip, _ := net.GetLocalIP()
 	node := &config.Node{
 		ApiVersion: "",
 		Kind:       "node",
@@ -61,6 +64,10 @@ func (nm *NodeManager) Init() {
 		Spec: config.NodeSpec{},
 		Status: status.NodeStatus{
 			Phase: "Pending",
+			Addresses: address.NodeAddress{
+				Address: ip,
+				Type:    "ipv4",
+			},
 		},
 	}
 	nm.node = node

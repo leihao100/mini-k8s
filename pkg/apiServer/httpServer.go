@@ -113,6 +113,19 @@ func (h httpServer) BindHandlers() {
 				heartbeats.GET("/status/:name", handlers.HandleGetHeartbeatStatus)    // GET /api/v1/heartbeats/status/:name
 				heartbeats.PUT("/status/:name", handlers.HandleModifyHeartbeatStatus) // PUT /api/v1/heartbeats/status/:name
 			}
+			dns := v1.Group("/dns")
+			{
+				dns.GET("/get", handlers.HandleGetHeartbeats)                  // GET /api/v1/dns/get
+				dns.GET("/get/:name", handlers.HandleGetHeartbeat)             // GET /api/v1/dns/get/:name
+				dns.POST("/create", handlers.HandleCreateHeartbeat)            // POST /api/v1/dns/create
+				dns.PUT("/create/:name", handlers.HandleModifyHeartbeat)       // PUT /api/v1/dns/create/:name
+				dns.DELETE("/delete", handlers.HandleDeleteHeartbeats)         // DELETE /api/v1/dns/delete
+				dns.DELETE("/delete/:name", handlers.HandleDeleteHeartbeat)    // DELETE /api/v1/dns/delete/:name
+				dns.GET("/watch", handlers.HandleWatchHeartbeats)              // GET /api/v1/dns/watch
+				dns.GET("/watch/:name", handlers.HandleWatchHeartbeat)         // GET /api/v1/dns/watch/:name
+				dns.GET("/status/:name", handlers.HandleGetHeartbeatStatus)    // GET /api/v1/dns/status/:name
+				dns.PUT("/status/:name", handlers.HandleModifyHeartbeatStatus) // PUT /api/v1/dns/status/:name
+			}
 		}
 	}
 }
