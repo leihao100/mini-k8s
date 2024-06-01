@@ -4,6 +4,7 @@ import (
 	apiserver "MiniK8S/pkg/apiServer"
 	"MiniK8S/pkg/node"
 	"MiniK8S/pkg/node/heartbeat"
+	"MiniK8S/pkg/scheduler"
 	"context"
 	"fmt"
 	"time"
@@ -23,5 +24,7 @@ func main() {
 	node.CreateMasterNode()
 	heartbeatRecevier := heartbeat.NewHeartbeatReceiver()
 	heartbeatRecevier.Run(ctx, cancel)
+	newScheduler := scheduler.NewScheduler()
+	newScheduler.Run(ctx, cancel)
 	<-ctx.Done()
 }
