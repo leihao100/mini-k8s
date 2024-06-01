@@ -12,6 +12,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 )
 
 type Scheduler struct {
@@ -263,18 +264,24 @@ loop:
 
 func (s *Scheduler) doSchedule(pod *config.Pod) {
 	log.Printf("[doSchedule] pod %v scheduling\n", pod.GetUID())
-	s.nodesToScheduleLock.Lock()
-	defer s.nodesToScheduleLock.Unlock()
+
 	nodeName := pod.Spec.NodeName
 	if nodeName != "" {
-		for _, node := range s.nodesToSchedule {
-			if node.Metadata.Name == nodeName {
-				log.Printf("[doSchedule] pod %v already scheduled on node %v\n", pod.GetUID(), nodeName)
-				return
-			}
-		}
+		return
 	}
-	node := s.roundRobin()
+	// wait when no node is available
+	var node *config.Node = nil
+	for {
+		s.nodesToScheduleLock.Lock()
+		node = s.roundRobin()
+		s.nodesToScheduleLock.Unlock()
+		if node != nil {
+			break
+		}
+		log.Println("[doSchedule] no nodes to schedule, waiting")
+		time.Sleep(1 * time.Second)
+	}
+
 	pod.Spec.NodeName = node.Metadata.Name
 	code, err := s.nodeClient.PutObject(pod.Metadata.Name, pod)
 
