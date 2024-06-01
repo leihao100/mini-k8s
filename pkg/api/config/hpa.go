@@ -112,6 +112,7 @@ periodSeconds 表示策略应该保持为 true 的时间窗口长度。 periodSe
 type MetricSpec struct {
 	Type              string                        `json:"type,omitempty"`
 	ContainerResource ContainerResourceMetricSource `json:"containerResource,omitempty"`
+	Target            uint64                        `json:"target,omitempty"`
 }
 
 /*

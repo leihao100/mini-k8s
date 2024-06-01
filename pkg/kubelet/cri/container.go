@@ -92,13 +92,15 @@ func (c *DockerClient) CreateContainer(config config.Container, name string) (*c
 		}
 	}
 	if !exist {
+		ct := context.Background()
 		fmt.Println("pulling image ", containerRepoTag)
-		_, err := cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
+		out, err := cl.ImagePull(ct, containerRepoTag, image.PullOptions{})
 		if err != nil {
 			fmt.Println("Failed to pull image " + containerRepoTag)
 			panic(err)
 			return nil, err
 		}
+		_, err = io.Copy(io.Discard, out)
 
 	}
 

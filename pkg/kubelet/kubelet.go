@@ -44,6 +44,7 @@ func NewKubelet(node config.Node) *Kubelet {
 
 func (k *Kubelet) Run(ctx context.Context, cancel context.CancelFunc) error {
 	//cli, _ := cri.GetClient()
+
 	// defer cancel()
 	k.podListWatcher = listwatch.NewListWatchFromClient(k.podClient)
 	go func() {
@@ -78,7 +79,11 @@ func (k *Kubelet) Stop() {
 
 func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 	uid := pod.Metadata.Uid.String()
+
 	name := pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_" + uid
+	if pod.Metadata.Namespace == "" {
+		name = "defaultNameSpace" + name
+	}
 	container := config.Container{
 		Name:         name,
 		Args:         nil,
@@ -130,6 +135,9 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 	containers := pod.Spec.Containers
 	for _, container := range containers {
 		containerName := pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_" + container.Name + "_" + pod.Metadata.Uid.String()
+		if pod.Metadata.Namespace == "" {
+			containerName = "defaultNameSpace" + containerName
+		}
 		container.Pause = pauseID
 		response, err := k.cli.CreateContainer(container, containerName)
 		if err != nil {
