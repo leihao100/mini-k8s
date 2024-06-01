@@ -284,7 +284,8 @@ func (s *Scheduler) doSchedule(pod *config.Pod) {
 	}
 
 	pod.Spec.NodeName = node.Metadata.Name
-	code, err := s.nodeClient.PutObject(pod.Metadata.Name, pod)
+	// TODO: 未来改成用name
+	code, err := s.podClient.PutObject(pod.GetUID().String(), pod)
 
 	if err != nil {
 		log.Printf("[doSchedule] put pod %v to node %v failed, error %v, status code: %d\n", pod.GetUID(), node.GetUID(), err, code)
