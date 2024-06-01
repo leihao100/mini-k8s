@@ -261,12 +261,14 @@ loop:
 }
 
 func (s *Scheduler) doSchedule(pod *config.Pod) {
+	log.Printf("[doSchedule] pod %v scheduling\n", pod.GetUID())
 	s.nodesToScheduleLock.Lock()
 	defer s.nodesToScheduleLock.Unlock()
 	nodeName := pod.Spec.NodeName
 	if nodeName != "" {
 		for _, node := range s.nodesToSchedule {
 			if node.Metadata.Name == nodeName {
+				log.Printf("[doSchedule] pod %v already scheduled on node %v\n", pod.GetUID(), nodeName)
 				return
 			}
 		}
@@ -279,14 +281,18 @@ func (s *Scheduler) doSchedule(pod *config.Pod) {
 		log.Printf("[doSchedule] put pod %v to node %v failed, error %v, status code: %d\n", pod.GetUID(), node.GetUID(), err, code)
 		return
 	}
+	log.Printf("[doSchedule] pod %v scheduled on node %v\n", pod.GetUID(), node.GetUID())
 }
 
 // should acquire the lock before calling roundRobin
 func (s *Scheduler) roundRobin() *config.Node {
+	log.Printf("[roundRobin] nodesToSchedule: %v\n", s.nodesToSchedule)
 	if len(s.nodesToSchedule) == 0 {
+		log.Println("[roundRobin] no nodes to schedule")
 		return nil
 	}
 	node := s.nodesToSchedule[s.rrScheduleCnt%uint64(len(s.nodesToSchedule))]
+	log.Printf("[roundRobin] round robin scheduled %dth node %v\n", s.rrScheduleCnt, node.GetUID())
 	s.rrScheduleCnt++
 	return node
 }
