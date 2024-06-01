@@ -7,6 +7,7 @@ import (
 	"MiniK8S/pkg/api/url"
 	"MiniK8S/pkg/api/watch"
 	"bytes"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -23,6 +24,7 @@ const (
 	Status RequestType = "status"
 )
 
+const HttpStatusNotSend = 0
 const ReconnectInterval = 5
 
 // Client is a REST client for Kubernetes API
@@ -57,6 +59,43 @@ func NewRESTClient(ty types.ApiObjectType) *Client {
 		ApiServerUrl: apiserverURL,
 		MiddleURL:    newURL,
 		ResourceType: ty,
+	}
+}
+
+func putBytes(URL string, content []byte) (*http.Response, error) {
+	cli := &http.Client{}
+	req, err := http.NewRequest(http.MethodPut, URL, bytes.NewReader(content))
+	if err != nil {
+		log.Println("[utils][http][PutBytes] http.NewRequest create failed", err)
+		return nil, err
+	}
+	return cli.Do(req)
+}
+
+func (c *Client) PutObject(name string, object core.ApiObject) (int, error) {
+	putUrl := c.BuildFullURL(Create, name)
+	content, err := object.JsonMarshal()
+	if err != nil {
+		log.Println("[Client] http.Put JsonMarshal failed", err)
+		return HttpStatusNotSend, err
+	}
+
+	resp, err := putBytes(putUrl, content)
+	if err != nil {
+		log.Println("[Client] http.Put failed", err)
+		return HttpStatusNotSend, err
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		return resp.StatusCode, nil
+	} else {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Println("[Client] http.Put StatusCode not http.StatusOK, http.Put io.ReadAll failed", err)
+		} else {
+			log.Println("[Client] http.Put StatusCode not http.StatusOK, ", body)
+		}
+		return resp.StatusCode, errors.New("StatusCode not 200")
 	}
 }
 
