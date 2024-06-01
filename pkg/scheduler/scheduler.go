@@ -8,10 +8,12 @@ import (
 	"MiniK8S/pkg/apiClient/listwatch"
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"log"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Scheduler struct {
@@ -88,14 +90,15 @@ func (s *Scheduler) listAndWatchNodes(listDone chan<- struct{}, stopCh <-chan st
 	if err != nil {
 		return err
 	}
-	nodeItems := nodesList.GetItems().([]config.Node)
+	nodeItems := nodesList.GetItems()
 
 	s.nodesToScheduleLock.Lock()
-	for _, node := range nodeItems {
-		if isMaster(&node) {
+	for _, nodeItem := range nodeItems {
+		node := nodeItem.(*config.Node)
+		if isMaster(node) {
 			continue
 		}
-		s.nodesToSchedule = append(s.nodesToSchedule, &node)
+		s.nodesToSchedule = append(s.nodesToSchedule, node)
 	}
 	s.nodesToScheduleLock.Unlock()
 
@@ -199,10 +202,10 @@ func (s *Scheduler) listAndWatchPods(stopCh <-chan struct{}) error {
 		return err
 	}
 
-	podItems := podsList.GetItems().([]config.Pod)
-	for _, item := range podItems {
-		pod := item
-		s.doSchedule(&pod)
+	podItems := podsList.GetItems()
+	for _, podItem := range podItems {
+		pod := podItem.(*config.Pod)
+		s.doSchedule(pod)
 	}
 
 	// start watch pods change
@@ -262,20 +265,27 @@ loop:
 
 func (s *Scheduler) doSchedule(pod *config.Pod) {
 	log.Printf("[doSchedule] pod %v scheduling\n", pod.GetUID())
-	s.nodesToScheduleLock.Lock()
-	defer s.nodesToScheduleLock.Unlock()
+
 	nodeName := pod.Spec.NodeName
 	if nodeName != "" {
-		for _, node := range s.nodesToSchedule {
-			if node.Metadata.Name == nodeName {
-				log.Printf("[doSchedule] pod %v already scheduled on node %v\n", pod.GetUID(), nodeName)
-				return
-			}
-		}
+		return
 	}
-	node := s.roundRobin()
+	// wait when no node is available
+	var node *config.Node = nil
+	for {
+		s.nodesToScheduleLock.Lock()
+		node = s.roundRobin()
+		s.nodesToScheduleLock.Unlock()
+		if node != nil {
+			break
+		}
+		log.Println("[doSchedule] no nodes to schedule, waiting")
+		time.Sleep(1 * time.Second)
+	}
+
 	pod.Spec.NodeName = node.Metadata.Name
-	code, err := s.nodeClient.PutObject(pod.Metadata.Name, pod)
+	// TODO: 未来改成用name
+	code, err := s.podClient.PutObject(pod.GetUID().String(), pod)
 
 	if err != nil {
 		log.Printf("[doSchedule] put pod %v to node %v failed, error %v, status code: %d\n", pod.GetUID(), node.GetUID(), err, code)
@@ -292,7 +302,7 @@ func (s *Scheduler) roundRobin() *config.Node {
 		return nil
 	}
 	node := s.nodesToSchedule[s.rrScheduleCnt%uint64(len(s.nodesToSchedule))]
-	log.Printf("[roundRobin] round robin scheduled %dth node %v\n", s.rrScheduleCnt, node.GetUID())
+	log.Printf("[roundRobin] round robin scheduled %dth node %v, name: %s\n", s.rrScheduleCnt, node.GetUID(), node.Metadata.Name)
 	s.rrScheduleCnt++
 	return node
 }
