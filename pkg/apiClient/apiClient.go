@@ -93,7 +93,7 @@ func (c *Client) PutObject(name string, object core.ApiObject) (int, error) {
 		if err != nil {
 			log.Println("[Client] http.Put StatusCode not http.StatusOK, http.Put io.ReadAll failed", err)
 		} else {
-			log.Println("[Client] http.Put StatusCode not http.StatusOK, ", body)
+			log.Println("[Client] http.Put StatusCode not http.StatusOK, ", string(body))
 		}
 		return resp.StatusCode, errors.New("StatusCode not 200")
 	}

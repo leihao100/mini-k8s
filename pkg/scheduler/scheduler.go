@@ -8,11 +8,12 @@ import (
 	"MiniK8S/pkg/apiClient/listwatch"
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"log"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Scheduler struct {
@@ -300,7 +301,7 @@ func (s *Scheduler) roundRobin() *config.Node {
 		return nil
 	}
 	node := s.nodesToSchedule[s.rrScheduleCnt%uint64(len(s.nodesToSchedule))]
-	log.Printf("[roundRobin] round robin scheduled %dth node %v\n", s.rrScheduleCnt, node.GetUID())
+	log.Printf("[roundRobin] round robin scheduled %dth node %v, name: %s\n", s.rrScheduleCnt, node.GetUID(), node.Metadata.Name)
 	s.rrScheduleCnt++
 	return node
 }
