@@ -18,10 +18,6 @@ func HandleCreateDNS(c *gin.Context) {
 	HandleCreateApiObject(c, types.DnsObjectType)
 }
 
-func HandleModifyDNS(c *gin.Context) {
-	HandleModifyApiObject(c, types.DnsObjectType)
-}
-
 func HandleDeleteDNSs(c *gin.Context) {
 	HandleDeleteApiObjects(c, types.DnsObjectType)
 }
