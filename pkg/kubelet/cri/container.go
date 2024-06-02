@@ -41,13 +41,14 @@ func (c *DockerClient) CreatePause(config config.Container, name string) (*conta
 	}
 	if !exist {
 		fmt.Println("pulling image ", containerRepoTag)
-		_, err := cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
-		<-ctx.Done()
+		res, err := cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
+		//<-ctx.Done()
 		if err != nil {
 			fmt.Println("Failed to pull image " + containerRepoTag)
 			panic(err)
 			return nil, err
 		}
+		res.Close()
 	}
 	if err != nil {
 		fmt.Println("Unable to pull docker client")

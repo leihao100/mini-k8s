@@ -1,18 +1,20 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"MiniK8S/pkg/api/config"
+	"MiniK8S/pkg/api/meta"
+	"MiniK8S/pkg/api/status"
+	"MiniK8S/pkg/kubelet"
 )
 
-func main() {
-	fmt.Println("a test")
-	go fmt.Println("Hello World")
-	time.Sleep(10 * time.Second)
+//
+//func main() {
+//	fmt.Println("a test")
+//	go fmt.Println("Hello World")
+//	time.Sleep(10 * time.Second)
+//
+//}
 
-}
-
-/*
 func main() {
 	//cl, err := client.NewClientWithOpts(client.WithVersion("1.43"))
 	//if err != nil {
@@ -83,9 +85,9 @@ func main() {
 		},
 		Status: status.PodStatus{},
 	}
-
-	k := kubelet.Kubelet{}
-	k.Run()
+	//ctx, cancel := context.WithCancel(context.Background())
+	k := kubelet.NewKubelet(config.Node{})
+	//k.Run(ctx, cancel)
 	k.MakePod(&pod)
 	k.UpdatePodStatusByID(pod.Metadata.Uid)
 	//fmt.Println((pod.Status.ContainerStatuses)[1].State.Running)
@@ -102,4 +104,3 @@ func main() {
 	//
 	//}
 }
-*/
