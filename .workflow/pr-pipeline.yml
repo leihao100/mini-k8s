@@ -7,6 +7,7 @@ triggers:
     branches:
       include:
         - master
+        - test
 stages:
   - name: compile
     displayName: 编译
