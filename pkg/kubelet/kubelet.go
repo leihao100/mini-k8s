@@ -132,6 +132,19 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 	k.cli.StartContainer(pauseID)
 	pod.Status = podStatus
 	containers := pod.Spec.Containers
+	newContainerStatus := status.ContainerStatus{
+		Name:         pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_",
+		ContainerID:  pauseID,
+		ImageID:      "",
+		Image:        pauseName,
+		State:        types.ContainerState{},
+		Started:      true,
+		RestartCount: 0,
+	}
+	pod.Status.ContainerStatuses = append(pod.Status.ContainerStatuses, newContainerStatus)
+	res, _ := k.cli.ContainerStatus(pauseID)
+	pod.Status.PodIP = res.NetworkSettings.IPAddress
+	pod.Status.Phase = "Running"
 	for _, container := range containers {
 		containerName := pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_" + container.Name + "_" + pod.Metadata.Uid.String()
 		if pod.Metadata.Namespace == "" {
@@ -150,26 +163,16 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 			ImageID:      "",
 			Image:        container.Image,
 			State:        types.ContainerState{},
-			Started:      false,
+			Started:      true,
 			RestartCount: 0,
 		}
 		pod.Status.ContainerStatuses = append(pod.Status.ContainerStatuses, newContainerStatus)
-		fmt.Println(len(pod.Status.ContainerStatuses))
 	}
-	newContainerStatus := status.ContainerStatus{
-		Name:         pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_",
-		ContainerID:  pauseID,
-		ImageID:      "",
-		Image:        pauseName,
-		State:        types.ContainerState{},
-		Started:      true,
-		RestartCount: 0,
-	}
-	pod.Status.ContainerStatuses = append(pod.Status.ContainerStatuses, newContainerStatus)
-	k.UpdatePodStatusByID(pod.Metadata.Uid)
-	msg, _ := pod.JsonMarshal()
-	url := k.podClient.BuildURL(apiClient.Create)
-	k.podClient.Put(url, msg)
+
+	//k.UpdatePodStatusByID(pod.Metadata.Uid)
+	//msg, _ := pod.JsonMarshal()
+	//url := k.podClient.BuildURL(apiClient.Create)
+	//k.podClient.Put(url, msg)
 
 }
 
@@ -255,10 +258,10 @@ func (k *Kubelet) GetPods() []*config.Pod {
 */
 func (k *Kubelet) UpdatePodStatusByID(id uuid.UUID) {
 
-	pod := k.podManager.GetPodById(id)
-	fmt.Println("[kubelet] UpdatePodStatusByID" + pod.Metadata.Name)
+	pd := k.podManager.GetPodById(id)
+	fmt.Println("[kubelet] UpdatePodStatusByID" + pd.Metadata.Name)
 	//fmt.Println(len(pod.Status.ContainerStatuses))
-	containerStatus := pod.Status.ContainerStatuses
+	containerStatus := pd.Status.ContainerStatuses
 	//pod.Status.PodIP = containerStatus[0].State.
 
 	for i, Status := range containerStatus {
@@ -267,10 +270,10 @@ func (k *Kubelet) UpdatePodStatusByID(id uuid.UUID) {
 			return
 		}
 		if i == 0 {
-			pod.Status.PodIP = json.NetworkSettings.IPAddress
+			pd.Status.PodIP = json.NetworkSettings.IPAddress
 		}
 		//fmt.Println("now is"+json.Name+"and its state is", json.State.Running)
-		pod.Status.ContainerStatuses[i] = status.ContainerStatus{
+		pd.Status.ContainerStatuses[i] = status.ContainerStatus{
 			State: types.ContainerState{
 				Status:     json.State.Status,
 				Running:    json.State.Running,
@@ -317,8 +320,8 @@ func (k *Kubelet) ListAndWatch(ctx context.Context) {
 	}
 	go func(k *Kubelet) {
 		for {
-			for _, pod := range k.podManager.GetPods() {
-				err := k.inspectPod(ctx, pod)
+			for _, pd := range k.podManager.GetPods() {
+				err := k.inspectPod(ctx, pd)
 				if err != nil {
 					panic(err)
 					return
@@ -381,6 +384,7 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 		old = append(old, podstatus)
 	}
 	k.UpdatePodStatusByID(pod.Metadata.Uid)
+	fmt.Println(len(pod.Status.ContainerStatuses))
 	phase := status.PodRunning
 	for _, podstatus := range pod.Status.ContainerStatuses {
 		if podstatus.State.Running == false {
