@@ -6,6 +6,6 @@ var deleteCmd = &cobra.Command{
 	Use:   "delete <resource> <resource-name>",
 	Short: "delete resource",
 	Long:  "delete resource",
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.MinimumNArgs(1),
 	Run:   delete,
 }

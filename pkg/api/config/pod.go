@@ -70,6 +70,9 @@ func (p *Pod) SetUID(uid uuid.UUID) {
 func (p *Pod) GetUID() uuid.UUID {
 	return p.Metadata.Uid
 }
+func (p *Pod) GetName() string {
+	return p.Metadata.Name
+}
 
 func (p *Pod) SetResourceVersion(version int64) {
 	p.Metadata.ResourceVersion = strconv.FormatInt(version, 10)

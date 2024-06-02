@@ -37,7 +37,9 @@ func (p *Heartbeat) JsonMarshal() ([]byte, error) {
 func (p *Heartbeat) JsonUnmarshal(data []byte) error {
 	return json.Unmarshal(data, &p)
 }
-
+func (p *Heartbeat) GetName() string {
+	return p.Metadata.Name
+}
 func (p *Heartbeat) SetUID(uid uuid.UUID) {
 	p.Metadata.Uid = uid
 }

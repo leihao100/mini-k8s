@@ -31,6 +31,8 @@ func HandleGetApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/hpas/"
 	case types.HeartbeatObjectType:
 		etcdPath = "/api/heartbeats/"
+	case types.DnsObjectType:
+		etcdPath = "/api/dnss/"
 	}
 	buf, err := etcd.GetAllWithPrefix(etcdPath)
 	if err != nil {
@@ -63,6 +65,8 @@ func HandleGetApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/hpas/"
 	case types.HeartbeatObjectType:
 		etcdPath = "/api/heartbeats/"
+	case types.DnsObjectType:
+		etcdPath = "/api/dnss/"
 	}
 	etcdPath += UID
 	buf, err := etcd.Get(etcdPath)
@@ -93,38 +97,7 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
 		return
 	}
-	UID := uuid.New()
-	newApiObject.SetUID(UID)
-	if ty == types.PodObjectType {
-		pod := newApiObject.(*config.Pod)
-		pod.Status = status.PodStatus{
-			ContainerStatuses: nil,
-			HostIP:            "",
-			Phase:             "Pending",
-			PodIP:             "",
-		}
-	}
-	if ty == types.NodeObjectType {
-		node := newApiObject.(*config.Node)
-		node.Status = status.NodeStatus{
-			Addresses: address.NodeAddress{
-				Type:    "",
-				Address: "",
-			},
-			DaemonEndpoints: 0,
-			Phase:           "Pending",
-		}
-	}
-	etcd.VersionLock.Lock()
-	defer etcd.VersionLock.Unlock()
-
-	version := etcd.RVM.GetResourceVersion()
-	newApiObject.SetResourceVersion(etcd.RVM.GetNextResourceVersion())
-	buf, err = newApiObject.JsonMarshal()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
-		return
-	}
+	name := newApiObject.GetName()
 	var etcdPath string
 	switch ty {
 	case types.PodObjectType:
@@ -139,73 +112,83 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/hpas/"
 	case types.HeartbeatObjectType:
 		etcdPath = "/api/heartbeats/"
+	case types.DnsObjectType:
+		etcdPath = "/api/dnss/"
 	}
-	etcdPath += UID.String()
-	newVersion, err := etcd.Put(etcdPath, string(buf))
-	fmt.Printf("[apiServer] generate new %v: expected version:%v, actual version:%v\n", ty, version+1, newVersion)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
-	} else {
-		c.JSON(http.StatusOK, gin.H{"status": "OK", "uid": UID})
-	}
-}
-
-func HandleModifyApiObject(c *gin.Context, ty types.ApiObjectType) {
-	UID := c.Param("name")
-	var etcdPath string
-	switch ty {
-	case types.PodObjectType:
-		etcdPath = "/api/pods/"
-	case types.NodeObjectType:
-		etcdPath = "/api/nodes/"
-	case types.ServiceObjectType:
-		etcdPath = "/api/services/"
-	case types.DeploymentObjectType:
-		etcdPath = "/api/deployments/"
-	case types.HorizontalPodAutoscalerObjectType:
-		etcdPath = "/api/hpas/"
-	case types.HeartbeatObjectType:
-		etcdPath = "/api/heartbeats/"
-	}
-	etcdPath += UID
+	etcdPath += name
 	exist, version, err := etcd.ExistWithVersion(etcdPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
 		return
 	}
 	if !exist {
-		c.JSON(http.StatusNotFound, gin.H{"status": "ERR", "error": fmt.Sprintf("No %v with UID: %v", ty, UID)})
-		return
-	}
-	buf, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
-	}
-	newApiObject := config.NewApiObject(ty)
-	err = newApiObject.JsonUnmarshal(buf)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
-		return
-	}
-	clientVersion := newApiObject.GetResourceVersion()
-	if version != clientVersion {
-		c.JSON(http.StatusConflict, gin.H{"status": "FAILED", "error": fmt.Sprintf("client version %v unmatch host version %v", clientVersion, version)})
-		return
-	}
-	etcd.VersionLock.Lock()
-	defer etcd.VersionLock.Unlock()
-	newApiObject.SetResourceVersion(etcd.RVM.GetNextResourceVersion())
-	buf, err = newApiObject.JsonMarshal()
-	if err != err {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
-	}
-	newVersion, success, err := etcd.PutWithVersion(etcdPath, string(buf), version)
-	if !success {
-		c.JSON(http.StatusConflict, gin.H{"status": "FAILED", "error": fmt.Sprintf("client version %v unmatch host version %v", clientVersion, version)})
-	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
+		UID := uuid.New()
+		newApiObject.SetUID(UID)
+		if ty == types.PodObjectType {
+			pod := newApiObject.(*config.Pod)
+			pod.Status = status.PodStatus{
+				ContainerStatuses: nil,
+				HostIP:            "",
+				Phase:             "Pending",
+				PodIP:             "",
+			}
+		}
+		if ty == types.NodeObjectType {
+			node := newApiObject.(*config.Node)
+			node.Status = status.NodeStatus{
+				Addresses: address.NodeAddress{
+					Type:    "",
+					Address: "",
+				},
+				DaemonEndpoints: 0,
+				Phase:           "Pending",
+			}
+		}
+		etcd.VersionLock.Lock()
+		defer etcd.VersionLock.Unlock()
+		expectedVersion := etcd.RVM.GetNextResourceVersion()
+		newApiObject.SetResourceVersion(expectedVersion)
+		buf, err = newApiObject.JsonMarshal()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
+			return
+		}
+		newVersion, err := etcd.Put(etcdPath, string(buf))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
+			return
+		}
+		if newVersion != expectedVersion {
+			fmt.Printf("[apiServer] version unmatch! generate new %v: expected version:%v, actual version:%v\n", ty, expectedVersion, newVersion)
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": "version unmatch"})
+		} else {
+			fmt.Printf("[apiServer] generate new %v\n", ty)
+			c.JSON(http.StatusOK, gin.H{"status": "OK", "uid": UID})
+		}
 	} else {
-		c.JSON(http.StatusOK, gin.H{"status": "OK", "uid": UID, "resourceVersion": newVersion})
+		etcd.VersionLock.Lock()
+		defer etcd.VersionLock.Unlock()
+		_, currentVersion, err := etcd.GetWithVersion(etcdPath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
+			return
+		}
+		if currentVersion != version {
+			fmt.Printf("[apiServer] version unmatch!%v %v has been modified by others. Expected version:%v, Actual version:%v\n", ty, name, version, currentVersion)
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": "Be modified by others"})
+			return
+		}
+		buf, err = newApiObject.JsonMarshal()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
+			return
+		}
+		newVersion, err := etcd.Put(etcdPath, string(buf))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"status": "OK", "name": name, "resourceVersion": newVersion})
+		}
 	}
 }
 
@@ -224,6 +207,8 @@ func HandleDeleteApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/hpas/"
 	case types.HeartbeatObjectType:
 		etcdPath = "/api/heartbeats/"
+	case types.DnsObjectType:
+		etcdPath = "/api/dnss/"
 	}
 	err := etcd.DeleteAllWithPrefix(etcdPath)
 	if err != nil {
@@ -249,6 +234,8 @@ func HandleDeleteApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/hpas/"
 	case types.HeartbeatObjectType:
 		etcdPath = "/api/heartbeats/"
+	case types.DnsObjectType:
+		etcdPath = "/api/dnss/"
 	}
 	etcdPath += UID
 	exist, err := etcd.Exist(etcdPath)
@@ -282,6 +269,8 @@ func HandleWatchApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/hpas/"
 	case types.HeartbeatObjectType:
 		etcdPath = "/api/heartbeats/"
+	case types.DnsObjectType:
+		etcdPath = "/api/dnss/"
 	}
 	fmt.Printf("[apiServer]start watch,type: %v etcdPath: %v\n", ty, etcdPath)
 	cancel, ch := etcd.WatchAllWithPrefix(etcdPath)
@@ -336,6 +325,8 @@ func HandleWatchApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/hpas/"
 	case types.HeartbeatObjectType:
 		etcdPath = "/api/heartbeats/"
+	case types.DnsObjectType:
+		etcdPath = "/api/dnss/"
 	}
 	etcdPath += UID
 	exixt, err := etcd.Exist(etcdPath)
@@ -404,6 +395,8 @@ func HandleGetApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/hpas/"
 	case types.HeartbeatObjectType:
 		etcdPath = "/api/heartbeats/"
+	case types.DnsObjectType:
+		etcdPath = "/api/dnss/"
 	}
 	etcdPath += UID
 	buf, err := etcd.Get(etcdPath)
@@ -438,6 +431,8 @@ func HandleModifyApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/hpas/"
 	case types.HeartbeatObjectType:
 		etcdPath = "/api/heartbeats/"
+	case types.DnsObjectType:
+		etcdPath = "/api/dnss/"
 	}
 	etcdPath += UID
 	exixt, version, err := etcd.ExistWithVersion(etcdPath)

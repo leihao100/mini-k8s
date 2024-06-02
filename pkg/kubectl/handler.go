@@ -37,21 +37,28 @@ func create(cmd *cobra.Command, args []string) {
 		fmt.Printf("[kubectl] Error: %v\n", err)
 	}
 	serverPath := cli.BuildURL(apiClient.Create)
-	cli.Post(serverPath, jsonData)
+	cli.Put(serverPath, jsonData)
 }
 
 func delete(cmd *cobra.Command, args []string) {
 	resourceType := args[0]
-	name := args[1]
-
 	apiObjectType, err := parseResourceType(resourceType)
 	if err != nil {
 		fmt.Printf("[kubectl] Error: %v\n", err)
 		return
 	}
 	cli := apiClient.NewRESTClient(apiObjectType)
-	serverPath := cli.BuildURL(apiClient.Delete) + "/" + name
-	cli.Delete(serverPath, nil)
+
+	if len(args) == 1 {
+		serverPath := cli.BuildURL(apiClient.Delete)
+		res := cli.Delete(serverPath, nil)
+		defer res.Close()
+	} else if len(args) >= 2 {
+		name := args[1]
+		serverPath := cli.BuildURL(apiClient.Delete) + "/" + name
+		res := cli.Delete(serverPath, nil)
+		defer res.Close()
+	}
 }
 
 func get(cmd *cobra.Command, args []string) {

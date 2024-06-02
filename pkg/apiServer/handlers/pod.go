@@ -18,10 +18,6 @@ func HandleCreatePod(c *gin.Context) {
 	HandleCreateApiObject(c, types.PodObjectType)
 }
 
-func HandleModifyPod(c *gin.Context) {
-	HandleModifyApiObject(c, types.PodObjectType)
-}
-
 func HandleDeletePods(c *gin.Context) {
 	HandleDeleteApiObjects(c, types.PodObjectType)
 }

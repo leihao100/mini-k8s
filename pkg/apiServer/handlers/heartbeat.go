@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"MiniK8S/pkg/api/types"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,10 +16,6 @@ func HandleGetHeartbeat(c *gin.Context) {
 
 func HandleCreateHeartbeat(c *gin.Context) {
 	HandleCreateApiObject(c, types.HeartbeatObjectType)
-}
-
-func HandleModifyHeartbeat(c *gin.Context) {
-	HandleModifyApiObject(c, types.HeartbeatObjectType)
 }
 
 func HandleDeleteHeartbeats(c *gin.Context) {

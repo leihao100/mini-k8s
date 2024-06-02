@@ -13,6 +13,7 @@ type ApiObject interface {
 	JsonMarshal() ([]byte, error)
 	SetUID(uuid.UUID)
 	GetUID() uuid.UUID
+	GetName() string
 	SetResourceVersion(int64)
 	GetResourceVersion() int64
 	JsonUnmarshalStatus([]byte) error
