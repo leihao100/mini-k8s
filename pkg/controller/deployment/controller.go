@@ -6,9 +6,10 @@ import (
 	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/controller/cache"
 	"context"
-	"github.com/google/uuid"
 	"reflect"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type DeploymentController struct {
