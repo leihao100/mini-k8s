@@ -166,6 +166,11 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 		RestartCount: 0,
 	}
 	pod.Status.ContainerStatuses = append(pod.Status.ContainerStatuses, newContainerStatus)
+	k.UpdatePodStatusByID(pod.Metadata.Uid)
+	msg, _ := pod.JsonMarshal()
+	url := k.podClient.BuildURL(apiClient.Create)
+	k.podClient.Put(url, msg)
+
 }
 
 func (k *Kubelet) ModifyPod(pod *config.Pod) {
@@ -199,6 +204,7 @@ func (k *Kubelet) RemovePod(pod *config.Pod) {
 		}
 	}
 	k.podManager.DeletePodById(uid)
+
 }
 
 func (k *Kubelet) GetPods() []*config.Pod {
@@ -390,7 +396,7 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 	if phase != status.PodRunning {
 		fmt.Println("[kubelet] pod name is", pod.GetName(), " phase is ", phase)
 	}
-	if phase != status.PodRunning || !reflect.DeepEqual(old, pod.Status.ContainerStatuses) {
+	if phase != status.PodRunning || !reflect.DeepEqual(old, pod.Status.ContainerStatuses) || pod.Status.PodIP == "" {
 		fmt.Println("[kubelet] pod name is", pod.GetName(), " and pod status has changed")
 		msg, _ := pod.JsonMarshal()
 		url := k.podClient.BuildURL(apiClient.Create)
