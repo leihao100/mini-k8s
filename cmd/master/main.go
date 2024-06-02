@@ -21,7 +21,7 @@ func main() {
 	server.Run(cancel)
 	fmt.Println("server成功运行")
 	time.Sleep(5 * time.Second)
-	node.CreateMasterNode()
+	node.CreateMasterNode("master")
 	heartbeatRecevier := heartbeat.NewHeartbeatReceiver()
 	heartbeatRecevier.Run(ctx, cancel)
 	newScheduler := scheduler.NewScheduler()
