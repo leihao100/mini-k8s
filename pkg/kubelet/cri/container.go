@@ -13,7 +13,7 @@ import (
 )
 
 func GetClient() (Client, error) {
-	cil, err := client.NewClientWithOpts(client.WithVersion("1.43"))
+	cil, err := client.NewClientWithOpts(client.WithVersion("1.41"))
 	if err != nil {
 		panic(err)
 		return nil, err
