@@ -83,6 +83,8 @@ stages:
           - fi
           - ''
           - tar zxvf ~/gitee_go/deploy/output.tar.gz -C $deploy_path
+          - mv $deploy_path/output/* $deploy_path
+          - rm -r $deploy_path/output
           - ''
         notify: []
         strategy:
