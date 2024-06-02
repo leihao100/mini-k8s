@@ -1,14 +1,11 @@
 version: '1.0'
-name: branch-pipeline
-displayName: BranchPipeline
+name: test-pipeline
+displayName: TestPipeline
 triggers:
   trigger: auto
   push:
     branches:
       include:
-        - .*
-      exclude:
-        - master
         - test
 stages:
   - name: compile
@@ -43,6 +40,7 @@ stages:
         displayName: 上传制品
         dependArtifact: BUILD_ARTIFACT
         artifactName: output
+        strategy: {}
         dependsOn: build_golang
   - name: release
     displayName: 发布
@@ -55,3 +53,39 @@ stages:
         dependArtifact: output
         version: 1.0.0.0
         autoIncrement: true
+      - step: deploy@agent
+        name: deploy_agent
+        displayName: 主机部署
+        hostGroupID:
+          ID: jcloud
+          hostID:
+            - f9752a5a-781a-4d1b-a5a0-35fa053f69bf
+            - f72fe729-4ad5-4b1d-bf05-2268a437e337
+            - 5a9c90b3-3111-401c-bd1b-dafbf17be5ab
+        deployArtifact:
+          - source: build
+            name: output
+            target: ~/gitee_go/deploy
+            dependArtifact: BUILD_ARTIFACT
+        script:
+          - '#!/bin/bash'
+          - ''
+          - deploy_path="/usr/local/minik8s-test-deploy"
+          - ''
+          - if [ -d "$deploy_path" ]; then
+          - '    # 目录存在，清空目录内容'
+          - '    rm -rf "$deploy_path"/*'
+          - '    echo "cleared: $deploy_path"'
+          - else
+          - '    # 目录不存在，创建目录'
+          - '    mkdir -p "$deploy_path"'
+          - '    echo "created: $deploy_path"'
+          - fi
+          - ''
+          - tar zxvf ~/gitee_go/deploy/output.tar.gz -C $deploy_path
+          - mv $deploy_path/output/* $deploy_path
+          - rm -r $deploy_path/output
+          - ''
+        notify: []
+        strategy:
+          retry: '0'
