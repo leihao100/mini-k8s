@@ -18,25 +18,25 @@ type NodeManager struct {
 	Client *apiClient.Client
 }
 
-func CreateWorkerNode() *NodeManager {
+func CreateWorkerNode(n string) *NodeManager {
 	Cli := apiClient.NewRESTClient(types.NodeObjectType)
 	nc := &NodeManager{
 		Client: Cli,
 		node:   nil,
 		ty:     config.Worker,
 	}
-	nc.Init()
+	nc.Init(n)
 	return nc
 }
 
-func CreateMasterNode() *NodeManager {
+func CreateMasterNode(n string) *NodeManager {
 	Cli := apiClient.NewRESTClient(types.NodeObjectType)
 	nc := &NodeManager{
 		Client: Cli,
 		node:   nil,
 		ty:     config.Master,
 	}
-	nc.Init()
+	nc.Init(n)
 	return nc
 
 }
@@ -45,11 +45,11 @@ func (nm *NodeManager) GetNode() *config.Node {
 	return nm.node
 }
 
-func (nm *NodeManager) Init() {
+func (nm *NodeManager) Init(n string) {
 	var name string
 	switch nm.ty {
 	case config.Worker:
-		name = "worker-" + GenerateRandomString(5)
+		name = "worker-" + n
 	default:
 		name = "Master"
 	}
@@ -76,11 +76,20 @@ func (nm *NodeManager) Init() {
 	if err != nil {
 		panic(err)
 	}
-	resp := nm.Client.Post(url, buf)
+	resp := nm.Client.Put(url, buf)
 	if resp == nil {
 		//error
 	}
 	nm.node.Status.Phase = "Running"
+	url = nm.Client.BuildURL(apiClient.Create)
+	buf, err = node.JsonMarshal()
+	if err != nil {
+		panic(err)
+	}
+	resp = nm.Client.Put(url, buf)
+	if resp == nil {
+		//error
+	}
 }
 
 func GenerateRandomString(length int) string {

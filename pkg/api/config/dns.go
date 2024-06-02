@@ -102,6 +102,7 @@ func (d *DNSList) AppendItems(objects []string) error {
 	}
 	return nil
 }
+
 func (d *DNSList) GetItems() []ApiObject {
 	var items []ApiObject
 	items = make([]ApiObject, 0)

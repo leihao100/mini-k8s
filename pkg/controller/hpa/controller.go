@@ -141,7 +141,7 @@ func (hpc *HpaController) Scale(hpa *config.HorizontalPodAutoscaler, desire int)
 			if err != nil {
 				fmt.Println("[hpa] Failed to scale deployment because of marshal:", err)
 			}
-			url := hpc.deployClient.BuildURL(apiClient.Create) + "/" + d.Metadata.Uid.String()
+			url := hpc.deployClient.BuildURL(apiClient.Create)
 			hpc.deployClient.Put(url, bytes)
 			return
 		}

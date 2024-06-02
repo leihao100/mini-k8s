@@ -27,7 +27,7 @@ type DockerClient struct {
 
 func (c *DockerClient) CreatePause(config config.Container, name string) (*container.CreateResponse, error) {
 	ctx := context.Background()
-	cl, err := client.NewClientWithOpts(client.WithVersion("1.43"))
+	cl := c.Client
 	containerRepoTag := config.Image
 	exist := false
 	list, err := cl.ImageList(context.Background(), image.ListOptions{})
@@ -41,13 +41,13 @@ func (c *DockerClient) CreatePause(config config.Container, name string) (*conta
 	}
 	if !exist {
 		fmt.Println("pulling image ", containerRepoTag)
-		out, err := cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
+		_, err := cl.ImagePull(ctx, containerRepoTag, image.PullOptions{})
+		<-ctx.Done()
 		if err != nil {
 			fmt.Println("Failed to pull image " + containerRepoTag)
 			panic(err)
 			return nil, err
 		}
-		_, err = io.Copy(io.Discard, out)
 	}
 	if err != nil {
 		fmt.Println("Unable to pull docker client")
@@ -81,7 +81,7 @@ func (c *DockerClient) CreatePause(config config.Container, name string) (*conta
 func (c *DockerClient) CreateContainer(config config.Container, name string) (*container.CreateResponse, error) {
 	ctx := context.Background()
 	//cl, err := client.NewClientWithOpts(client.WithVersion("1.43"), client.FromEnv, client.WithHost())
-	cl, err := client.NewClientWithOpts(client.WithVersion("1.43"))
+	cl := c.Client
 	//cl := c
 	containerRepoTag := config.Image
 	exist := false
@@ -101,6 +101,7 @@ func (c *DockerClient) CreateContainer(config config.Container, name string) (*c
 			return nil, err
 		}
 		_, err = io.Copy(io.Discard, out)
+		out.Close()
 
 	}
 

@@ -119,7 +119,7 @@ func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 }
 
 func (k *Kubelet) MakePod(pod *config.Pod) {
-	fmt.Println("[kubelet] makePod]" + pod.GetUID().String())
+	fmt.Println("[kubelet] makePod" + pod.GetUID().String())
 	pod.Metadata.Uid, _ = uuid.NewUUID()
 	k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
 	podStatus := status.PodStatus{
@@ -248,13 +248,20 @@ func (k *Kubelet) GetPods() []*config.Pod {
 	}
 */
 func (k *Kubelet) UpdatePodStatusByID(id uuid.UUID) {
+
 	pod := k.podManager.GetPodById(id)
-	fmt.Println(len(pod.Status.ContainerStatuses))
+	fmt.Println("[kubelet] UpdatePodStatusByID" + pod.Metadata.Name)
+	//fmt.Println(len(pod.Status.ContainerStatuses))
 	containerStatus := pod.Status.ContainerStatuses
+	//pod.Status.PodIP = containerStatus[0].State.
+
 	for i, Status := range containerStatus {
 		json, err := k.cli.ContainerStatus(Status.ContainerID)
 		if err != nil {
 			return
+		}
+		if i == 0 {
+			pod.Status.PodIP = json.NetworkSettings.IPAddress
 		}
 		//fmt.Println("now is"+json.Name+"and its state is", json.State.Running)
 		pod.Status.ContainerStatuses[i] = status.ContainerStatus{
@@ -384,6 +391,7 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 		msg, _ := pod.JsonMarshal()
 		url := k.podClient.BuildURL(apiClient.Status)
 		k.podClient.Put(url, msg)
+		//pod.Status.ContainerStatuses =
 	}
 	return nil
 }

@@ -141,7 +141,7 @@ func (dc *DeploymentController) Sync(dp *config.Deployment) {
 			dc.DecreaseReplicaCount(dp, pdw)
 		}
 		dp.Status.Replicas = dp.Spec.Replicas
-		url := dc.deployClient.BuildURL(apiClient.Create) + "/" + dp.GetUID().String()
+		url := dc.deployClient.BuildURL(apiClient.Create)
 		buf, err := dp.JsonMarshal()
 		if err != nil {
 			fmt.Println(err)
@@ -225,7 +225,7 @@ func (dc *DeploymentController) IncreaseReplicaCount(dp *config.Deployment, pdwo
 		for i := 0; i < int(delta); i++ {
 			pod := pdwo[i]
 			pod.Metadata.OwnerReferences = refs
-			url := dc.podClient.BuildURL(apiClient.Create) + "/" + pod.GetUID().String()
+			url := dc.podClient.BuildURL(apiClient.Create)
 			buf, err := pod.JsonMarshal()
 			if err != nil {
 				fmt.Println(err)
@@ -246,7 +246,7 @@ func (dc *DeploymentController) IncreaseReplicaCount(dp *config.Deployment, pdwo
 		refs = append(refs, owenerRef)
 		for _, pod := range pdwo {
 			pod.Metadata.OwnerReferences = refs
-			url := dc.podClient.BuildURL(apiClient.Create) + "/" + pod.GetUID().String()
+			url := dc.podClient.BuildURL(apiClient.Create)
 			buf, err := pod.JsonMarshal()
 			if err != nil {
 				fmt.Println(err)
@@ -262,12 +262,12 @@ func (dc *DeploymentController) IncreaseReplicaCount(dp *config.Deployment, pdwo
 			Status:     status.PodStatus{},
 		}
 		for i := 0; i < int(delta)-len(pdwo); i++ {
-			url := dc.podClient.BuildURL(apiClient.Create) + "/" + pod.GetUID().String()
+			url := dc.podClient.BuildURL(apiClient.Create)
 			buf, err := pod.JsonMarshal()
 			if err != nil {
 				fmt.Println(err)
 			}
-			dc.podClient.Post(url, buf)
+			dc.podClient.Put(url, buf)
 		}
 	}
 }

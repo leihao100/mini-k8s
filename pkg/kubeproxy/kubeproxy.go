@@ -9,6 +9,7 @@ import (
 	"MiniK8S/pkg/kubelet"
 	"MiniK8S/pkg/kubeproxy/ipInterface"
 	ipvsManager "MiniK8S/pkg/kubeproxy/ipvs"
+	"MiniK8S/utils/net"
 	"context"
 	"github.com/google/uuid"
 )
@@ -47,7 +48,8 @@ func (kp *KubeProxy) Run(ctx context.Context) {
 	kp.serviceListWatcher = listwatch.NewListWatchFromClient(kp.serviceClient)
 	kp.dnsListWatcher = listwatch.NewListWatchFromClient(kp.dnsClient)
 	go kp.PodListWatch(ctx, cancel)
-	go kp.ServiceListWatcher(ctx, cancel)
+	go kp.ServiceListWatch(ctx, cancel)
+	go kp.DnsListWatch(ctx, cancel)
 	return
 }
 
@@ -86,7 +88,7 @@ func (kp *KubeProxy) PodListWatch(ctx context.Context, cancel context.CancelFunc
 
 }
 
-func (kp *KubeProxy) ServiceListWatcher(ctx context.Context, cancel context.CancelFunc) {
+func (kp *KubeProxy) ServiceListWatch(ctx context.Context, cancel context.CancelFunc) {
 	defer cancel()
 	_, err := kp.serviceListWatcher.List(config.ListOptions{
 		Kind:            string(types.ServiceObjectType),
@@ -218,7 +220,12 @@ func (kp *KubeProxy) GetSvc() {
 }
 
 func (kp *KubeProxy) CreateDns(dns *config.DNS) {
+	net.GenerateNginxConfig(*dns)
 
+}
+
+func (kp *KubeProxy) RemoveDns(dns *config.DNS) {
+	net.RemoveNginxConfig(*dns)
 }
 
 func (kp *KubeProxy) HandlePodWatch(w watch.Interface, ctx context.Context) error {
@@ -278,9 +285,9 @@ func (kp *KubeProxy) HandleDnsWatch(w watch.Interface, ctx context.Context) erro
 				kp.CreateDns(event.Object.(*config.DNS))
 			case watch.Modified:
 			case watch.Deleted:
-				kp.RemoveService(event.Object.(*config.Service))
+				kp.RemoveDns(event.Object.(*config.DNS))
 			case watch.Error:
-				panic("kube-proxy: watch svc error")
+				panic("kube-proxy: watch Dns error")
 			case watch.Bookmark:
 			default:
 				panic("should never get here")

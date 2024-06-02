@@ -5,7 +5,8 @@ const (
 	etcdHost string = "localhost"
 	etcdPort string = ":2379"
 )
-const (
+
+var (
 	apiServerHost string = "http://localhost"
 	apiServerPort string = ":8080"
 )
@@ -24,4 +25,10 @@ func ApiServerHost() string {
 }
 func ApiServerPort() string {
 	return apiServerPort
+}
+func SetApiServerHost(host string) {
+	apiServerHost = host
+}
+func SetApiServerPort(port string) {
+	apiServerPort = port
 }

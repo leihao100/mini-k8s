@@ -2,7 +2,11 @@ package main
 
 import (
 	"MiniK8S/pkg/api/config"
-	"MiniK8S/pkg/kubelet/cri"
+	"MiniK8S/pkg/api/meta"
+	"MiniK8S/pkg/api/status"
+	"MiniK8S/utils/net"
+	"fmt"
+	"github.com/google/uuid"
 )
 
 func main() {
@@ -32,39 +36,64 @@ func main() {
 	//	panic(err)
 	//}
 	//fmt.Println(dir)
-	//dns := config.DNS{
-	//	ApiVersion: "",
-	//	Kind:       "",
-	//	Metadata:   meta.ObjectMeta{},
-	//	Spec: config.DNSSpec{
-	//		HostName: "leihao.com",
-	//		HostPort: "80",
-	//		Path: []config.DNSPath{
-	//			config.DNSPath{
-	//				ClusterIP:   "127.0.0.1",
-	//				ClusterPath: "/hello",
-	//			},
-	//		},
-	//	},
-	//	Status: status.DNSStatus{},
-	//}
-	//net.GenerateNginxConfig(dns)
-	co := config.Container{
-		Name:         "helloworld",
-		Cmd:          nil,
-		Entrypoint:   nil,
-		Env:          nil,
-		Image:        "hello-world:latest",
-		Volumes:      nil,
-		Labels:       nil,
-		PortBindings: nil,
-		VolumesFrom:  nil,
-		Binds:        nil,
-		NetworkMode:  "",
-		CPULimit:     0,
-		MemLimit:     0,
+	dns := config.DNS{
+		ApiVersion: "",
+		Kind:       "",
+		Metadata: meta.ObjectMeta{
+			Uid: uuid.New(),
+		},
+		Spec: config.DNSSpec{
+			HostName: "leihao.com",
+			HostPort: "80",
+			Path: []config.DNSPath{
+				config.DNSPath{
+					ClusterIP:   "127.0.0.1",
+					ClusterPath: "/hello",
+				},
+			},
+		},
+		Status: status.DNSStatus{},
 	}
-	cli, _ := cri.GetClient()
-	cli.CreateContainer(co, "111")
+	dns1 := config.DNS{
+		ApiVersion: "",
+		Kind:       "",
+		Metadata: meta.ObjectMeta{
+			Uid: uuid.New(),
+		},
+		Spec: config.DNSSpec{
+			HostName: "lei.com",
+			HostPort: "80",
+			Path: []config.DNSPath{
+				config.DNSPath{
+					ClusterIP:   "127.0.0.5",
+					ClusterPath: "/hello",
+				},
+			},
+		},
+		Status: status.DNSStatus{},
+	}
+	net.GenerateNginxConfig(dns)
+	net.GenerateNginxConfig(dns1)
+	err := net.RemoveNginxConfig(dns)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//co := config.Container{
+	//	Name:         "helloworld",
+	//	Cmd:          nil,
+	//	Entrypoint:   nil,
+	//	Env:          nil,
+	//	Image:        "nginx:latest",
+	//	Volumes:      nil,
+	//	Labels:       nil,
+	//	PortBindings: nil,
+	//	VolumesFrom:  nil,
+	//	Binds:        nil,
+	//	NetworkMode:  "",
+	//	CPULimit:     0,
+	//	MemLimit:     0,
+	//}
+	//cli, _ := cri.GetClient()
+	//cli.CreateContainer(co, "111")
 
 }
