@@ -43,6 +43,10 @@ func (d *DNS) GetUID() uuid.UUID {
 	return d.Metadata.Uid
 }
 
+func (d *DNS) GetName() string {
+	return d.Metadata.Name
+}
+
 func (d *DNS) SetResourceVersion(version int64) {
 	d.Metadata.ResourceVersion = strconv.FormatInt(version, 10)
 }
