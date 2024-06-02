@@ -7,6 +7,7 @@ triggers:
     branches:
       include:
         - master
+        - test
 stages:
   - name: compile
     displayName: 编译
@@ -34,6 +35,8 @@ stages:
           - name: BUILD_ARTIFACT
             path:
               - ./output
+        caches:
+          - /go/pkg/mod
         strategy: {}
       - step: publish@general_artifacts
         name: publish_general_artifacts
