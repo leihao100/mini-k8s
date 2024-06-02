@@ -43,9 +43,7 @@ func NewKubelet(node config.Node) *Kubelet {
 }
 
 func (k *Kubelet) Run(ctx context.Context, cancel context.CancelFunc) error {
-	//cli, _ := cri.GetClient()
 
-	// defer cancel()
 	k.podListWatcher = listwatch.NewListWatchFromClient(k.podClient)
 	go func() {
 		defer cancel()
@@ -78,6 +76,7 @@ func (k *Kubelet) Stop() {
 }
 
 func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
+	fmt.Println("[kubelet] CreatePodPause")
 	uid := pod.Metadata.Uid.String()
 
 	name := pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_" + uid
@@ -121,7 +120,7 @@ func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 
 func (k *Kubelet) MakePod(pod *config.Pod) {
 	fmt.Println("[kubelet] makePod" + pod.GetUID().String())
-	pod.Metadata.Uid, _ = uuid.NewUUID()
+	//pod.Metadata.Uid, _ = uuid.NewUUID()
 	k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
 	podStatus := status.PodStatus{
 		ContainerStatuses: nil,
@@ -306,6 +305,7 @@ func (k *Kubelet) ListAndWatch(ctx context.Context) {
 	}
 	list := podList.GetItems()
 	for _, p := range list {
+		fmt.Println("[kubelet] ListAndWatch" + p.GetUID().String())
 		pod := p.(*config.Pod)
 		k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
 	}
@@ -369,7 +369,7 @@ func (k *Kubelet) HandleWatch(w watch.Interface, ctx context.Context) error {
 }
 
 func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
-	fmt.Println("[kubelet] inspectPod]")
+	fmt.Println("[kubelet] inspectPod")
 	old := make([]status.ContainerStatus, 0)
 	for _, podstatus := range pod.Status.ContainerStatuses {
 		old = append(old, podstatus)
@@ -386,11 +386,12 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 		}
 	}
 	if phase != status.PodRunning {
-
+		fmt.Println("[kubelet] pod name is", pod.GetName(), " phase is ", phase)
 	}
 	if phase != status.PodRunning || !reflect.DeepEqual(old, pod.Status.ContainerStatuses) {
+		fmt.Println("[kubelet] pod name is", pod.GetName(), " and pod status has changed")
 		msg, _ := pod.JsonMarshal()
-		url := k.podClient.BuildURL(apiClient.Status)
+		url := k.podClient.BuildURL(apiClient.Create)
 		k.podClient.Put(url, msg)
 		//pod.Status.ContainerStatuses =
 	}

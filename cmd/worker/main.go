@@ -35,7 +35,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	workNode := node.CreateWorkerNode(*name)
-	hbSender := heartbeat.NewHbSender(workNode.GetNode().GetUID())
+	hbSender := heartbeat.NewHbSender(workNode.GetNode().GetName())
 	hbSender.Run(ctx, cancel)
 	kubelet := kubelet.NewKubelet(*workNode.GetNode())
 	kubelet.Run(ctx, cancel)

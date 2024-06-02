@@ -15,9 +15,10 @@ type HeartBeatSender struct {
 	Client *apiClient.Client
 	NodeID uuid.UUID
 	Hb     *config.Heartbeat
+	Name   string
 }
 
-func NewHbSender(nodeID uuid.UUID) *HeartBeatSender {
+func NewHbSender(nodeName string) *HeartBeatSender {
 	cli := apiClient.NewRESTClient(types.HeartbeatObjectType)
 	hb := &config.Heartbeat{
 		Kind: "heartbeat",
@@ -26,7 +27,8 @@ func NewHbSender(nodeID uuid.UUID) *HeartBeatSender {
 		},
 	}
 	return &HeartBeatSender{
-		NodeID: nodeID,
+		NodeID: uuid.New(),
+		Name:   nodeName,
 		Client: cli,
 		Hb:     hb,
 	}
@@ -50,6 +52,7 @@ func (hbs *HeartBeatSender) SendHeartbeat() error {
 	//}
 	//s.hb = hbItem.(*core.Heartbeat)
 	hbs.Hb.Metadata.Uid = uuid.New()
+	hbs.Hb.Metadata.Name = hbs.Name
 	hbs.Hb.Metadata.CreationTimestamp = time.Now().String()
 	url := hbs.Client.BuildURL(apiClient.Create)
 	buf, _ := hbs.Hb.JsonMarshal()
