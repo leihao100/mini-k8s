@@ -77,6 +77,11 @@ func NewApiObject(ty types.ApiObjectType) ApiObject {
 		return &HorizontalPodAutoscaler{}
 	case types.NodeObjectType:
 		return &Node{}
+	case types.DnsObjectType:
+		return &DNS{}
+	case types.HeartbeatObjectType:
+		return &Heartbeat{}
+
 	}
 	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }
@@ -93,6 +98,10 @@ func NewApiObjectStatus(ty types.ApiObjectType) ApiObjectStatus {
 		return &status.HorizontalPodAutoscalerStatus{}
 	case types.NodeObjectType:
 		return &status.NodeStatus{}
+	case types.DnsObjectType:
+		return &DNS{}
+	case types.HeartbeatObjectType:
+		return &Heartbeat{}
 	}
 	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }
@@ -109,6 +118,8 @@ func NewApiObjectList(ty types.ApiObjectType) ApiObjectList {
 		return &HorizontalPodAutoscalerList{}
 	case types.NodeObjectType:
 		return &NodeList{}
+	case types.DnsObjectType:
+		return &DNSList{}
 	case types.HeartbeatObjectType:
 		return &HeartbeatList{}
 	}
