@@ -15,9 +15,6 @@ func HandleGetDeployment(c *gin.Context) {
 func HandleCreateDeployment(c *gin.Context) {
 	HandleCreateApiObject(c, types.DeploymentObjectType)
 }
-func HandleModifyDeployment(c *gin.Context) {
-	HandleModifyApiObject(c, types.DeploymentObjectType)
-}
 func HandleDeleteDeployments(c *gin.Context) {
 	HandleDeleteApiObjects(c, types.DeploymentObjectType)
 }

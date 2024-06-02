@@ -175,6 +175,9 @@ func (h *HorizontalPodAutoscaler) SetUID(uid uuid.UUID) {
 func (h *HorizontalPodAutoscaler) GetUID() uuid.UUID {
 	return h.Metadata.Uid
 }
+func (h *HorizontalPodAutoscaler) GetName() string {
+	return h.Metadata.Name
+}
 
 func (h *HorizontalPodAutoscaler) SetResourceVersion(version int64) {
 	h.Metadata.ResourceVersion = strconv.FormatInt(version, 10)

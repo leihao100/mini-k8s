@@ -49,9 +49,11 @@ func NewRESTClient(ty types.ApiObjectType) *Client {
 	case types.HeartbeatObjectType:
 		field = "heartbeats"
 	case types.HorizontalPodAutoscalerObjectType:
-		field = "hpa"
+		field = "hpas"
 	case types.NodeObjectType:
 		field = "nodes"
+	case types.DnsObjectType:
+		field = "dnss"
 	}
 	newURL.Init("v1", string(field))
 	apiserverURL := config.ApiServerHost() + config.ApiServerPort()

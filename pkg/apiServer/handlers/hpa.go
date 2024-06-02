@@ -18,10 +18,6 @@ func HandleCreateHPA(c *gin.Context) {
 	HandleCreateApiObject(c, types.HorizontalPodAutoscalerObjectType)
 }
 
-func HandleModifyHPA(c *gin.Context) {
-	HandleModifyApiObject(c, types.HorizontalPodAutoscalerObjectType)
-}
-
 func HandleDeleteHPAs(c *gin.Context) {
 	HandleDeleteApiObjects(c, types.HorizontalPodAutoscalerObjectType)
 }

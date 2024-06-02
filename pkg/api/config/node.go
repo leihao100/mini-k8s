@@ -79,7 +79,9 @@ func (n *Node) SetUID(uid uuid.UUID) {
 func (n *Node) GetUID() uuid.UUID {
 	return n.Metadata.Uid
 }
-
+func (n *Node) GetName() string {
+	return n.Metadata.Name
+}
 func (n *Node) SetResourceVersion(version int64) {
 	n.Metadata.ResourceVersion = strconv.FormatInt(version, 10)
 }

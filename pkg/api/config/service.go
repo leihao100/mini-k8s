@@ -68,17 +68,17 @@ type ServiceList struct {
 func (s *Service) JsonMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
-
 func (s *Service) JsonUnmarshal(data []byte) error {
 	return json.Unmarshal(data, &s)
 }
-
 func (s *Service) SetUID(uid uuid.UUID) {
 	s.Metadata.Uid = uid
 }
-
 func (s *Service) GetUID() uuid.UUID {
 	return s.Metadata.Uid
+}
+func (s *Service) GetName() string {
+	return s.Metadata.Name
 }
 func (s *Service) SetResourceVersion(version int64) {
 	s.Metadata.ResourceVersion = strconv.FormatInt(version, 10)

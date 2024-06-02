@@ -7,8 +7,9 @@ import (
 
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type Deployment struct {
@@ -56,6 +57,9 @@ func (d *Deployment) SetUID(uid uuid.UUID) {
 
 func (d *Deployment) GetUID() uuid.UUID {
 	return d.Metadata.Uid
+}
+func (d *Deployment) GetName() string {
+	return d.Metadata.Name
 }
 
 func (d *Deployment) SetResourceVersion(version int64) {
