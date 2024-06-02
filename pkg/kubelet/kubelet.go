@@ -177,7 +177,7 @@ func (k *Kubelet) ModifyPod(pod *config.Pod) {
 		return
 	}
 	//compare spec
-	if reflect.DeepEqual(old.Status, pod.Status) {
+	if reflect.DeepEqual(old.Spec, pod.Spec) {
 		return
 	}
 	k.RemovePod(old)
@@ -379,8 +379,10 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 	for _, podstatus := range pod.Status.ContainerStatuses {
 		if podstatus.State.Running == false {
 			if podstatus.State.ExitCode != 0 {
+				fmt.Println("[kubelet] Pod Status Error: " + podstatus.Name + " Pod failed: " + podstatus.State.Status)
 				phase = status.PodFailed
 			} else {
+				fmt.Println("[kubelet] Pod Status: " + podstatus.Name + " Pod Completed")
 				phase = status.PodSucceeded
 			}
 		}
