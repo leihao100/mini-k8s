@@ -2,6 +2,7 @@ package kubeproxy
 
 import (
 	"MiniK8S/pkg/api/config"
+	"MiniK8S/pkg/api/selector"
 	"MiniK8S/pkg/api/types"
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
@@ -172,15 +173,18 @@ func (kp *KubeProxy) CreateService(service *config.Service) {
 }
 
 func (kp *KubeProxy) SelectPod(service *config.Service) []*config.Pod {
-	pods := kp.kl.GetPods()
+	//pods := kp.kl.GetPods()
+	pods, _ := kp.podListWatcher.List(config.ListOptions{
+		Kind:       string(types.PodObjectType),
+		APIVersion: "",
+		Watch:      false,
+	})
+
 	var targetPods []*config.Pod
-	for _, pod := range pods {
-		for _, container := range pod.Spec.Containers {
-			for s, s2 := range service.Spec.Selector {
-				if container.Labels[s] == s2 {
-					targetPods = append(targetPods, pod)
-				}
-			}
+	for _, pod := range pods.GetItems() {
+		pd := pod.(*config.Pod)
+		if selector.LabelCompare(pd.Metadata.Labels, service.Spec.Selector) {
+			targetPods = append(targetPods, pd)
 		}
 	}
 	return targetPods
