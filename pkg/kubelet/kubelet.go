@@ -121,6 +121,8 @@ func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 }
 
 func (k *Kubelet) MakePod(pod *config.Pod) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
 	fmt.Println("[kubelet] makePod" + pod.GetUID().String())
 	//pod.Metadata.Uid, _ = uuid.NewUUID()
 	k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
@@ -179,6 +181,7 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 }
 
 func (k *Kubelet) ModifyPod(pod *config.Pod) {
+
 	fmt.Println("[kubelet] modifyPod" + pod.GetUID().String())
 	old := k.podManager.GetPodById(pod.GetUID())
 	if old == nil {
@@ -195,6 +198,8 @@ func (k *Kubelet) ModifyPod(pod *config.Pod) {
 }
 
 func (k *Kubelet) RemovePod(pod *config.Pod) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
 	fmt.Println("[kubelet] RemovePod" + pod.GetUID().String())
 	uid := pod.Metadata.Uid
 	k.podManager.GetPodById(uid)
@@ -292,7 +297,7 @@ func (k *Kubelet) UpdatePodStatusByID(id uuid.UUID) {
 		}
 		pd.Status.ContainerStatuses[i].Started = json.State.Running
 
-		//todo :may add net config
+		//finished :may add net config
 
 		//fmt.Println("now in pods " + pod.Status.ContainerStatuses[1].Name)
 		//fmt.Println(pod.Status.ContainerStatuses[1].State.Running)
@@ -322,6 +327,7 @@ func (k *Kubelet) ListAndWatch(ctx context.Context) {
 	}
 	go func(k *Kubelet) {
 		for {
+			k.lock.Lock()
 			for _, pd := range k.podManager.GetPods() {
 				err := k.inspectPod(ctx, pd)
 				if err != nil {
@@ -329,6 +335,7 @@ func (k *Kubelet) ListAndWatch(ctx context.Context) {
 					return
 				}
 			}
+			k.lock.Unlock()
 			time.Sleep(5 * time.Second)
 		}
 	}(k)
