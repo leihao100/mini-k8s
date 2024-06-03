@@ -46,8 +46,8 @@ func (hbr *HeartbeatReceiver) Check(ctx context.Context) {
 				if time.Since(t) > config.HeartbeatTimeoutInterval {
 					//handle timeout
 					fmt.Println("[heartbeat] receiver" + name + " timed out")
-					//url := hbr.nodeClient.BuildURL(apiClient.Delete) + "/" + name
-					//hbr.nodeClient.Delete(url, nil)
+					url := hbr.nodeClient.BuildURL(apiClient.Delete) + "/" + name
+					hbr.nodeClient.Delete(url, nil)
 
 				}
 			}
@@ -96,6 +96,7 @@ func (hbr *HeartbeatReceiver) handleWatch(w watch.Interface, ctx context.Context
 			panic("heartbeat receiver stopped")
 			return nil
 		case event := <-w.ResultChan():
+			fmt.Println("[heartbeat] receiver" + event.Object.GetName())
 			hb := event.Object.(*config.Heartbeat)
 			ti, _ := time.Parse(time.RFC3339Nano, hb.Metadata.CreationTimestamp)
 			switch event.Type {

@@ -3,8 +3,10 @@ package ipvsManager
 import (
 	"MiniK8S/pkg/api/config"
 	"MiniK8S/pkg/kubeproxy/ipInterface"
-	"github.com/cloudflare/ipvs"
-	"github.com/cloudflare/ipvs/netmask"
+	"net"
+
+	//"github.com/cloudflare/ipvs"
+	"github.com/moby/ipvs"
 	"net/netip"
 )
 
@@ -29,38 +31,36 @@ type IPSet struct {
 }
 
 type IPVSManager struct {
-	Client *ipvs.Client
+	Client *ipvs.Handle
 }
 
 func GetIPVS() ipInterface.IP {
-	ip, _ := ipvs.New()
+	ip, _ := ipvs.New("")
 	return &IPVSManager{
-		Client: &ip,
+		Client: ip,
 	}
 }
 
 func (im *IPVSManager) New() {
-	client, err := ipvs.New()
+	client, err := ipvs.New("")
 	if err != nil {
 		return
 	}
-	im.Client = &client
+	im.Client = client
 }
 
 func (im *IPVSManager) AddService(service *config.Service) {
 	client := *im.Client
-	addr, err := netip.ParseAddr(service.Spec.ClusterIP)
+	_, err := netip.ParseAddr(service.Spec.ClusterIP)
 	if err != nil {
 		return
 	}
 	for _, port := range service.Spec.Ports {
-		client.CreateService(ipvs.Service{
-			Address:   addr,
-			Port:      uint16(port.Port),
-			Netmask:   netmask.Mask{},
-			Scheduler: defaultScheduler,
-			Family:    defaultAddressFamily,
-			Protocol:  defaultProtocol,
+		client.NewService(&ipvs.Service{
+			Address: net.IP(service.Spec.ClusterIP),
+			Port:    uint16(port.Port),
+			//Netmask:  netmask.Mask{},
+			Protocol: defaultProtocol,
 		})
 	}
 
@@ -72,7 +72,7 @@ func (im *IPVSManager) RemoveService(service *config.Service) {
 	if err != nil {
 		return
 	}
-	services, err := client.Services()
+	services, err := client.GetServices()
 	if err != nil {
 		return
 	}
@@ -82,8 +82,8 @@ func (im *IPVSManager) RemoveService(service *config.Service) {
 	}
 	for _, port := range ports {
 		for _, service := range services {
-			if service.Port == port && service.Address == addr {
-				client.RemoveService(service.Service)
+			if service.Port == port && service.Address.String() == addr.String() {
+				client.DelService(service)
 			}
 		}
 	}
@@ -95,7 +95,7 @@ func (im *IPVSManager) AddPodToService(serviceArg *config.Service, pod *config.P
 	if err != nil {
 		return
 	}
-	services, err := client.Services()
+	services, err := client.GetServices()
 	if err != nil {
 		return
 	}
@@ -106,21 +106,21 @@ func (im *IPVSManager) AddPodToService(serviceArg *config.Service, pod *config.P
 	for _, port := range ports {
 		for _, service := range services {
 			//todo 这里用等号可能有问题
-			if service.Port == uint16(port.Port) && service.Address == addr {
+			if service.Port == uint16(port.Port) && service.Address.String() == addr.String() {
 				//now we have found this
 				podIP, _ := netip.ParseAddr(pod.Status.PodIP)
-				client.CreateDestination(service.Service, ipvs.Destination{
-					Address: podIP,
+				client.NewDestination(service, &ipvs.Destination{
+					Address: net.IP(podIP.String()),
 					//tobe finish
-					FwdMethod:      0,
+					//FwdMethod:      0,
 					Weight:         1,
 					UpperThreshold: 0,
 					LowerThreshold: 0,
 					Port:           uint16(port.TargetPort),
-					Family:         defaultAddressFamily,
-					TunnelType:     0,
-					TunnelPort:     0,
-					TunnelFlags:    0,
+					//Family:         defaultAddressFamily,
+					//TunnelType:     0,
+					//TunnelPort:     0,
+					//TunnelFlags:    0,
 				})
 			}
 		}
@@ -134,7 +134,7 @@ func (im *IPVSManager) RemovePodFromService(serviceArg *config.Service, pod *con
 		return
 	}
 	podAddr, err := netip.ParseAddr(pod.Status.PodIP)
-	services, err := client.Services()
+	services, err := client.GetServices()
 	if err != nil {
 		return
 	}
@@ -144,13 +144,13 @@ func (im *IPVSManager) RemovePodFromService(serviceArg *config.Service, pod *con
 	}
 	for _, port := range ports {
 		for _, service := range services {
-			if service.Port == uint16(port.Port) && service.Address == addr {
+			if service.Port == uint16(port.Port) && service.Address.String() == addr.String() {
 				//now we have found this
 				//then go around its destinations and delete the destination whose ip equals to podIP a
-				destinations, _ := client.Destinations(service.Service)
+				destinations, _ := client.GetDestinations(service)
 				for _, destination := range destinations {
-					if destination.Address == podAddr {
-						client.RemoveDestination(service.Service, destination.Destination)
+					if destination.Address.String() == podAddr.String() {
+						client.DelDestination(service, destination)
 						break
 					}
 				}

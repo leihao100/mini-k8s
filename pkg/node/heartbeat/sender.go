@@ -53,7 +53,7 @@ func (hbs *HeartBeatSender) SendHeartbeat() error {
 	//s.hb = hbItem.(*core.Heartbeat)
 	hbs.Hb.Metadata.Uid = uuid.New()
 	hbs.Hb.Metadata.Name = hbs.Name
-	hbs.Hb.Metadata.CreationTimestamp = time.Now().String()
+	hbs.Hb.Metadata.CreationTimestamp = time.Now().Format(time.RFC3339Nano)
 	url := hbs.Client.BuildURL(apiClient.Create)
 	buf, _ := hbs.Hb.JsonMarshal()
 	hbs.Client.Put(url, buf)

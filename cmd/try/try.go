@@ -1,12 +1,9 @@
 package main
 
 import (
-	"MiniK8S/pkg/api/config"
-	"MiniK8S/pkg/api/meta"
-	"MiniK8S/pkg/api/status"
-	"MiniK8S/utils/net"
-	"fmt"
-	"github.com/google/uuid"
+	"github.com/cloudflare/ipvs"
+	"github.com/cloudflare/ipvs/netmask"
+	"net/netip"
 )
 
 func main() {
@@ -36,48 +33,48 @@ func main() {
 	//	panic(err)
 	//}
 	//fmt.Println(dir)
-	dns := config.DNS{
-		ApiVersion: "",
-		Kind:       "",
-		Metadata: meta.ObjectMeta{
-			Uid: uuid.New(),
-		},
-		Spec: config.DNSSpec{
-			HostName: "leihao.com",
-			HostPort: "80",
-			Path: []config.DNSPath{
-				config.DNSPath{
-					ClusterIP:   "127.0.0.1",
-					ClusterPath: "/hello",
-				},
-			},
-		},
-		Status: status.DNSStatus{},
-	}
-	dns1 := config.DNS{
-		ApiVersion: "",
-		Kind:       "",
-		Metadata: meta.ObjectMeta{
-			Uid: uuid.New(),
-		},
-		Spec: config.DNSSpec{
-			HostName: "lei.com",
-			HostPort: "80",
-			Path: []config.DNSPath{
-				config.DNSPath{
-					ClusterIP:   "127.0.0.5",
-					ClusterPath: "/hello",
-				},
-			},
-		},
-		Status: status.DNSStatus{},
-	}
-	net.GenerateNginxConfig(dns)
-	net.GenerateNginxConfig(dns1)
-	err := net.RemoveNginxConfig(dns)
-	if err != nil {
-		fmt.Println(err)
-	}
+	//dns := config.DNS{
+	//	ApiVersion: "",
+	//	Kind:       "",
+	//	Metadata: meta.ObjectMeta{
+	//		Uid: uuid.New(),
+	//	},
+	//	Spec: config.DNSSpec{
+	//		HostName: "leihao.com",
+	//		HostPort: "80",
+	//		Path: []config.DNSPath{
+	//			config.DNSPath{
+	//				ClusterIP:   "127.0.0.1",
+	//				ClusterPath: "/hello",
+	//			},
+	//		},
+	//	},
+	//	Status: status.DNSStatus{},
+	//}
+	//dns1 := config.DNS{
+	//	ApiVersion: "",
+	//	Kind:       "",
+	//	Metadata: meta.ObjectMeta{
+	//		Uid: uuid.New(),
+	//	},
+	//	Spec: config.DNSSpec{
+	//		HostName: "lei.com",
+	//		HostPort: "80",
+	//		Path: []config.DNSPath{
+	//			config.DNSPath{
+	//				ClusterIP:   "127.0.0.5",
+	//				ClusterPath: "/hello",
+	//			},
+	//		},
+	//	},
+	//	Status: status.DNSStatus{},
+	//}
+	//net.GenerateNginxConfig(dns)
+	//net.GenerateNginxConfig(dns1)
+	//err := net.RemoveNginxConfig(dns)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
 	//co := config.Container{
 	//	Name:         "helloworld",
 	//	Cmd:          nil,
@@ -95,5 +92,17 @@ func main() {
 	//}
 	//cli, _ := cri.GetClient()
 	//cli.CreateContainer(co, "111")
+	ip, err := ipvs.New()
+	if err != nil {
+		panic(err)
+	}
+	addr, _ := netip.ParseAddr("10.6.0.1")
+	ip.CreateService(ipvs.Service{
+		Address:  addr,
+		Port:     uint16(80),
+		Netmask:  netmask.Mask{},
+		Family:   10,
+		Protocol: 6,
+	})
 
 }
