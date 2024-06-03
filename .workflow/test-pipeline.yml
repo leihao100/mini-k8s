@@ -34,6 +34,8 @@ stages:
           - name: BUILD_ARTIFACT
             path:
               - ./output
+        caches:
+          - /go/pkg/mod
         strategy: {}
       - step: publish@general_artifacts
         name: publish_general_artifacts
@@ -47,12 +49,6 @@ stages:
     strategy: naturally
     trigger: auto
     steps:
-      - step: publish@release_artifacts
-        name: publish_release_artifacts
-        displayName: 发布
-        dependArtifact: output
-        version: 1.0.0.0
-        autoIncrement: true
       - step: deploy@agent
         name: deploy_agent
         displayName: 主机部署
