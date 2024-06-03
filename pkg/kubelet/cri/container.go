@@ -7,6 +7,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	_ "github.com/docker/docker/pkg/stdcopy"
 	"io"
@@ -127,6 +128,7 @@ func (c *DockerClient) CreateContainer(config config.Container, name string) (*c
 		VolumesFrom:  config.VolumesFrom,
 		NetworkMode:  container.NetworkMode("container:" + config.Pause),
 		Cgroup:       container.CgroupSpec("container:" + config.Pause),
+		Mounts:       c.BuildMount(&config),
 	}, nil, nil, name)
 	if err != nil {
 		fmt.Println("Unable to create docker container")
@@ -189,4 +191,16 @@ func (c *DockerClient) ListContainers() []types.Container {
 		return nil
 	}
 	return containers
+}
+
+func (c *DockerClient) BuildMount(con *config.Container) []mount.Mount {
+	mnt := make([]mount.Mount, 0)
+	for _, m := range con.VolumeMount {
+		mnt = append(mnt, mount.Mount{
+			Type:   mount.TypeVolume,
+			Source: m.Name,
+			Target: m.MountPath,
+		})
+	}
+	return mnt
 }

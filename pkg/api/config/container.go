@@ -20,6 +20,7 @@ type Container struct {
 	CPULimit     int64               `json:"CPULimit,omitempty"`
 	MemLimit     int64               `json:"memLimit,omitempty"`
 	Pause        string              `json:"pause,omitempty"`
+	VolumeMount  []VolumeMount       `json:"volumeMount,omitempty"`
 }
 
 //以下为官方文档中的config参数
