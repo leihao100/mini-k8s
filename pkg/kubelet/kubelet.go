@@ -39,6 +39,7 @@ func NewKubelet(node config.Node) *Kubelet {
 		podManager:     pod.NewPodManager(),
 		podClient:      apiClient.NewRESTClient(apitypes.PodObjectType),
 		podListWatcher: nil,
+		lock:           &sync.Mutex{},
 	}
 }
 
