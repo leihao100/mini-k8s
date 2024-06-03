@@ -11,6 +11,7 @@ import (
 	ipvsManager "MiniK8S/pkg/kubeproxy/ipvs"
 	"MiniK8S/utils/net"
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 )
 
@@ -43,6 +44,7 @@ func NewKubeProxy(kl *kubelet.Kubelet) *KubeProxy {
 }
 
 func (kp *KubeProxy) Run(ctx context.Context) {
+	fmt.Println("[kube-proxy] Starting KubeProxy")
 	ctx, cancel := context.WithCancel(ctx)
 	kp.podListWatcher = listwatch.NewListWatchFromClient(kp.podClient)
 	kp.serviceListWatcher = listwatch.NewListWatchFromClient(kp.serviceClient)
@@ -124,7 +126,7 @@ func (kp *KubeProxy) ServiceListWatch(ctx context.Context, cancel context.Cancel
 
 func (kp *KubeProxy) DnsListWatch(ctx context.Context, cancel context.CancelFunc) {
 	defer cancel()
-	_, err := kp.podListWatcher.List(config.ListOptions{
+	_, err := kp.dnsListWatcher.List(config.ListOptions{
 		Kind:            string(types.DnsObjectType),
 		APIVersion:      "",
 		LabelSelector:   "",
@@ -137,7 +139,7 @@ func (kp *KubeProxy) DnsListWatch(ctx context.Context, cancel context.CancelFunc
 		return
 	}
 
-	w, err := kp.podListWatcher.Watch(config.ListOptions{
+	w, err := kp.dnsListWatcher.Watch(config.ListOptions{
 		Kind:            string(types.DnsObjectType),
 		APIVersion:      "",
 		LabelSelector:   "",
@@ -209,6 +211,8 @@ func (kp *KubeProxy) AddPod(pod *config.Pod) {
 			for k, v := range s2.Spec.Selector {
 				if container.Labels[k] == v {
 					kp.ipManager.AddPodToService(s2, pod)
+				} else {
+					continue
 				}
 			}
 		}
