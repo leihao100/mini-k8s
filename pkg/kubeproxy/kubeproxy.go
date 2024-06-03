@@ -160,11 +160,13 @@ func (kp *KubeProxy) DnsListWatch(ctx context.Context, cancel context.CancelFunc
 }
 
 func (kp *KubeProxy) CreateService(service *config.Service) {
+	fmt.Println("[kube-proxy] Creating service")
 	kp.services[service.Metadata.Uid] = service
 	kp.ipManager.AddService(service)
 	pods := kp.SelectPod(service)
 	kp.serviceToPods[service.Metadata.Uid] = pods
 	for _, pod := range pods {
+		fmt.Println("[kube-proxy] Adding Pod: ", pod.Metadata.Name, "To Service: ", service.Metadata.Name)
 		kp.ipManager.AddPodToService(service, pod)
 	}
 }
@@ -185,6 +187,7 @@ func (kp *KubeProxy) SelectPod(service *config.Service) []*config.Pod {
 }
 
 func (kp *KubeProxy) RemoveService(service *config.Service) {
+	fmt.Println("[kube-proxy] Removing service")
 	kp.services[service.Metadata.Uid] = nil
 	kp.ipManager.RemoveService(service)
 	pods := kp.serviceToPods[service.Metadata.Uid]
@@ -224,11 +227,13 @@ func (kp *KubeProxy) GetSvc() {
 }
 
 func (kp *KubeProxy) CreateDns(dns *config.DNS) {
+	fmt.Println("[kube-proxy] Creating DNS")
 	net.GenerateNginxConfig(*dns)
 
 }
 
 func (kp *KubeProxy) RemoveDns(dns *config.DNS) {
+	fmt.Println("[kube-proxy] Removing DNS")
 	net.RemoveNginxConfig(*dns)
 }
 
@@ -261,6 +266,7 @@ func (kp *KubeProxy) HandleServiceWatch(w watch.Interface, ctx context.Context) 
 		case <-ctx.Done():
 			return ctx.Err()
 		case event := <-w.ResultChan():
+			fmt.Println("[kube-proxy] handleServiceWatch event:")
 			switch event.Type {
 			case watch.Added:
 				kp.CreateService(event.Object.(*config.Service))
