@@ -5,6 +5,8 @@ import (
 	"MiniK8S/pkg/api/meta"
 	"MiniK8S/pkg/api/status"
 	"MiniK8S/pkg/kubelet"
+	"github.com/google/uuid"
+	"time"
 )
 
 //
@@ -79,6 +81,7 @@ func main() {
 		Metadata: meta.ObjectMeta{
 			Name:      "try",
 			Namespace: "try",
+			Uid:       uuid.New(),
 		},
 		Spec: config.PodSpec{
 			Containers: containers,
@@ -90,6 +93,8 @@ func main() {
 	//k.Run(ctx, cancel)
 	k.MakePod(&pod)
 	k.UpdatePodStatusByID(pod.Metadata.Uid)
+	time.Sleep(3 * time.Second)
+	k.RemovePod(&pod)
 	//fmt.Println((pod.Status.ContainerStatuses)[1].State.Running)
 	//pods := k.GetPods()
 	//for _, pod := range pods {

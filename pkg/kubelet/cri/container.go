@@ -152,7 +152,7 @@ func (c *DockerClient) StopContainer(id string) (bool, error) {
 
 	err := c.Client.ContainerStop(ctx, id, container.StopOptions{})
 	if err != nil {
-		fmt.Println("Unable to start docker container")
+		fmt.Println("Unable to stop docker container")
 		panic(err)
 		return false, err
 	}

@@ -76,6 +76,8 @@ func (k *Kubelet) Stop() {
 }
 
 func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
+	//k.lock.Lock()
+	//defer k.lock.Unlock()
 	fmt.Println("[kubelet] CreatePodPause")
 	uid := pod.Metadata.Uid.String()
 
@@ -197,6 +199,7 @@ func (k *Kubelet) RemovePod(pod *config.Pod) {
 	uid := pod.Metadata.Uid
 	k.podManager.GetPodById(uid)
 	for _, container := range pod.Status.ContainerStatuses {
+		fmt.Println("[kubelet] RemoveContainer" + container.Name + " and its id is" + container.ContainerID)
 		_, err := k.cli.StopContainer(container.ContainerID)
 		if err != nil {
 			panic(err)
@@ -273,24 +276,23 @@ func (k *Kubelet) UpdatePodStatusByID(id uuid.UUID) {
 			pd.Status.PodIP = json.NetworkSettings.IPAddress
 		}
 		//fmt.Println("now is"+json.Name+"and its state is", json.State.Running)
-		pd.Status.ContainerStatuses[i] = status.ContainerStatus{
-			State: types.ContainerState{
-				Status:     json.State.Status,
-				Running:    json.State.Running,
-				Paused:     json.State.Paused,
-				Restarting: json.State.Restarting,
-				OOMKilled:  json.State.OOMKilled,
-				Dead:       json.State.Dead,
-				Pid:        json.State.Pid,
-				ExitCode:   json.State.ExitCode,
-				Error:      json.State.Error,
-				StartedAt:  json.State.StartedAt,
-				FinishedAt: json.State.FinishedAt,
-				Health:     json.State.Health,
-			},
-			Started: json.State.Running,
-			//todo :may add net config
+		pd.Status.ContainerStatuses[i].State = types.ContainerState{
+			Status:     json.State.Status,
+			Running:    json.State.Running,
+			Paused:     json.State.Paused,
+			Restarting: json.State.Restarting,
+			OOMKilled:  json.State.OOMKilled,
+			Dead:       json.State.Dead,
+			Pid:        json.State.Pid,
+			ExitCode:   json.State.ExitCode,
+			Error:      json.State.Error,
+			StartedAt:  json.State.StartedAt,
+			FinishedAt: json.State.FinishedAt,
+			Health:     json.State.Health,
 		}
+		pd.Status.ContainerStatuses[i].Started = json.State.Running
+
+		//todo :may add net config
 
 		//fmt.Println("now in pods " + pod.Status.ContainerStatuses[1].Name)
 		//fmt.Println(pod.Status.ContainerStatuses[1].State.Running)
