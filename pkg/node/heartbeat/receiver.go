@@ -7,6 +7,7 @@ import (
 	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/apiClient/listwatch"
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -44,8 +45,9 @@ func (hbr *HeartbeatReceiver) Check(ctx context.Context) {
 			for name, t := range hbr.times {
 				if time.Since(t) > config.HeartbeatTimeoutInterval {
 					//handle timeout
-					url := hbr.nodeClient.BuildURL(apiClient.Delete) + "/" + name
-					hbr.nodeClient.Delete(url, nil)
+					fmt.Println("[heartbeat] receiver" + name + " timed out")
+					//url := hbr.nodeClient.BuildURL(apiClient.Delete) + "/" + name
+					//hbr.nodeClient.Delete(url, nil)
 
 				}
 			}
