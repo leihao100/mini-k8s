@@ -166,6 +166,8 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 			c.JSON(http.StatusOK, gin.H{"status": "OK", "uid": UID})
 		}
 	} else {
+		UID := uuid.New()
+		newApiObject.SetUID(UID)
 		etcd.VersionLock.Lock()
 		defer etcd.VersionLock.Unlock()
 		_, currentVersion, err := etcd.GetWithVersion(etcdPath)

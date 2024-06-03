@@ -175,9 +175,10 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 	}
 
 	//k.UpdatePodStatusByID(pod.Metadata.Uid)
-	//msg, _ := pod.JsonMarshal()
-	//url := k.podClient.BuildURL(apiClient.Create)
-	//k.podClient.Put(url, msg)
+	//delete it when debugging
+	msg, _ := pod.JsonMarshal()
+	url := k.podClient.BuildURL(apiClient.Create)
+	k.podClient.Put(url, msg)
 
 }
 
