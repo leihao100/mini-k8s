@@ -3,6 +3,7 @@ package main
 import (
 	"MiniK8S/config"
 	"MiniK8S/pkg/kubelet"
+	"MiniK8S/pkg/kubeproxy"
 	"MiniK8S/pkg/node"
 	"MiniK8S/pkg/node/heartbeat"
 	"context"
@@ -39,5 +40,7 @@ func main() {
 	hbSender.Run(ctx, cancel)
 	kubelet := kubelet.NewKubelet(*workNode.GetNode())
 	kubelet.Run(ctx, cancel)
+	kp := kubeproxy.NewKubeProxy(kubelet)
+	kp.Run(ctx)
 	<-ctx.Done()
 }

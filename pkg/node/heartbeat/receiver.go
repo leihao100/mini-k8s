@@ -7,19 +7,20 @@ import (
 	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/apiClient/listwatch"
 	"context"
-	"github.com/google/uuid"
 	"time"
 )
 
 type HeartbeatReceiver struct {
-	times         map[uuid.UUID]time.Time
+	times         map[string]time.Time
 	HbListWatcher listwatch.ListerWatcher
+	nodeClient    *apiClient.Client
 }
 
 func NewHeartbeatReceiver() *HeartbeatReceiver {
 	return &HeartbeatReceiver{
-		times:         make(map[uuid.UUID]time.Time),
+		times:         make(map[string]time.Time),
 		HbListWatcher: listwatch.NewListWatchFromClient(apiClient.NewRESTClient(apitypes.HeartbeatObjectType)),
+		nodeClient:    apiClient.NewRESTClient(apitypes.NodeObjectType),
 	}
 }
 
@@ -40,9 +41,11 @@ func (hbr *HeartbeatReceiver) Check(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		default:
-			for _, t := range hbr.times {
+			for name, t := range hbr.times {
 				if time.Since(t) > config.HeartbeatTimeoutInterval {
 					//handle timeout
+					url := hbr.nodeClient.BuildURL(apiClient.Delete) + "/" + name
+					hbr.nodeClient.Delete(url, nil)
 
 				}
 			}
@@ -67,7 +70,7 @@ func (hbr *HeartbeatReceiver) WatchList(ctx context.Context, listWatcher listwat
 	list := podList.GetItems()
 	for _, object := range list {
 		hb := object.(*config.Heartbeat)
-		hbr.times[hb.Metadata.Uid], _ = time.Parse(time.DateTime, hb.Metadata.CreationTimestamp)
+		hbr.times[hb.Metadata.Name], _ = time.Parse(time.DateTime, hb.Metadata.CreationTimestamp)
 	}
 	w, err := listWatcher.Watch(config.ListOptions{
 		Kind:  string(apitypes.HeartbeatObjectType),
@@ -95,11 +98,11 @@ func (hbr *HeartbeatReceiver) handleWatch(w watch.Interface, ctx context.Context
 			ti, _ := time.Parse(time.RFC3339Nano, hb.Metadata.CreationTimestamp)
 			switch event.Type {
 			case watch.Added:
-				hbr.times[hb.Metadata.Uid] = ti
+				hbr.times[hb.Metadata.Name] = ti
 			case watch.Modified:
-				hbr.times[hb.Metadata.Uid] = ti
+				hbr.times[hb.Metadata.Name] = ti
 			case watch.Deleted:
-				delete(hbr.times, hb.Metadata.Uid)
+				delete(hbr.times, hb.Metadata.Name)
 			case watch.Error:
 				panic("heartbeat receiver watch error")
 			case watch.Bookmark:
