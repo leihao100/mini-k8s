@@ -166,15 +166,23 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 			c.JSON(http.StatusOK, gin.H{"status": "OK", "uid": UID})
 		}
 	} else {
-		UID := uuid.New()
-		newApiObject.SetUID(UID)
 		etcd.VersionLock.Lock()
 		defer etcd.VersionLock.Unlock()
-		_, currentVersion, err := etcd.GetWithVersion(etcdPath)
+		buf2, currentVersion, err := etcd.GetWithVersion(etcdPath)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
-			return
+		} else if buf2 == "" {
+			c.JSON(http.StatusNotFound, gin.H{"status": "ERR", "error": fmt.Sprintf("No %v with name: %v", ty, name)})
+		} else {
+			apiObject := config.NewApiObject(ty)
+			err := apiObject.JsonUnmarshal([]byte(buf))
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": err.Error()})
+			}
+			newApiObject.SetUID(apiObject.GetUID())
+
 		}
+
 		if currentVersion != version {
 			fmt.Printf("[apiServer] version unmatch!%v %v has been modified by others. Expected version:%v, Actual version:%v\n", ty, name, version, currentVersion)
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "ERR", "error": "Be modified by others"})
