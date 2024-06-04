@@ -80,13 +80,16 @@ func (i *Informer) Run(stopCh <-chan struct{}) {
 				fmt.Println("[informer]", i.reflector.expectedType, " translate object to watch.event]")
 				switch event.Type {
 				case watch.Added:
-					i.store.Update(event.Object.GetUID().String(), event.Object)
+					i.store.Add(event.Object.GetUID().String(), event.Object)
 					for _, h := range i.handlers {
 						h.OnAdd(event.Object)
 					}
 				case watch.Modified:
 					old, exist, _ := i.store.Get(event.Object.GetUID().String())
-					i.store.Update(event.Object.GetUID().String(), event.Object)
+					err := i.store.Update(event.Object.GetUID().String(), event.Object)
+					if err != nil {
+						fmt.Println("[informer]", i.reflector.expectedType, " store update error:", err)
+					}
 					if !exist {
 						for _, h := range i.handlers {
 							h.OnAdd(event.Object)
