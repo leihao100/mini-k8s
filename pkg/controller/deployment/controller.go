@@ -185,9 +185,11 @@ func (dc *DeploymentController) SelectDpByLabelSelector(labelSelector selector.L
 func (dc *DeploymentController) GetDpsByPod(pod *config.Pod) []*config.Deployment {
 	fmt.Println("[dpController] GetDpsByPod")
 	dps := dc.replicaInformer.List()
+	fmt.Println("[dpController] GetDpsByPod debugging : Pod's label is ", pod.Metadata.Labels)
 	var result []*config.Deployment
 	for _, dp := range dps {
 		actualDp := dp.(*config.Deployment)
+		fmt.Println("[dpController] GetDpsByPod debugging : ", "dp's name is ", actualDp.GetName(), "dp's label is ", actualDp.Metadata.Labels)
 		if selector.LabelCompare(actualDp.Metadata.Labels, pod.Metadata.Labels) {
 			result = append(result, actualDp)
 		}
