@@ -49,6 +49,7 @@ func NewDefaultInformerAndCli(ty types.ApiObjectType) (*apiClient.Client, *Infor
 }
 
 func (i *Informer) Run(stopCh <-chan struct{}) {
+	fmt.Println("[Informer ", i.reflector.expectedType, "]Informer starting...")
 	syncChan := make(chan bool)
 
 	go func() {
@@ -57,52 +58,55 @@ func (i *Informer) Run(stopCh <-chan struct{}) {
 	//waiting for list
 	<-syncChan
 
-	for {
-		select {
-		case <-stopCh:
-			return
+	go func() {
+		for {
+			select {
+			case <-stopCh:
+				return
 
-		default:
-			if i.queue.Len() == 0 {
-				time.Sleep(1 * time.Second)
-				continue
-			}
-			obj, shutdown := i.queue.Get()
-			if shutdown {
-				continue
-			}
-			event, ok := obj.(watch.Event)
-			if !ok {
-				panic("informer translate object to watch.event failed")
-			}
-			fmt.Println("[informer]", i.reflector.expectedType, " translate object to watch.event]")
-			switch event.Type {
-			case watch.Added:
-				i.store.Update(event.Object.GetUID().String(), event.Object)
-				for _, h := range i.handlers {
-					h.OnAdd(event.Object)
+			default:
+				if i.queue.Len() == 0 {
+					time.Sleep(1 * time.Second)
+					continue
 				}
-			case watch.Modified:
-				old, _, _ := i.store.Get(event.Object.GetUID().String())
-				i.store.Update(event.Object.GetUID().String(), event.Object)
-				for _, h := range i.handlers {
-					h.OnUpdate(old, event.Object)
+				obj, shutdown := i.queue.Get()
+				if shutdown {
+					continue
 				}
-			case watch.Deleted:
-				obj, exist, _ := i.store.Get(event.Object.GetUID().String())
-
-				if exist {
-					err := i.store.Delete(event.Object.GetUID().String())
-					if err != nil {
-						return
+				event, ok := obj.(watch.Event)
+				if !ok {
+					panic("informer translate object to watch.event failed")
+				}
+				fmt.Println("[informer]", i.reflector.expectedType, " translate object to watch.event]")
+				switch event.Type {
+				case watch.Added:
+					i.store.Update(event.Object.GetUID().String(), event.Object)
+					for _, h := range i.handlers {
+						h.OnAdd(event.Object)
 					}
-					for _, handler := range i.handlers {
-						handler.OnDelete(obj)
+				case watch.Modified:
+					old, _, _ := i.store.Get(event.Object.GetUID().String())
+					i.store.Update(event.Object.GetUID().String(), event.Object)
+					for _, h := range i.handlers {
+						h.OnUpdate(old, event.Object)
+					}
+				case watch.Deleted:
+					obj, exist, _ := i.store.Get(event.Object.GetUID().String())
+
+					if exist {
+						err := i.store.Delete(event.Object.GetUID().String())
+						if err != nil {
+							return
+						}
+						for _, handler := range i.handlers {
+							handler.OnDelete(obj)
+						}
 					}
 				}
 			}
 		}
-	}
+	}()
+
 }
 
 func (i *Informer) Get(key string) (item interface{}, exists bool, err error) {

@@ -46,6 +46,7 @@ func NewReflector(lw listwatch.ListerWatcher, expectedType apitypes.ApiObjectTyp
 }
 
 func (r *Reflector) Run(stopCh <-chan struct{}, syncChan chan bool) {
+	fmt.Println("[Reflector", r.expectedType, "] Running")
 	err := r.ListAndWatch(stopCh, syncChan)
 	if err != nil {
 		panic(err)
@@ -54,6 +55,7 @@ func (r *Reflector) Run(stopCh <-chan struct{}, syncChan chan bool) {
 }
 
 func (r *Reflector) ListAndWatch(stopCh <-chan struct{}, syncChan chan bool) error {
+
 	list, err := r.listerWatcher.List(config.ListOptions{
 		Kind:            r.name,
 		APIVersion:      "",
