@@ -5,6 +5,7 @@ import (
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/apiClient/listwatch"
+	"time"
 )
 
 type Informer struct {
@@ -18,10 +19,10 @@ type Informer struct {
 
 	// transportQueue is used to get notification from
 	// reflector about new events happening
-	queue WorkQueue
+	queue *WorkQueue
 }
 
-func NewInformer(ty types.ApiObjectType, store Store, queue WorkQueue, lw listwatch.ListerWatcher, h EventHandler) *Informer {
+func NewInformer(ty types.ApiObjectType, store Store, queue *WorkQueue, lw listwatch.ListerWatcher, h EventHandler) *Informer {
 	return &Informer{
 		ty:        ty,
 		queue:     queue,
@@ -36,13 +37,13 @@ func NewDefaultInformerAndCli(ty types.ApiObjectType) (*apiClient.Client, *Infor
 	lw := listwatch.NewListWatchFromClient(cli)
 	store := NewSimpleStore()
 	queue := NewWorkQueue()
-	ref := NewReflector(lw, ty, store, *queue)
+	ref := NewReflector(lw, ty, store, queue)
 	return cli, &Informer{
 		ty:        ty,
 		reflector: ref,
 		handlers:  []EventHandler{},
 		store:     store,
-		queue:     WorkQueue{},
+		queue:     queue,
 	}
 }
 
@@ -55,13 +56,14 @@ func (i *Informer) Run(stopCh <-chan struct{}) {
 	//waiting for list
 	<-syncChan
 
-	for true {
+	for {
 		select {
 		case <-stopCh:
 			return
 
 		default:
 			if i.queue.Len() == 0 {
+				time.Sleep(1 * time.Second)
 				continue
 			}
 			obj, shutdown := i.queue.Get()

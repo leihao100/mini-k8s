@@ -30,10 +30,10 @@ type Reflector struct {
 	// MaxInternalErrorRetryDuration defines how long we should retry internal errors returned by watch.
 	MaxInternalErrorRetryDuration time.Duration
 
-	WorkQueue WorkQueue
+	WorkQueue *WorkQueue
 }
 
-func NewReflector(lw listwatch.ListerWatcher, expectedType apitypes.ApiObjectType, store Store, queue WorkQueue) *Reflector {
+func NewReflector(lw listwatch.ListerWatcher, expectedType apitypes.ApiObjectType, store Store, queue *WorkQueue) *Reflector {
 	return &Reflector{
 		name:            string(expectedType) + "Reflector",
 		typeDescription: string(expectedType),

@@ -79,6 +79,9 @@ func (hpc *HpaController) Run(ctx context.Context, cancel context.CancelFunc) {
 				fmt.Println("[hpa] Stopping HpaController")
 				return
 			default:
+				if hpc.queue.Len() == 0 {
+					time.Sleep(3 * time.Second)
+				}
 				obj, ok := hpc.queue.Get()
 				if !ok {
 					time.Sleep(3 * time.Second)
@@ -135,6 +138,7 @@ func (hpc *HpaController) Scale(hpa *config.HorizontalPodAutoscaler, desire int)
 		d := dp.(*config.Deployment)
 		if d.Metadata.Name == dpName {
 			//scale
+
 			d.Spec.Replicas = int32(desire)
 			//todo update scale time and add scale methods
 			bytes, err := d.JsonMarshal()

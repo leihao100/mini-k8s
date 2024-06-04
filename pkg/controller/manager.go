@@ -7,6 +7,8 @@ import (
 	"MiniK8S/pkg/controller/deployment"
 	"MiniK8S/pkg/controller/hpa"
 	"MiniK8S/pkg/controller/pod"
+	"context"
+	"fmt"
 )
 
 type ControllerManager struct {
@@ -30,6 +32,7 @@ type ControllerManager struct {
 }
 
 func NewControllerManager() *ControllerManager {
+	fmt.Println("[controller] NewControllerManager")
 	podcli, podinf := cache.NewDefaultInformerAndCli(types.PodObjectType)
 	nodecli, nodeinf := cache.NewDefaultInformerAndCli(types.NodeObjectType)
 	deploymentcli, deploymentinf := cache.NewDefaultInformerAndCli(types.DeploymentObjectType)
@@ -37,7 +40,7 @@ func NewControllerManager() *ControllerManager {
 	hpacli, hpainf := cache.NewDefaultInformerAndCli(types.HorizontalPodAutoscalerObjectType)
 	dnscli, dnsinf := cache.NewDefaultInformerAndCli(types.DnsObjectType)
 	dpController := deployment.NewController(podinf, deploymentinf, podcli, dnscli)
-	//hpaController := hpa.NewController(podinf,hpainf)
+	hpaController := hpa.NewController(podinf, hpainf, podcli, hpacli, deploymentcli)
 	return &ControllerManager{
 		podClient:        podcli,
 		nodeClient:       nodecli,
@@ -54,5 +57,20 @@ func NewControllerManager() *ControllerManager {
 		dnsInformer:        dnsinf,
 
 		deploymentController: dpController,
+		hpaController:        hpaController,
 	}
+}
+
+func (cm *ControllerManager) Run(ctx context.Context, cancel context.CancelFunc) {
+	fmt.Println("[controller] Starting controller")
+	stopCh := make(chan struct{})
+	cm.podInformer.Run(stopCh)
+	cm.nodeInformer.Run(stopCh)
+	cm.deploymentInformer.Run(stopCh)
+	cm.serviceInformer.Run(stopCh)
+	cm.hpaInformer.Run(stopCh)
+	cm.dnsInformer.Run(stopCh)
+
+	cm.deploymentController.Run(ctx, cancel)
+	cm.hpaController.Run(ctx, cancel)
 }

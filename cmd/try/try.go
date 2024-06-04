@@ -1,9 +1,8 @@
 package main
 
 import (
-	"github.com/cloudflare/ipvs"
-	"github.com/cloudflare/ipvs/netmask"
-	"net/netip"
+	"MiniK8S/pkg/controller/cache"
+	"fmt"
 )
 
 func main() {
@@ -92,17 +91,68 @@ func main() {
 	//}
 	//cli, _ := cri.GetClient()
 	//cli.CreateContainer(co, "111")
-	ip, err := ipvs.New()
-	if err != nil {
-		panic(err)
-	}
-	addr, _ := netip.ParseAddr("10.6.0.1")
-	ip.CreateService(ipvs.Service{
-		Address:  addr,
-		Port:     uint16(80),
-		Netmask:  netmask.Mask{},
-		Family:   10,
-		Protocol: 6,
-	})
 
+	//client, err := ipvs.
+	//if err != nil {
+	//	return
+	//}
+	//svc := ipvs.Service{
+	//	Address: net.IP("10.0.6.1"),
+	//	Port:    uint16(80),
+	//	//AddressFamily: 2,
+	//	//Netmask:  netmask.Mask{},
+	//	Protocol: 6,
+	//}
+	//if &svc == nil {
+	//	fmt.Println("service is nil")
+	//}
+	//ipvs.AddService(svc)
+	//ipvs.AddDestination(svc, ipvs.Destination{
+	//	Address: net.IP("10.0.2.3"),
+	//	//tobe finish
+	//	//FwdMethod:      0,
+	//	Weight:         1,
+	//	UpperThreshold: 0,
+	//	LowerThreshold: 0,
+	//	Port:           uint16(80),
+	//	//Family:         defaultAddressFamily,
+	//	//TunnelType:     0,
+	//	//TunnelPort:     0,
+	//	//TunnelFlags:    0,
+	//})
+	//ipvs.Flush()
+	//store := cache.NewSimpleStore()
+	//li := store.List()
+	//for _, i := range li {
+	//	fmt.Println(i)
+	//}
+	//aaa(store)
+	//li = store.List()
+	//for _, i := range li {
+	//	fmt.Println(i)
+	//}
+	queue := cache.NewWorkQueue()
+	queue.Add("132")
+	res, ok := queue.Get()
+	if !ok {
+		fmt.Println(res)
+	} else {
+		fmt.Println("queue is empty")
+	}
+	//go bbb(queue)
+	res, ok = queue.Get()
+	if !ok {
+		fmt.Println(res)
+	} else {
+		fmt.Println("queue is empty")
+	}
+
+}
+
+func aaa(st cache.Store) {
+	st.Add("123", "132")
+}
+
+func bbb(st *cache.WorkQueue) {
+	st.Add("123")
 }

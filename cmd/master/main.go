@@ -2,6 +2,7 @@ package main
 
 import (
 	apiserver "MiniK8S/pkg/apiServer"
+	"MiniK8S/pkg/controller"
 	"MiniK8S/pkg/node"
 	"MiniK8S/pkg/node/heartbeat"
 	"MiniK8S/pkg/scheduler"
@@ -26,5 +27,7 @@ func main() {
 	heartbeatRecevier.Run(ctx, cancel)
 	newScheduler := scheduler.NewScheduler()
 	newScheduler.Run(ctx, cancel)
+	controllerManager := controller.NewControllerManager()
+	controllerManager.Run(ctx, cancel)
 	<-ctx.Done()
 }

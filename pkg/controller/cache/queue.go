@@ -17,6 +17,7 @@ func NewWorkQueue() *WorkQueue {
 		queue:         make([]interface{}, 0),
 		processingSet: make(map[interface{}]struct{}),
 		shutdown:      false,
+		mutex:         sync.Mutex{},
 	}
 	wq.cond = sync.NewCond(&wq.mutex)
 	return wq
@@ -38,7 +39,7 @@ func (wq *WorkQueue) Get() (interface{}, bool) {
 	wq.mutex.Lock()
 	defer wq.mutex.Unlock()
 
-	for len(wq.queue) == 0 && !wq.shutdown {
+	if len(wq.queue) == 0 && !wq.shutdown {
 		wq.cond.Wait()
 	}
 

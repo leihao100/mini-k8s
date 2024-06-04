@@ -104,11 +104,14 @@ func (dc *DeploymentController) Run(ctx context.Context, cancel context.CancelFu
 	fmt.Println("[dpController] Run")
 	go func() {
 		defer cancel()
-		for true {
+		for {
 			select {
 			case <-ctx.Done():
 				return
 			default:
+				if dc.queue.Len() == 0 {
+					time.Sleep(3 * time.Second)
+				}
 				obj, ok := dc.queue.Get()
 				if !ok { //此时队列为空
 					time.Sleep(3 * time.Second)
