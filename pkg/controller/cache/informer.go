@@ -85,11 +85,18 @@ func (i *Informer) Run(stopCh <-chan struct{}) {
 						h.OnAdd(event.Object)
 					}
 				case watch.Modified:
-					old, _, _ := i.store.Get(event.Object.GetUID().String())
+					old, exist, _ := i.store.Get(event.Object.GetUID().String())
 					i.store.Update(event.Object.GetUID().String(), event.Object)
-					for _, h := range i.handlers {
-						h.OnUpdate(old, event.Object)
+					if !exist {
+						for _, h := range i.handlers {
+							h.OnAdd(event.Object)
+						}
+					} else {
+						for _, h := range i.handlers {
+							h.OnUpdate(old, event.Object)
+						}
 					}
+
 				case watch.Deleted:
 					obj, exist, _ := i.store.Get(event.Object.GetUID().String())
 
