@@ -77,6 +77,7 @@ func (dpc *DeploymentController) DeletePod(obj interface{}) {
 	//	o := owner.UID
 	//	dpc.queue.Add(dpc.replicaMap[o])
 	//}
+	fmt.Println("[dpController] delete pod")
 	pd := obj.(*config.Pod)
 	dps := dpc.GetDpsByPod(pd)
 	for _, dp := range dps {
@@ -87,6 +88,9 @@ func (dpc *DeploymentController) DeletePod(obj interface{}) {
 func (dpc *DeploymentController) UpdatePod(oldObj, newObj interface{}) {
 	//pd := newObj.(config.Pod)
 	//dpc.queue.Add(pd)
+	if newObj == nil {
+		return
+	}
 	if oldObj == nil {
 		newpd := newObj.(*config.Pod)
 		newdps := dpc.GetDpsByPod(newpd)

@@ -98,8 +98,9 @@ func (i *Informer) Run(stopCh <-chan struct{}) {
 					}
 
 				case watch.Deleted:
+					fmt.Println("[informer]", i.reflector.expectedType, " translate delete into to watch.event")
 					obj, exist, _ := i.store.Get(event.Object.GetUID().String())
-
+					fmt.Println("[informer]", i.reflector.expectedType, " delete object's existence is", exist)
 					if exist {
 						err := i.store.Delete(event.Object.GetUID().String())
 						if err != nil {
