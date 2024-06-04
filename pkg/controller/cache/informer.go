@@ -5,6 +5,7 @@ import (
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/apiClient/listwatch"
+	"fmt"
 	"time"
 )
 
@@ -74,6 +75,7 @@ func (i *Informer) Run(stopCh <-chan struct{}) {
 			if !ok {
 				panic("informer translate object to watch.event failed")
 			}
+			fmt.Println("[informer]", i.reflector.expectedType, " translate object to watch.event]")
 			switch event.Type {
 			case watch.Added:
 				i.store.Update(event.Object.GetUID().String(), event.Object)

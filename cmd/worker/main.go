@@ -42,5 +42,6 @@ func main() {
 	kubelet.Run(ctx, cancel)
 	kp := kubeproxy.NewKubeProxy(kubelet)
 	kp.Run(ctx)
+
 	<-ctx.Done()
 }

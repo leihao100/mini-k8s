@@ -6,6 +6,7 @@ import (
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient/listwatch"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -91,13 +92,14 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}, syncChan chan bool) err
 }
 
 func (r *Reflector) HandleWatch(w watch.Interface, stopCh <-chan struct{}) error {
-	for true {
+	for {
 		select {
 		case <-stopCh:
 			return errors.New("watch stopped")
 		case event := <-w.ResultChan():
 			switch event.Type {
 			case watch.Added, watch.Modified, watch.Deleted:
+				fmt.Println("[reflector] watch added/modify/delete " + r.typeDescription)
 				r.PushEvent(event)
 
 			case watch.Error:
@@ -125,5 +127,6 @@ func (r *Reflector) HandleList(l config.ApiObjectList) error {
 }
 
 func (r *Reflector) PushEvent(watchEvent watch.Event) {
+	fmt.Println("[reflector] ", r.expectedType, "watch event:", watchEvent, "adding it into the cache queue")
 	r.WorkQueue.Add(watchEvent)
 }

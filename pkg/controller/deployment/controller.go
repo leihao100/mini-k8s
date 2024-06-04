@@ -49,19 +49,19 @@ func NewController(pi *cache.Informer, ri *cache.Informer, pc *apiClient.Client,
 }
 
 func (dpc *DeploymentController) AddDeployment(obj interface{}) {
-	dp := obj.(config.Deployment)
+	dp := obj.(*config.Deployment)
 	dpc.queue.Add(dp)
 }
 func (dpc *DeploymentController) DeleteDeployment(obj interface{}) {
 
 }
 func (dpc *DeploymentController) UpdateDeployment(oldObj, newObj interface{}) {
-	dp := newObj.(config.Deployment)
+	dp := newObj.(*config.Deployment)
 	dpc.queue.Add(dp)
 }
 func (dpc *DeploymentController) AddPod(obj interface{}) {
-	pd := obj.(config.Pod)
-	dps := dpc.GetDpsByPod(&pd)
+	pd := obj.(*config.Pod)
+	dps := dpc.GetDpsByPod(pd)
 	for _, dp := range dps {
 		dpc.queue.Add(dp)
 	}
@@ -74,8 +74,8 @@ func (dpc *DeploymentController) DeletePod(obj interface{}) {
 	//	o := owner.UID
 	//	dpc.queue.Add(dpc.replicaMap[o])
 	//}
-	pd := obj.(config.Pod)
-	dps := dpc.GetDpsByPod(&pd)
+	pd := obj.(*config.Pod)
+	dps := dpc.GetDpsByPod(pd)
 	for _, dp := range dps {
 		dpc.queue.Add(dp)
 	}
@@ -84,14 +84,14 @@ func (dpc *DeploymentController) DeletePod(obj interface{}) {
 func (dpc *DeploymentController) UpdatePod(oldObj, newObj interface{}) {
 	//pd := newObj.(config.Pod)
 	//dpc.queue.Add(pd)
-	oldpd := oldObj.(config.Pod)
-	newpd := newObj.(config.Pod)
+	oldpd := oldObj.(*config.Pod)
+	newpd := newObj.(*config.Pod)
 	if reflect.DeepEqual(oldpd.Metadata.Labels, newpd.Metadata.Labels) {
 		return
 	}
 
-	olddps := dpc.GetDpsByPod(&oldpd)
-	newdps := dpc.GetDpsByPod(&newpd)
+	olddps := dpc.GetDpsByPod(oldpd)
+	newdps := dpc.GetDpsByPod(newpd)
 
 	for _, dp := range olddps {
 		dpc.queue.Add(dp)
