@@ -6,8 +6,9 @@ import (
 	"net"
 
 	//"github.com/cloudflare/ipvs"
-	"github.com/moby/ipvs"
 	"net/netip"
+
+	"github.com/moby/ipvs"
 )
 
 // IPSet :gets from k8s' source code,may be in use

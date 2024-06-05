@@ -9,10 +9,11 @@ import (
 	"MiniK8S/pkg/apiClient/listwatch"
 	"MiniK8S/pkg/kubelet"
 	"MiniK8S/pkg/kubeproxy/ipInterface"
-	ipvsManager "MiniK8S/pkg/kubeproxy/ipvs"
+	iptableManager "MiniK8S/pkg/kubeproxy/iptable"
 	"MiniK8S/utils/net"
 	"context"
 	"fmt"
+
 	"github.com/google/uuid"
 )
 
@@ -34,7 +35,7 @@ func NewKubeProxy(kl *kubelet.Kubelet) *KubeProxy {
 	return &KubeProxy{
 		kl:                 kl,
 		services:           make(map[uuid.UUID]*config.Service),
-		ipManager:          ipvsManager.GetIPVS(),
+		ipManager:          iptableManager.New(),
 		serviceToPods:      make(map[uuid.UUID][]*config.Pod),
 		serviceClient:      apiClient.NewRESTClient(types.ServiceObjectType),
 		podClient:          apiClient.NewRESTClient(types.PodObjectType),
