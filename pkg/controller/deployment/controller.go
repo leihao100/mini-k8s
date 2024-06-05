@@ -81,6 +81,7 @@ func (dpc *DeploymentController) DeletePod(obj interface{}) {
 	pd := obj.(*config.Pod)
 	dps := dpc.GetDpsByPod(pd)
 	for _, dp := range dps {
+		fmt.Println("[dpController] handle delete pod: Adding dp into work queue : ", dp.GetName())
 		dpc.queue.Add(dp)
 	}
 }
@@ -126,10 +127,11 @@ func (dc *DeploymentController) Run(ctx context.Context, cancel context.CancelFu
 				return
 			default:
 				if dc.queue.Len() == 0 {
-					time.Sleep(3 * time.Second)
+					//time.Sleep(3 * time.Second)
+					continue
 				}
 				obj, ok := dc.queue.Get()
-				if !ok { //此时队列为空
+				if ok { //此时队列为空
 					time.Sleep(3 * time.Second)
 				}
 				dp := obj.(*config.Deployment)
@@ -192,6 +194,7 @@ func (dc *DeploymentController) GetDpsByPod(pod *config.Pod) []*config.Deploymen
 		fmt.Println("[dpController] GetDpsByPod debugging : ", "dp's name is ", actualDp.GetName(), "dp's label is ", actualDp.Spec.Template.Metadata.Labels)
 		if selector.LabelCompare(actualDp.Spec.Template.Metadata.Labels, pod.Metadata.Labels) {
 			result = append(result, actualDp)
+			fmt.Println("[dpController] GetDpsByPod debugging : adding dp", "dp's name is ", actualDp.GetName())
 		}
 	}
 	return result
