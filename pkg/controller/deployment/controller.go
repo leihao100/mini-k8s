@@ -56,7 +56,12 @@ func (dpc *DeploymentController) AddDeployment(obj interface{}) {
 	dpc.queue.Add(dp)
 }
 func (dpc *DeploymentController) DeleteDeployment(obj interface{}) {
-
+	dp := obj.(*config.Deployment)
+	pds, _ := dpc.GetPodsWithOwnership(dp)
+	for _, pod := range pds {
+		url := dpc.podClient.BuildURL(apiClient.Delete) + "/" + pod.GetName()
+		dpc.podClient.Delete(url, nil)
+	}
 }
 func (dpc *DeploymentController) UpdateDeployment(oldObj, newObj interface{}) {
 	dp := newObj.(*config.Deployment)
@@ -126,16 +131,20 @@ func (dc *DeploymentController) Run(ctx context.Context, cancel context.CancelFu
 			case <-ctx.Done():
 				return
 			default:
-				if dc.queue.Len() == 0 {
-					//time.Sleep(3 * time.Second)
-					continue
-				}
-				obj, ok := dc.queue.Get()
-				if ok { //此时队列为空
-					time.Sleep(3 * time.Second)
-				}
+				fmt.Println("[dpController] Run: try getting a dp from queue ")
+				//if dc.queue.Len() == 0 {
+				//	time.Sleep(2 * time.Second)
+				//	fmt.Println("[dpController] Run: queue is empty")
+				//	continue
+				//}
+				fmt.Println("[dpController] Run: get a dp from queue")
+				obj, _ := dc.queue.Get()
+				//if ok { //此时队列为空
+				//	time.Sleep(3 * time.Second)
+				//}
 				dp := obj.(*config.Deployment)
 				dc.Sync(dp)
+				time.Sleep(1 * time.Second)
 			}
 		}
 	}()

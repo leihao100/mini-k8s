@@ -72,5 +72,5 @@ func (cm *ControllerManager) Run(ctx context.Context, cancel context.CancelFunc)
 	//cm.dnsInformer.Run(stopCh)
 
 	cm.deploymentController.Run(ctx, cancel)
-	cm.hpaController.Run(ctx, cancel)
+	//cm.hpaController.Run(ctx, cancel)
 }
