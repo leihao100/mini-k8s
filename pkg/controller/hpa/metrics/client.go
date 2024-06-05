@@ -68,8 +68,8 @@ func (hmc *HPAMetricsClient) GetPodMetrics(pod *config.Pod) []PodMetric {
 				metricsInfo = append(metricsInfo, PodMetric{
 					Timestamp: info.Stats[0].Timestamp,
 					Window:    0,
-					CPU:       info.Stats[0].Cpu.Usage.Total,
-					Memory:    info.Stats[0].Memory.Usage,
+					CPU:       (info.Stats[len(info.Stats)-1].Cpu.Usage.Total - info.Stats[0].Cpu.Usage.Total) * 100 / uint64(info.Stats[len(info.Stats)-1].Timestamp.Sub(info.Stats[0].Timestamp).Nanoseconds()),
+					Memory:    info.Stats[len(info.Stats)-1].Memory.Usage,
 				})
 			}
 		}
@@ -129,6 +129,7 @@ func CalculateAverage(pms []PodMetric) PodMetric {
 }
 
 func (hmc *HPAMetricsClient) Sync() {
+	fmt.Println("[hpaMetrics][Sync]")
 
 	hmc.cadvisorClients = make(map[string]*cadvisor.CAdvisorClient)
 	nodes, _ := hmc.nodeListWatcher.List(config.ListOptions{

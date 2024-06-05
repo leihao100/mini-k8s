@@ -56,7 +56,12 @@ func (dpc *DeploymentController) AddDeployment(obj interface{}) {
 	dpc.queue.Add(dp)
 }
 func (dpc *DeploymentController) DeleteDeployment(obj interface{}) {
-
+	dp := obj.(*config.Deployment)
+	pds, _ := dpc.GetPodsWithOwnership(dp)
+	for _, pod := range pds {
+		url := dpc.podClient.BuildURL(apiClient.Delete) + "/" + pod.GetName()
+		dpc.podClient.Delete(url, nil)
+	}
 }
 func (dpc *DeploymentController) UpdateDeployment(oldObj, newObj interface{}) {
 	dp := newObj.(*config.Deployment)
