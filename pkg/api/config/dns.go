@@ -79,8 +79,8 @@ func (d *DNS) GetStatus() ApiObjectStatus {
 	return &d.Status
 }
 func (d *DNS) Info() {
-	//fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
-	//fmt.Printf("%-10s\t%-10s\t%-10d\t%-20d\n", d.Metadata.Name, d.Metadata.Uid)
+	fmt.Printf("%-10s\t%-40s\t%-20s\n", "NAME", "UID", "HOSTNAME")
+	fmt.Printf("%-10s\t%-40s\t%-20s\n", d.Metadata.Name, d.Metadata.Uid, d.Spec.HostName)
 }
 
 type DNSList struct {
@@ -119,8 +119,8 @@ func (d *DNSList) GetItems() []ApiObject {
 	return items
 }
 func (d *DNSList) Info() {
-	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
-	//for _, item := range d.Items {
-	//fmt.Printf("%-10s\t%-10s\t%-10d\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.Replicas, item.Status.Replicas)
-	//}
+	fmt.Printf("%-10s\t%-40s\t%-20s\n", "NAME", "UID", "HOSTNAME")
+	for _, item := range d.Items {
+		fmt.Printf("%-10s\t%-40s\t%-20s\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.HostName)
+	}
 }

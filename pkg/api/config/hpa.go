@@ -222,8 +222,8 @@ func (h *HorizontalPodAutoscaler) GetStatus() ApiObjectStatus {
 	return &h.Status
 }
 func (h *HorizontalPodAutoscaler) Info() {
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "REFERENCE", "MINPODS", "MAXPODS", "REPLICAS")
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20d\t%-20d\t%-20d\n", h.Metadata.Name, h.Metadata.Uid, h.Spec.ScaleTargetRef.Kind+"/"+h.Spec.ScaleTargetRef.Name, h.Spec.MinReplicas, h.Spec.MaxReplicas, h.Status.CurrentReplicas)
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "REFERENCE", "MINPODS", "MAXPODS", "REPLICAS")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20d\t%-20d\t%-20d\n", h.Metadata.Name, h.Metadata.Uid, h.Spec.ScaleTargetRef.Kind+"/"+h.Spec.ScaleTargetRef.Name, h.Spec.MinReplicas, h.Spec.MaxReplicas, h.Status.CurrentReplicas)
 }
 func (h *HorizontalPodAutoscalerList) JsonUnmarshal(data []byte) error {
 	return json.Unmarshal(data, &h)
@@ -252,8 +252,8 @@ func (h *HorizontalPodAutoscalerList) GetItems() []ApiObject {
 	return items
 }
 func (h *HorizontalPodAutoscalerList) Info() {
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "REFERENCE", "MINPODS", "MAXPODS", "REPLICAS")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "REFERENCE", "MINPODS", "MAXPODS", "REPLICAS")
 	for _, item := range h.Items {
-		fmt.Printf("%-10s\t%-10s\t%-10s\t%-20d\t%-20d\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.ScaleTargetRef.Kind+"/"+item.Spec.ScaleTargetRef.Name, item.Spec.MinReplicas, item.Spec.MaxReplicas, item.Status.CurrentReplicas)
+		fmt.Printf("%-10s\t%-40s\t%-20s\t%-20d\t%-20d\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.ScaleTargetRef.Kind+"/"+item.Spec.ScaleTargetRef.Name, item.Spec.MinReplicas, item.Spec.MaxReplicas, item.Status.CurrentReplicas)
 	}
 }
