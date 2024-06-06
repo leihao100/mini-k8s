@@ -24,6 +24,12 @@ func parseResourceType(ty string) (types.ApiObjectType, error) {
 		return types.DeploymentObjectType, nil
 	case "hpa", "hpas":
 		return types.HorizontalPodAutoscalerObjectType, nil
+	case "storageclass", "storageclasses":
+		return types.StorageClassObjectType, nil
+	case "persistentvolume", "persistentvolumes":
+		return types.PersistentVolumeObjectType, nil
+	case "persistentvolumeclaim", "persistentvolumeclaims":
+		return types.PersistentVolumeClaimObjectType, nil
 	default:
 		errMsg := fmt.Sprintf("No apiObjectType name %s", ty)
 		return types.ErrorObjectType, errors.New(errMsg)
