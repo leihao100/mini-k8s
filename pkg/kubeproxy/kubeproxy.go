@@ -212,7 +212,11 @@ func (kp *KubeProxy) AddPod(pod *config.Pod) {
 
 	for _, service := range kp.services {
 		if selector.LabelCompare(service.Metadata.Labels, pod.Metadata.Labels) {
+			service.Spec.Endpoints = append(service.Spec.Endpoints, pod.Status.PodIP)
 			kp.ipManager.AddPodToService(service, pod)
+			url := kp.serviceClient.BuildURL(apiClient.Create)
+			buf, _ := service.JsonMarshal()
+			kp.serviceClient.Put(url, buf)
 		}
 	}
 }
