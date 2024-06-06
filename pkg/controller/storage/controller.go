@@ -186,12 +186,12 @@ func (sc *StorageController) handlePersistentVolumeClaim(pvc *core.PersistentVol
 		selectedPv.Status.Phase = status.PersistentVolumeBound
 		pvc.Spec.VolumeName = selectedPv.GetName()
 		pvc.Status.Phase = status.PersistentVolumeClaimBound
-		code, err := sc.persistentVolumeClient.PutObject(selectedPv.GetName(), selectedPv)
+		code, err := sc.persistentVolumeClient.PutObject(selectedPv)
 		if err != nil {
 			log.Printf("[controller] Unable to update persistent volume, error: %v, status code: %v\n", err, code)
 			return
 		}
-		code, err = sc.persistentVolumeClaimClient.PutObject(pvc.GetName(), pvc)
+		code, err = sc.persistentVolumeClaimClient.PutObject(pvc)
 		if err != nil {
 			log.Printf("[controller] Unable to update persistent volume claim, error: %v, status code: %v\n", err, code)
 			return
@@ -242,12 +242,12 @@ func (sc *StorageController) handlePersistentVolumeClaim(pvc *core.PersistentVol
 	}
 	pvc.Spec.VolumeName = pv.GetName()
 	pvc.Status.Phase = status.PersistentVolumeClaimBound
-	code, err = sc.persistentVolumeClient.PutObject(pv.GetName(), pv)
+	code, err = sc.persistentVolumeClient.PutObject(pv)
 	if err != nil {
 		log.Printf("[controller] Unable to put persistent volume, error: %v, status code: %v\n", err, code)
 		return
 	}
-	code, err = sc.persistentVolumeClaimClient.PutObject(pvc.GetName(), pvc)
+	code, err = sc.persistentVolumeClaimClient.PutObject(pvc)
 	if err != nil {
 		log.Printf("[controller] Unable to update persistent volume claim, error: %v, status code: %v\n", err, code)
 	}
