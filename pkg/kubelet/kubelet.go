@@ -413,8 +413,8 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 	}
 	if phase != status.PodRunning || !reflect.DeepEqual(old, pod.Status.ContainerStatuses) || pod.Status.PodIP == "" {
 		fmt.Println("[kubelet] pod name is", pod.GetName(), " and pod status has changed")
-		msg, _ := pod.JsonMarshal()
-		url := k.podClient.BuildURL(apiClient.Create)
+		msg, _ := pod.Status.JsonMarshal()
+		url := k.podClient.BuildURL(apiClient.Status) + "/" + pod.GetName()
 		k.podClient.Put(url, msg)
 		//pod.Status.ContainerStatuses =
 	}

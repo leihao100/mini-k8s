@@ -110,7 +110,7 @@ func (r *Reflector) HandleWatch(w watch.Interface, stopCh <-chan struct{}) error
 
 				return errors.New("to be done")
 			default:
-				panic("should never get here")
+				fmt.Println("should never get here")
 				return errors.New("unknown watch event")
 			}
 		}

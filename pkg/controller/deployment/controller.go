@@ -173,7 +173,7 @@ func (dc *DeploymentController) Sync(dp *config.Deployment) {
 		}
 		dp.Status.Replicas = dp.Spec.Replicas
 		url := dc.deployClient.BuildURL(apiClient.Status) + "/" + dp.GetName()
-		buf, err := dp.JsonMarshal()
+		buf, err := dp.Status.JsonMarshal()
 		if err != nil {
 			fmt.Println(err)
 		}

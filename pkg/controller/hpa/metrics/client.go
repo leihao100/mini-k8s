@@ -140,6 +140,9 @@ func (hmc *HPAMetricsClient) Sync() {
 	ns := nodes.GetItems()
 	for _, n := range ns {
 		node := n.(*config.Node)
+		if node.GetName() == "master" {
+			continue
+		}
 		url := "http://" + node.Status.Addresses.Address + CAdvisorPort
 		hmc.cadvisorClients[node.Metadata.Name] = cadvisor.NewCAdvisor(url)
 	}
