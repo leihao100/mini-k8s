@@ -272,6 +272,7 @@ func (hpc *HpaController) Scale(hpa *config.HorizontalPodAutoscaler, desire int)
 }
 
 func (hpc *HpaController) GetResourceMetric(hpa *config.HorizontalPodAutoscaler, cmap metrics.ConatinerMetricsInfo) (metrics.PodMetric, int, error) {
+	fmt.Println("[hpaController] do GetResourceMetric")
 	if !strings.EqualFold(hpa.Spec.ScaleTargetRef.Kind, string(types.DeploymentObjectType)) {
 		return metrics.PodMetric{}, 0, fmt.Errorf("HPA is not a deployment object")
 	}
@@ -299,7 +300,9 @@ func (hpc *HpaController) GetDeploymentResourceMetric(dp *config.Deployment, cma
 		metricsVector = make([]metrics.PodMetric, 0)
 		for _, container := range pod.Spec.Containers {
 			metricsVector = append(metricsVector, cmap[container.Name])
+			fmt.Println("[hpaController] GetDeploymentResourceMetric :adding name:", container.Name, cmap[container.Name])
 		}
+
 		res = append(res, metrics.PodMetricsSum(metricsVector))
 	}
 

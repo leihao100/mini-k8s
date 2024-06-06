@@ -114,6 +114,7 @@ func DividePodMetric(a PodMetric, divider uint64) PodMetric {
 }
 
 func CalculateAverage(pms []PodMetric) PodMetric {
+	fmt.Println("[metrics] CalculateAverage")
 	var cnt uint64 = 0
 	result := PodMetric{
 		Timestamp: time.Now(),
@@ -122,6 +123,7 @@ func CalculateAverage(pms []PodMetric) PodMetric {
 		Memory:    0,
 	}
 	for _, pm := range pms {
+		fmt.Println("[metrics] CalculateAverage: cpu&mem ", pm.CPU, pm.Memory)
 		result.CPU += pm.CPU
 		result.Memory += pm.Memory
 		cnt++
