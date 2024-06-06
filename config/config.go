@@ -1,10 +1,19 @@
 package config
 
+import (
+	"MiniK8S/utils/net"
+)
+
 const version string = "V1.0"
-const (
+
+var (
 	etcdHost string = "localhost"
 	etcdPort string = ":2379"
 )
+
+func SetEtcdHost() {
+	etcdHost, _ = net.GetLocalIP()
+}
 
 var (
 	apiServerHost string = "http://localhost"
