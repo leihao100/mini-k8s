@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const CAdvisorPort = ":9090"
+const CAdvisorPort = ":8080"
 
 type HPAMetricsClient struct {
 	nodeClient      *apiClient.Client
