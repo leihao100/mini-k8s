@@ -121,7 +121,7 @@ func (d *DeploymentList) GetItems() []ApiObject {
 	return items
 }
 func (d *DeploymentList) Info() {
-	fmt.Printf("%-10s\t%-40s\t%20s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
 	for _, item := range d.Items {
 		fmt.Printf("%-10s\t%-40s\t%-20d\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.Replicas, item.Status.Replicas)
 	}

@@ -142,7 +142,7 @@ func (n *NodeList) GetItems() []ApiObject {
 	return items
 }
 func (n *NodeList) Info() {
-	fmt.Printf("%-10s\t%-40s\t%20s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
 	for _, item := range n.Items {
 		fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t\n", item.Metadata.Name, item.Metadata.Uid, item.Status.Phase, item.Status.Addresses.Address)
 	}

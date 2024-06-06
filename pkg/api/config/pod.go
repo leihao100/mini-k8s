@@ -136,7 +136,7 @@ func (p *PodList) GetItems() []ApiObject {
 	return items
 }
 func (p *PodList) Info() {
-	fmt.Printf("%-10s\t%-40s\t%20s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
 	for _, item := range p.Items {
 		fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.NodeName, item.Status.Phase, item.Status.PodIP)
 	}

@@ -152,7 +152,7 @@ func (s *ServiceList) GetItems() []ApiObject {
 	return items
 }
 func (s *ServiceList) Info() {
-	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "TYPE", "IP")
+	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\n", "NAME", "UID", "TYPE", "IP")
 	for _, item := range s.Items {
 		var port string = ""
 		var targetPort string = ""
