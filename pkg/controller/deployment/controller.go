@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/testutil"
 	"github.com/google/uuid"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -235,7 +236,7 @@ func IsDPOwned(dp *config.Deployment, pd *config.Pod) bool {
 	if refs == nil || len(refs) == 0 {
 		return false
 	}
-	if refs[0].Kind != string(types.DeploymentObjectType) || refs[0].UID != dp.GetUID() {
+	if !strings.EqualFold(refs[0].Kind, string(types.DeploymentObjectType)) || refs[0].UID != dp.GetUID() {
 		return false
 	}
 	return true
@@ -299,6 +300,7 @@ func (dc *DeploymentController) IncreaseReplicaCount(dp *config.Deployment, pdwo
 		}
 		for i := 0; i < int(delta)-len(pdwo); i++ {
 			mt.Name = "deployment-" + pod.Spec.Containers[0].Name + "-" + testutil.GenerateRandomAlphaOnlyString(5)
+			mt.OwnerReferences = refs
 			pod.Metadata = mt
 			url := dc.podClient.BuildURL(apiClient.Create)
 			buf, err := pod.JsonMarshal()
