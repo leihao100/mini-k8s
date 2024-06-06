@@ -2,6 +2,9 @@ package iptableManager
 
 import (
 	"MiniK8S/pkg/api/config"
+	"MiniK8S/pkg/api/types"
+	"MiniK8S/pkg/apiClient"
+	"MiniK8S/utils/net"
 	"fmt"
 	"log"
 	"slices"
@@ -100,7 +103,41 @@ func (im *IPtableManager) DeleteRules(clusterIP string, serverIP string, cluster
 	}
 }
 
+func (im *IPtableManager) AddRulesNodePort(clusterIP string, serverIP string, clusterPort string, serverPort string, probility string) {
+	client := im.Client
+	err := client.AppendUnique("nat", "PREROUTING", "-p", "tcp", "--dport", clusterPort, "-m", "statistic", "--mode", "random", "--probability", probility, "-j", "DNAT", "--to-destination", serverIP+":"+serverPort)
+	if err != nil {
+		log.Fatalf("Error adding PREROUTING rule: %v", err)
+	}
+	// Add the second rule
+	err = client.AppendUnique("nat", "POSTROUTING", "-d", serverIP, "-p", "tcp", "--dport", serverPort, "-j", "SNAT", "--to-source", clusterIP)
+	if err != nil {
+		log.Fatalf("Error adding POSTROUTING rule: %v", err)
+	}
+}
+
+func (im *IPtableManager) DeleteRulesNodePort(clusterIP string, serverIP string, clusterPort string, serverPort string, probility string) {
+	client := im.Client
+	err := client.Delete("nat", "PREROUTING", "-p", "tcp", "--dport", clusterPort, "-m", "statistic", "--mode", "random", "--probability", probility, "-j", "DNAT", "--to-destination", serverIP+":"+serverPort)
+	if err != nil {
+		log.Fatalf("Error deleting PREROUTING rule: %v", err)
+	}
+
+	// Delete the second rule
+	err = client.Delete("nat", "POSTROUTING", "-d", serverIP, "-p", "tcp", "--dport", serverPort, "-j", "SNAT", "--to-source", clusterIP)
+	if err != nil {
+		log.Fatalf("Error deleting POSTROUTING rule: %v", err)
+	}
+}
+
 func (im *IPtableManager) AddService(service *config.Service) {
+	if service.Spec.Type == "NodePort" {
+		service.Spec.ClusterIP, _ = net.GetLocalIP()
+	}
+	cli := apiClient.NewRESTClient(types.ServiceObjectType)
+	url := cli.BuildURL(apiClient.Create)
+	buf, _ := service.JsonMarshal()
+	cli.Put(url, buf)
 	for _, port := range service.Spec.Ports {
 
 		im.Service2Ports[service.Metadata.Name] = append(im.Service2Ports[service.Metadata.Name], Ports{
@@ -113,15 +150,28 @@ func (im *IPtableManager) AddService(service *config.Service) {
 func (im *IPtableManager) RemoveService(serviceArg *config.Service) {
 	servers := im.Service2Server[serviceArg.Metadata.Name]
 	num := len(servers)
-	for _, Ports := range im.Service2Ports[serviceArg.Metadata.Name] {
-		clusterPort := strconv.Itoa(int(Ports.Port))
-		serverPort := strconv.Itoa(int(Ports.TargetPort))
-		for i, serverIP := range servers {
-			probility := strconv.FormatFloat(float64(1/(num-i)), 'f', 4, 64)
-			fmt.Printf("Probility: %v\n", probility)
-			im.DeleteRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+	if serviceArg.Spec.Type == "NodePort" {
+		for _, Ports := range im.Service2Ports[serviceArg.Metadata.Name] {
+			clusterPort := strconv.Itoa(int(Ports.Port))
+			serverPort := strconv.Itoa(int(Ports.TargetPort))
+			for i, serverIP := range servers {
+				probility := strconv.FormatFloat(float64(1/(num-i)), 'f', 4, 64)
+				fmt.Printf("Probility: %v\n", probility)
+				im.DeleteRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
+		}
+	} else {
+		for _, Ports := range im.Service2Ports[serviceArg.Metadata.Name] {
+			clusterPort := strconv.Itoa(int(Ports.Port))
+			serverPort := strconv.Itoa(int(Ports.TargetPort))
+			for i, serverIP := range servers {
+				probility := strconv.FormatFloat(float64(1/(num-i)), 'f', 4, 64)
+				fmt.Printf("Probility: %v\n", probility)
+				im.DeleteRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
 		}
 	}
+
 	delete(im.Service2Ports, serviceArg.Metadata.Name)
 	delete(im.Service2Server, serviceArg.Metadata.Name)
 }
@@ -133,20 +183,38 @@ func (im *IPtableManager) AddPodToService(serviceArg *config.Service, pod *confi
 	fmt.Printf("Add:\n Old: %v\nNew: %v\n", oldServers, newServers)
 	oldNum := len(oldServers)
 	newNum := len(newServers)
-	for _, Ports := range im.Service2Ports[serviceArg.Metadata.Name] {
-		clusterPort := strconv.Itoa(int(Ports.Port))
-		serverPort := strconv.Itoa(int(Ports.TargetPort))
-		for i, serverIP := range oldServers {
-			probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
-			fmt.Printf("Old Probility: %v\n", probility)
-			im.DeleteRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+	if serviceArg.Spec.Type == "NodePort" {
+		for _, Ports := range im.Service2Ports[serviceArg.Metadata.Name] {
+			clusterPort := strconv.Itoa(int(Ports.Port))
+			serverPort := strconv.Itoa(int(Ports.TargetPort))
+			for i, serverIP := range oldServers {
+				probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
+				fmt.Printf("Old Probility: %v\n", probility)
+				im.DeleteRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
+			for i, serverIP := range newServers {
+				probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
+				fmt.Printf("New Probility: %v\n", probility)
+				im.AddRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
 		}
-		for i, serverIP := range newServers {
-			probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
-			fmt.Printf("New Probility: %v\n", probility)
-			im.AddRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+	} else {
+		for _, Ports := range im.Service2Ports[serviceArg.Metadata.Name] {
+			clusterPort := strconv.Itoa(int(Ports.Port))
+			serverPort := strconv.Itoa(int(Ports.TargetPort))
+			for i, serverIP := range oldServers {
+				probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
+				fmt.Printf("Old Probility: %v\n", probility)
+				im.DeleteRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
+			for i, serverIP := range newServers {
+				probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
+				fmt.Printf("New Probility: %v\n", probility)
+				im.AddRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
 		}
 	}
+
 }
 
 func (im *IPtableManager) RemovePodFromService(serviceArg *config.Service, pod *config.Pod) {
@@ -156,18 +224,36 @@ func (im *IPtableManager) RemovePodFromService(serviceArg *config.Service, pod *
 	fmt.Printf("Remove:\n Old: %v\nNew: %v\n", oldServers, newServers)
 	oldNum := len(oldServers)
 	newNum := len(newServers)
-	for _, Ports := range im.Service2Ports[serviceArg.Metadata.Name] {
-		clusterPort := strconv.Itoa(int(Ports.Port))
-		serverPort := strconv.Itoa(int(Ports.TargetPort))
-		for i, serverIP := range oldServers {
-			probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
-			fmt.Printf("Old Probility: %v\n", probility)
-			im.DeleteRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+	if serviceArg.Spec.Type == "NodePort" {
+		for _, Ports := range im.Service2Ports[serviceArg.Metadata.Name] {
+			clusterPort := strconv.Itoa(int(Ports.Port))
+			serverPort := strconv.Itoa(int(Ports.TargetPort))
+			for i, serverIP := range oldServers {
+				probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
+				fmt.Printf("Old Probility: %v\n", probility)
+				im.DeleteRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
+			for i, serverIP := range newServers {
+				probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
+				fmt.Printf("New Probility: %v\n", probility)
+				im.AddRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
 		}
-		for i, serverIP := range newServers {
-			probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
-			fmt.Printf("New Probility: %v\n", probility)
-			im.AddRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+	} else {
+		for _, Ports := range im.Service2Ports[serviceArg.Metadata.Name] {
+			clusterPort := strconv.Itoa(int(Ports.Port))
+			serverPort := strconv.Itoa(int(Ports.TargetPort))
+			for i, serverIP := range oldServers {
+				probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
+				fmt.Printf("Old Probility: %v\n", probility)
+				im.DeleteRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
+			for i, serverIP := range newServers {
+				probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
+				fmt.Printf("New Probility: %v\n", probility)
+				im.AddRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
+			}
 		}
 	}
+
 }

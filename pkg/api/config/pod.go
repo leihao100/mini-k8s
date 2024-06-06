@@ -40,8 +40,13 @@ type PodSpec struct {
 	InitContainers []Container       `json:"initContainers,omitempty"`
 	NodeName       string            `json:"nodeName,omitempty"`
 	ExposedPorts   []string          `json:"exposedPorts,omitempty"`
-	Volumes        []string          `json:"volumes,omitempty"`
+	Volumes        []Volume          `json:"volumes,omitempty"`
 	BindPorts      map[string]string `json:"bindPorts,omitempty"`
+}
+
+type Volume struct {
+	Name                      string `json:"name,omitempty"`
+	PersistentVolumeClaimName string `json:"persistentVolumeClaim,omitempty"`
 }
 
 type PodTemplateSpec struct {
@@ -105,8 +110,8 @@ func (p *Pod) GetStatus() ApiObjectStatus {
 	return &p.Status
 }
 func (p *Pod) Info() {
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", p.Metadata.Name, p.Metadata.Uid, p.Spec.NodeName, p.Status.Phase, p.Status.PodIP)
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", p.Metadata.Name, p.Metadata.Uid, p.Spec.NodeName, p.Status.Phase, p.Status.PodIP)
 }
 
 func (p *PodList) JsonUnmarshal(data []byte) error {
@@ -136,8 +141,8 @@ func (p *PodList) GetItems() []ApiObject {
 	return items
 }
 func (p *PodList) Info() {
-	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
 	for _, item := range p.Items {
-		fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.NodeName, item.Status.Phase, item.Status.PodIP)
+		fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.NodeName, item.Status.Phase, item.Status.PodIP)
 	}
 }
