@@ -168,6 +168,9 @@ func (hmc *HPAMetricsClient) Sync() {
 			}
 			fmt.Println("[metrics client][Sync] pod name is ", info.Aliases[0], "and pod resource is:CPU-", hmc.metricsInfo[info.Aliases[0]].CPU, "Memory", hmc.metricsInfo[info.Aliases[0]].Memory)
 		}
+		for name, info := range hmc.metricsInfo {
+			fmt.Println("[metrics client][Sync debugging] pod name is", name, "info is", *info)
+		}
 	}
 }
 
