@@ -150,7 +150,9 @@ func (hpc *HpaController) CalculateTargetByOneType(realnum int, metric metrics.P
 
 	switch ty {
 	case metrics.CPU:
+		fmt.Println("[hpaController] CalculateTargetByOneType : CPU", "real num", realnum, "cpu: ", metric.CPU, "target:", target)
 		res = int(math.Ceil(float64(realnum) * (float64(metric.CPU) / float64(target))))
+		fmt.Println("[hpaController] CalculateTargetByOneType: res", res)
 	case metrics.Memory:
 		res = int(math.Ceil(float64(realnum) * (float64(metric.Memory) / float64(target))))
 	default:
