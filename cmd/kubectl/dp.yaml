@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: example-dp
+spec:
+  replicas: 3
+  selector:
+    matchlabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+        - name: ubuntu
+          image: ubuntu:latest
+          cmd:
+          - tail
+          - -f
+          - /dev/null
+          volumeMount:
+          - name: volume1
+            mountPath: /tmp/volume1
+          - name: volume2
+            mountPath: /tmp/volume2
+
+        - name: centos
+          image: centos:latest
+          cmd:
+          - tail
+          - -f
+          - /dev/null
+          volumeMount:
+          - name: volume1
+            mountPath: /tmp/tmp/volume1
+          - name: volume2
+            mountPath: /tmp/tmp/volume2
+
+        - name: http-echo
+          image: hashicorp/http-echo:latest
+          volumeMount:
+          - name: volume1
+            mountPath: /tmp/volume1
+          - name: volume2
+            mountPath: /tmp/volume2
+
+        - name: apache
+          image: httpd:latest
+      volumes:
+        - name: volume1
+        - name: volume2
+
+
