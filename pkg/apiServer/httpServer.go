@@ -139,6 +139,32 @@ func (h httpServer) BindHandlers() {
 				storageClasses.GET("/status/:name", handlers.HandleGetStorageClassStatus)    // GET /api/v1/storageClasses/status/:name
 				storageClasses.PUT("/status/:name", handlers.HandleModifyStorageClassStatus) // PUT /api/v1/storageClasses/status/:name
 			}
+			persistentVolumes := v1.Group("/persistentVolumes")
+			{
+				persistentVolumes.GET("/get", handlers.HandleGetPersistentVolumes)                  // GET /api/v1/persistentVolumes/get
+				persistentVolumes.GET("/get/:name", handlers.HandleGetPersistentVolume)             // GET /api/v1/persistentVolumes/get/:name
+				persistentVolumes.PUT("/create", handlers.HandleCreatePersistentVolume)             // POST /api/v1/persistentVolumes/create
+				persistentVolumes.PUT("/create/:name", handlers.HandleCreatePersistentVolume)       // PUT /api/v1/persistentVolumes/create/:name
+				persistentVolumes.DELETE("/delete", handlers.HandleDeletePersistentVolumes)         // DELETE /api/v1/persistentVolumes/delete
+				persistentVolumes.DELETE("/delete/:name", handlers.HandleDeletePersistentVolume)    // DELETE /api/v1/persistentVolumes/delete/:name
+				persistentVolumes.GET("/watch", handlers.HandleWatchPersistentVolumes)              // GET /api/v1/persistentVolumes/watch
+				persistentVolumes.GET("/watch/:name", handlers.HandleWatchPersistentVolume)         // GET /api/v1/persistentVolumes/watch/:name
+				persistentVolumes.GET("/status/:name", handlers.HandleGetPersistentVolumeStatus)    // GET /api/v1/persistentVolumes/status/:name
+				persistentVolumes.PUT("/status/:name", handlers.HandleModifyPersistentVolumeStatus) // PUT /api/v1/persistentVolumes/status/:name
+			}
+			persistentVolumeClaims := v1.Group("/persistentVolumeClaims")
+			{
+				persistentVolumeClaims.GET("/get", handlers.HandleGetPersistentVolumeClaims)                  // GET /api/v1/persistentVolumeClaims/get
+				persistentVolumeClaims.GET("/get/:name", handlers.HandleGetPersistentVolumeClaim)             // GET /api/v1/persistentVolumeClaims/get/:name
+				persistentVolumeClaims.PUT("/create", handlers.HandleCreatePersistentVolumeClaim)             // POST /api/v1/persistentVolumeClaims/create
+				persistentVolumeClaims.PUT("/create/:name", handlers.HandleCreatePersistentVolumeClaim)       // PUT /api/v1/persistentVolumeClaims/create/:name
+				persistentVolumeClaims.DELETE("/delete", handlers.HandleDeletePersistentVolumeClaims)         // DELETE /api/v1/persistentVolumeClaims/delete
+				persistentVolumeClaims.DELETE("/delete/:name", handlers.HandleDeletePersistentVolumeClaim)    // DELETE /api/v1/persistentVolumeClaims/delete/:name
+				persistentVolumeClaims.GET("/watch", handlers.HandleWatchPersistentVolumeClaims)              // GET /api/v1/persistentVolumeClaims/watch
+				persistentVolumeClaims.GET("/watch/:name", handlers.HandleWatchPersistentVolumeClaim)         // GET /api/v1/persistentVolumeClaims/watch/:name
+				persistentVolumeClaims.GET("/status/:name", handlers.HandleGetPersistentVolumeClaimStatus)    // GET /api/v1/persistentVolumeClaims/status/:name
+				persistentVolumeClaims.PUT("/status/:name", handlers.HandleModifyPersistentVolumeClaimStatus) // PUT /api/v1/persistentVolumeClaims/status/:name
+			}
 		}
 	}
 }

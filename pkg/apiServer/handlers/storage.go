@@ -55,6 +55,10 @@ func HandleDeletePersistentVolume(c *gin.Context) {
 	HandleDeleteApiObject(c, types.PersistentVolumeObjectType)
 }
 
+func HandleDeletePersistentVolumes(c *gin.Context) {
+	HandleDeleteApiObjects(c, types.PersistentVolumeObjectType)
+}
+
 func HandleWatchPersistentVolumes(c *gin.Context) {
 	HandleWatchApiObjects(c, types.PersistentVolumeObjectType)
 }
@@ -65,6 +69,10 @@ func HandleWatchPersistentVolume(c *gin.Context) {
 
 func HandleGetPersistentVolumeStatus(c *gin.Context) {
 	HandleGetApiObjectStatus(c, types.PersistentVolumeObjectType)
+}
+
+func HandleModifyPersistentVolumeStatus(c *gin.Context) {
+	HandleModifyApiObjectStatus(c, types.PersistentVolumeObjectType)
 }
 
 // PersistentVolumeClaim handlers
@@ -82,6 +90,10 @@ func HandleCreatePersistentVolumeClaim(c *gin.Context) {
 
 func HandleDeletePersistentVolumeClaim(c *gin.Context) {
 	HandleDeleteApiObject(c, types.PersistentVolumeClaimObjectType)
+}
+
+func HandleDeletePersistentVolumeClaims(c *gin.Context) {
+	HandleDeleteApiObjects(c, types.PersistentVolumeClaimObjectType)
 }
 
 func HandleWatchPersistentVolumeClaims(c *gin.Context) {
