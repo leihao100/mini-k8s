@@ -71,7 +71,7 @@ func (hmc *HPAMetricsClient) GetPodMetrics(pod *config.Pod) []PodMetric {
 				metricsInfo = append(metricsInfo, PodMetric{
 					Timestamp: info.Stats[0].Timestamp,
 					Window:    0,
-					CPU:       (info.Stats[len(info.Stats)-1].Cpu.Usage.Total - info.Stats[0].Cpu.Usage.Total) * 100 / uint64(info.Stats[len(info.Stats)-1].Timestamp.Sub(info.Stats[0].Timestamp).Nanoseconds()),
+					CPU:       (info.Stats[len(info.Stats)-1].Cpu.Usage.Total - info.Stats[0].Cpu.Usage.Total) * 1000 / uint64(info.Stats[len(info.Stats)-1].Timestamp.Sub(info.Stats[0].Timestamp).Nanoseconds()),
 					Memory:    info.Stats[len(info.Stats)-1].Memory.Usage,
 				})
 			}
@@ -161,7 +161,7 @@ func (hmc *HPAMetricsClient) Sync() {
 			hmc.metricsInfo[info.Aliases[0]] = PodMetric{
 				Timestamp: info.Stats[0].Timestamp,
 				Window:    0,
-				CPU:       (info.Stats[len(info.Stats)-1].Cpu.Usage.Total - info.Stats[0].Cpu.Usage.Total) * 100 / uint64(info.Stats[len(info.Stats)-1].Timestamp.Sub(info.Stats[0].Timestamp).Nanoseconds()),
+				CPU:       (info.Stats[len(info.Stats)-1].Cpu.Usage.Total - info.Stats[0].Cpu.Usage.Total) * 1000 / uint64(info.Stats[len(info.Stats)-1].Timestamp.Sub(info.Stats[0].Timestamp).Nanoseconds()),
 				Memory:    info.Stats[0].Memory.Usage,
 			}
 			fmt.Println("[metrics client][Sync] pod name is ", info.Aliases[0], "and pod resource is:CPU-", hmc.metricsInfo[info.Aliases[0]].CPU, "Memory", hmc.metricsInfo[info.Aliases[0]].Memory)

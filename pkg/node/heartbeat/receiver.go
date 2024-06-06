@@ -48,7 +48,7 @@ func (hbr *HeartbeatReceiver) Check(ctx context.Context) {
 					fmt.Println("[heartbeat] receiver" + name + " timed out")
 					url := hbr.nodeClient.BuildURL(apiClient.Delete) + "/" + name
 					hbr.nodeClient.Delete(url, nil)
-
+					delete(hbr.times, name)
 				}
 			}
 			time.Sleep(config.HeartbeatCheckInterval)

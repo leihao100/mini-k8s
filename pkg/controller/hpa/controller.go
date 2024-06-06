@@ -159,6 +159,7 @@ func (hpc *HpaController) Sync(hpa *config.HorizontalPodAutoscaler) {
 	if desire < (hpa.Spec.MinReplicas) {
 		desire = (hpa.Spec.MinReplicas)
 	}
+	fmt.Println("[hpaController] Updating Hpa :", hpa.GetName(), " its desire is ", desire)
 	replicas, err := hpc.GetHpaReplicas(hpa)
 	if err != nil {
 		return
@@ -169,12 +170,14 @@ func (hpc *HpaController) Sync(hpa *config.HorizontalPodAutoscaler) {
 	var rule config.HPAScalingRules
 	if int32(desire) < replicas {
 		//芝士缩容
+		fmt.Println("[hpaController] Scaling down")
 		rule = hpa.Spec.Behavior.ScaleDown
 		if rule.SelectPolicy == "" {
 			rule = DefaultScaleDownPolicy
 		}
 		if int32(time.Since(hpa.Status.LastScaleTime).Seconds()) < rule.StabilizationWindowSeconds {
 			//未到冷却时间
+			fmt.Println("[hpaController] Scaling Down : in stable time")
 			return
 		}
 		for _, policy := range rule.Policies {
@@ -192,12 +195,14 @@ func (hpc *HpaController) Sync(hpa *config.HorizontalPodAutoscaler) {
 		}
 	} else {
 		//芝士扩容
+		fmt.Println("[hpaController] Scaling up")
 		rule = hpa.Spec.Behavior.ScaleUp
 		if rule.SelectPolicy == "" {
 			rule = DefaultScaleUpPolicy
 		}
 		if int32(time.Since(hpa.Status.LastScaleTime).Seconds()) < rule.StabilizationWindowSeconds {
 			//未到冷却时间
+			fmt.Println("[hpaController] Scaling Up : in stable time")
 			return
 		}
 		for _, policy := range rule.Policies {
@@ -224,7 +229,7 @@ func (hpc *HpaController) Sync(hpa *config.HorizontalPodAutoscaler) {
 }
 
 func (hpc *HpaController) Scale(hpa *config.HorizontalPodAutoscaler, desire int) {
-
+	fmt.Println("[hpaController] do Scaling ")
 	dpName := hpa.Spec.ScaleTargetRef.Name
 	dps := hpc.dpInformer.List()
 
@@ -232,7 +237,7 @@ func (hpc *HpaController) Scale(hpa *config.HorizontalPodAutoscaler, desire int)
 		d := dp.(*config.Deployment)
 		if d.Metadata.Name == dpName {
 			//scale
-
+			fmt.Println("[hpaController] do Scaling : ", d.GetName())
 			d.Spec.Replicas = int32(desire)
 			bytes, err := d.JsonMarshal()
 			if err != nil {
