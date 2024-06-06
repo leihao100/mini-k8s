@@ -197,11 +197,11 @@ func (c *DockerClient) ListContainers() []types.Container {
 	return containers
 }
 
-func (c *DockerClient) VolumeCreate(name string) error {
+func (c *DockerClient) VolumeCreate(v config.Volume) error {
 	ctx := context.Background()
 	c.Client.VolumeCreate(ctx, volume.CreateOptions{
 		Driver: "local",
-		Name:   name,
+		Name:   v.Name,
 	})
 	return nil
 }

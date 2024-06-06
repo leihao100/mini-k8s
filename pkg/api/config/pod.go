@@ -40,8 +40,13 @@ type PodSpec struct {
 	InitContainers []Container       `json:"initContainers,omitempty"`
 	NodeName       string            `json:"nodeName,omitempty"`
 	ExposedPorts   []string          `json:"exposedPorts,omitempty"`
-	Volumes        []string          `json:"volumes,omitempty"`
+	Volumes        []Volume          `json:"volumes,omitempty"`
 	BindPorts      map[string]string `json:"bindPorts,omitempty"`
+}
+
+type Volume struct {
+	Name                      string `json:"name,omitempty"`
+	PersistentVolumeClaimName string `json:"persistentVolumeClaim,omitempty"`
 }
 
 type PodTemplateSpec struct {

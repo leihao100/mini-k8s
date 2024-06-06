@@ -15,5 +15,5 @@ type Client interface {
 	Close() error
 	ListContainers() []types.Container
 	CreatePause(Config config.Container, name string) (*container.CreateResponse, error)
-	VolumeCreate(name string) error
+	VolumeCreate(v config.Volume) error
 }
