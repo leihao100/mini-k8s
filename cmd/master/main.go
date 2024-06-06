@@ -29,5 +29,6 @@ func main() {
 	newScheduler.Run(ctx, cancel)
 	controllerManager := controller.NewControllerManager()
 	controllerManager.Run(ctx, cancel)
+
 	<-ctx.Done()
 }

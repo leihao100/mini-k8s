@@ -78,8 +78,8 @@ scaleUp 是用于扩容的扩缩策略。如果未设置，则默认值为以下
 type SelectPolicy string
 
 const (
-	Max SelectPolicy = "Max"
-	Min SelectPolicy = "Min"
+	Max SelectPolicy = "max"
+	Min SelectPolicy = "min"
 )
 
 type HPAScalingRules struct {

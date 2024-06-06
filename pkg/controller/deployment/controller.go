@@ -62,6 +62,7 @@ func (dpc *DeploymentController) DeleteDeployment(obj interface{}) {
 		url := dpc.podClient.BuildURL(apiClient.Delete) + "/" + pod.GetName()
 		dpc.podClient.Delete(url, nil)
 	}
+
 }
 func (dpc *DeploymentController) UpdateDeployment(oldObj, newObj interface{}) {
 	dp := newObj.(*config.Deployment)
@@ -144,7 +145,7 @@ func (dc *DeploymentController) Run(ctx context.Context, cancel context.CancelFu
 				//}
 				dp := obj.(*config.Deployment)
 				dc.Sync(dp)
-				time.Sleep(1 * time.Second)
+				//time.Sleep(1 * time.Second)
 			}
 		}
 	}()

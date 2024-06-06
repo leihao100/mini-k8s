@@ -79,6 +79,7 @@ func (hpc *HpaController) DeleteHpa(obj interface{}) {
 }
 
 func (hpc *HpaController) CalculateTarget(hpa *config.HorizontalPodAutoscaler, realnum int, metric metrics.PodMetric) int {
+	fmt.Println("[hpaController] CalculateTarget")
 	res := make([]int, 0)
 
 	for _, met := range hpa.Spec.Metrics {
@@ -115,7 +116,7 @@ func (hpc *HpaController) Run(ctx context.Context, cancel context.CancelFunc) {
 				//}
 				hpa := obj.(*config.HorizontalPodAutoscaler)
 				hpc.Sync(hpa)
-				time.Sleep(1000 * time.Millisecond)
+				//time.Sleep(1000 * time.Millisecond)
 			}
 		}
 	}()
