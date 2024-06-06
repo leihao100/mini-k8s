@@ -215,12 +215,12 @@ func (sc *StorageController) handlePersistentVolumeClaim(pvc *core.PersistentVol
 		log.Println("[controller] StorageClass provisioner is not NFS, currently not supported")
 		return
 	}
-	pvName := petname.Generate(2, "_")
+	pvName := "provisioned_volume_" + storageClass.GetName() + "_" + petname.Generate(2, "_")
 	pv := &core.PersistentVolume{
 		ApiVersion: config.Version(),
 		Kind:       string(types.PersistentVolumeObjectType),
 		Metadata: meta.ObjectMeta{
-			Name:      "provisioned_volume_" + storageClass.GetName() + "_" + pvName,
+			Name:      pvName,
 			Namespace: "",
 		},
 		Spec: core.PersistentVolumeSpec{
