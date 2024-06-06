@@ -91,8 +91,8 @@ func (d *Deployment) GetStatus() ApiObjectStatus {
 	return &d.Status
 }
 func (d *Deployment) Info() {
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
-	fmt.Printf("%-10s\t%-10s\t%-10d\t%-20d\n", d.Metadata.Name, d.Metadata.Uid, d.Spec.Replicas, d.Status.Replicas)
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
+	fmt.Printf("%-10s\t%-40s\t%-20d\t%-20d\n", d.Metadata.Name, d.Metadata.Uid, d.Spec.Replicas, d.Status.Replicas)
 }
 func (d *DeploymentList) JsonUnmarshal(data []byte) error {
 	return json.Unmarshal(data, &d)
@@ -121,8 +121,8 @@ func (d *DeploymentList) GetItems() []ApiObject {
 	return items
 }
 func (d *DeploymentList) Info() {
-	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", "NAME", "UID", "DESIRED", "CURRENT")
 	for _, item := range d.Items {
-		fmt.Printf("%-10s\t%-10s\t%-10d\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.Replicas, item.Status.Replicas)
+		fmt.Printf("%-10s\t%-40s\t%-20d\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.Replicas, item.Status.Replicas)
 	}
 }

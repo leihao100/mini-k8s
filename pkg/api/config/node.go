@@ -112,8 +112,8 @@ func (n *Node) GetStatus() ApiObjectStatus {
 }
 
 func (n *Node) Info() {
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\n", n.Metadata.Name, n.Metadata.Uid, n.Status.Phase, n.Status.Addresses.Address)
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", n.Metadata.Name, n.Metadata.Uid, n.Status.Phase, n.Status.Addresses.Address)
 }
 func (n *NodeList) JsonUnmarshal(data []byte) error {
 	return json.Unmarshal(data, &n)
@@ -142,8 +142,8 @@ func (n *NodeList) GetItems() []ApiObject {
 	return items
 }
 func (n *NodeList) Info() {
-	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
 	for _, item := range n.Items {
-		fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t\n", item.Metadata.Name, item.Metadata.Uid, item.Status.Phase, item.Status.Addresses.Address)
+		fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t\n", item.Metadata.Name, item.Metadata.Uid, item.Status.Phase, item.Status.Addresses.Address)
 	}
 }
