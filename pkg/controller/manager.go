@@ -52,7 +52,7 @@ func NewControllerManager() *ControllerManager {
 	sccli, scinf := cache.NewDefaultInformerAndCli(types.StorageClassObjectType)
 
 	dpController := deployment.NewController(podinf, deploymentinf, podcli, dnscli)
-	hpaController := hpa.NewController(podinf, hpainf, podcli, hpacli, deploymentcli)
+	hpaController := hpa.NewController(podinf, hpainf, deploymentinf, podcli, hpacli, deploymentcli, nodecli)
 	storageController := storage.NewController(scinf, pvinf, pvcinf, sccli, pvcli, pvccli)
 	return &ControllerManager{
 		podClient:                   podcli,
