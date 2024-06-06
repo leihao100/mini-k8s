@@ -40,7 +40,7 @@ func NewControllerManager() *ControllerManager {
 	hpacli, hpainf := cache.NewDefaultInformerAndCli(types.HorizontalPodAutoscalerObjectType)
 	dnscli, dnsinf := cache.NewDefaultInformerAndCli(types.DnsObjectType)
 	dpController := deployment.NewController(podinf, deploymentinf, podcli, dnscli)
-	hpaController := hpa.NewController(podinf, hpainf, podcli, hpacli, deploymentcli)
+	hpaController := hpa.NewController(podinf, hpainf, deploymentinf, podcli, hpacli, deploymentcli, nodecli)
 	return &ControllerManager{
 		podClient:        podcli,
 		nodeClient:       nodecli,
@@ -72,5 +72,5 @@ func (cm *ControllerManager) Run(ctx context.Context, cancel context.CancelFunc)
 	//cm.dnsInformer.Run(stopCh)
 
 	cm.deploymentController.Run(ctx, cancel)
-	//cm.hpaController.Run(ctx, cancel)
+	cm.hpaController.Run(ctx, cancel)
 }

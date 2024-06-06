@@ -45,13 +45,15 @@ type HpaController struct {
 	metricClient *metrics.HPAMetricsClient
 }
 
-func NewController(pi *cache.Informer, hi *cache.Informer, pc *apiClient.Client, hc *apiClient.Client, dc *apiClient.Client) *HpaController {
+func NewController(pi *cache.Informer, hi *cache.Informer, di *cache.Informer, pc *apiClient.Client, hc *apiClient.Client, dc *apiClient.Client, nc *apiClient.Client) *HpaController {
 	hpc := &HpaController{
 		hpaClient:    hc,
 		podClient:    pc,
 		deployClient: dc,
 		podInformer:  pi,
 		hpaInformer:  hi,
+		dpInformer:   di,
+		metricClient: metrics.NewMetricsClient(nc),
 		queue:        cache.NewWorkQueue(),
 	}
 	hpc.hpaInformer.AddEventHandler(cache.EventHandlerFuncs{
