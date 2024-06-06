@@ -14,34 +14,43 @@ import (
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/google/uuid"
+	"github.com/moby/sys/mountinfo"
 	"io"
+	"log"
+	"os"
+	"path/filepath"
 	"reflect"
 	"sync"
+	"syscall"
 	"time"
 )
 
 const pauseName = "mirrorgooglecontainers/pause:latest"
 
 type Kubelet struct {
-	node                     config.Node
-	cli                      cri.Client
-	podManager               *pod.PodManager
-	podClient                *apiClient.Client
-	podListWatcher           listwatch.ListerWatcher
-	lock                     sync.Locker
-	mountedPersistentVolumes map[uuid.UUID]string
+	node                        config.Node
+	cli                         cri.Client
+	podManager                  *pod.PodManager
+	podClient                   *apiClient.Client
+	podListWatcher              listwatch.ListerWatcher
+	persistentVolumeClaimClient *apiClient.Client
+	persistentVolumeClient      *apiClient.Client
+	lock                        sync.Locker
+	mountedPersistentVolumes    map[uuid.UUID]string
 }
 
 func NewKubelet(node config.Node) *Kubelet {
 	cli, _ := cri.GetClient()
 	return &Kubelet{
-		node:                     node,
-		cli:                      cli,
-		podManager:               pod.NewPodManager(),
-		podClient:                apiClient.NewRESTClient(apitypes.PodObjectType),
-		podListWatcher:           nil,
-		lock:                     &sync.Mutex{},
-		mountedPersistentVolumes: map[uuid.UUID]string{},
+		node:                        node,
+		cli:                         cli,
+		podManager:                  pod.NewPodManager(),
+		podClient:                   apiClient.NewRESTClient(apitypes.PodObjectType),
+		podListWatcher:              nil,
+		persistentVolumeClaimClient: apiClient.NewRESTClient(apitypes.PersistentVolumeClaimObjectType),
+		persistentVolumeClient:      apiClient.NewRESTClient(apitypes.PersistentVolumeObjectType),
+		lock:                        &sync.Mutex{},
+		mountedPersistentVolumes:    map[uuid.UUID]string{},
 	}
 }
 
@@ -123,6 +132,47 @@ func (k *Kubelet) CreatePodPause(pod *config.Pod) string {
 	return response.ID
 }
 
+func createKubeletNfsMountParentDirectory() string {
+	const nfsMountParentDirectory = "/mnt/minik8s-kubelet-mnt"
+	info, err := os.Stat(nfsMountParentDirectory)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(nfsMountParentDirectory, 0777)
+			if err != nil {
+				panic(err)
+			}
+			log.Println("Created directory /mnt/minik8s-kubelet-mnt")
+		}
+	} else {
+		if !info.IsDir() {
+			panic("/mnt/minik8s-kubelet-mnt is not a directory")
+		}
+	}
+	return nfsMountParentDirectory
+}
+
+func processVolumes(container *config.Container, pod *config.Pod, pathMap map[string]string) {
+	newVolumeMounts := make([]config.VolumeMount, 0)
+	for _, volume := range container.VolumeMount {
+		localPath := ""
+		for _, volumeSpec := range pod.Spec.Volumes {
+			if volumeSpec.PersistentVolumeClaimName == "" {
+				continue
+			}
+			if path, ok := pathMap[volumeSpec.Name]; ok {
+				localPath = path
+				break
+			}
+		}
+		if localPath == "" {
+			newVolumeMounts = append(newVolumeMounts, volume)
+		} else {
+			container.Binds = append(container.Binds, localPath+":"+volume.MountPath)
+		}
+	}
+	container.VolumeMount = newVolumeMounts
+}
+
 func (k *Kubelet) MakePod(pod *config.Pod) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
@@ -130,9 +180,72 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 	//pod.Metadata.Uid, _ = uuid.NewUUID()
 	k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
 
+	pvPathMap := make(map[string]string)
 	//创建volume
 	for _, volume := range pod.Spec.Volumes {
-		k.cli.VolumeCreate(volume)
+		if volume.PersistentVolumeClaimName == "" {
+			k.cli.VolumeCreate(volume)
+		} else {
+			log.Printf("[MakePod] %s is a PVC, PVC name: %s\n", volume.Name, volume.PersistentVolumeClaimName)
+			_, persistentVolumeClaimObject, err := k.persistentVolumeClaimClient.GetObject(volume.PersistentVolumeClaimName)
+			if err != nil {
+				log.Printf("[MakePod] PVC %s not found\n", volume.PersistentVolumeClaimName)
+				continue
+			}
+			persistentVolumeClaim := persistentVolumeClaimObject.(*config.PersistentVolumeClaim)
+			_, persistentVolumeObject, err := k.persistentVolumeClient.GetObject(persistentVolumeClaim.Spec.VolumeName)
+			if err != nil {
+				log.Printf("[MakePod] PV %s not found\n", persistentVolumeClaim.Spec.VolumeName)
+				continue
+			}
+			persistentVolume := persistentVolumeObject.(*config.PersistentVolume)
+			localPath, ok := k.mountedPersistentVolumes[persistentVolume.GetUID()]
+			if !ok {
+				log.Printf("[MakePod] Mounting PV %s\n", persistentVolume.GetUID())
+				parentPath := createKubeletNfsMountParentDirectory()
+				localPath = filepath.Join(parentPath, "pv_"+persistentVolume.GetUID().String())
+				info, err := os.Stat(localPath)
+				if err != nil {
+					if os.IsNotExist(err) {
+						err = os.MkdirAll(localPath, 0777)
+						if err != nil {
+							log.Printf("[MakePod] error creating local path: %v\n", err)
+							continue
+						}
+						log.Printf("Created directory %s\n", localPath)
+					} else {
+						log.Printf("[MakePod] error checking local path: %v\n", err)
+						continue
+					}
+				}
+				info, err = os.Stat(localPath)
+				if err != nil {
+					log.Printf("[MakePod] error checking local path: %v\n", err)
+					continue
+				}
+				if !info.IsDir() {
+					log.Printf("[MakePod] %s is not a directory\n", localPath)
+					continue
+				}
+				isMounted, err := mountinfo.Mounted(localPath)
+				if err != nil {
+					log.Printf("[MakePod] error checking mount: %v\n", err)
+					continue
+				}
+				if !isMounted {
+					remotePath := ":" + persistentVolume.Spec.Nfs.Path
+					log.Printf("[MakePod] Mounting %s to %s\n", remotePath, localPath)
+					err = syscall.Mount(remotePath, localPath, "nfs", 0, "addr="+persistentVolume.Spec.Nfs.Server)
+					if err != nil {
+						log.Printf("[MakePod] error mounting: %v\n", err)
+						continue
+					}
+					log.Printf("[MakePod] Mounted %s to %s\n", remotePath, localPath)
+				}
+				k.mountedPersistentVolumes[persistentVolume.GetUID()] = localPath
+			}
+			pvPathMap[volume.Name] = localPath
+		}
 	}
 
 	podStatus := status.PodStatus{
@@ -168,6 +281,7 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 			containerName = "defaultNameSpace" + containerName
 		}
 		container.Pause = pauseID
+		processVolumes(&container, pod, pvPathMap)
 		response, err := k.cli.CreateContainer(container, containerName)
 		if err != nil {
 			//panic(err)
