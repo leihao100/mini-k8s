@@ -82,7 +82,7 @@ require (
 )
 
 require (
-	github.com/google/seesaw v0.0.0-20240423100006-1cdf2d7e3bbb
+	github.com/dustinkirkland/golang-petname v0.0.0-20240428194347-eebcea082ee0
 	github.com/moby/ipvs v1.1.0
 	gopkg.in/yaml.v3 v3.0.1
 )

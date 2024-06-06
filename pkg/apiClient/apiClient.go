@@ -186,6 +186,34 @@ func (c *Client) Get(resourceURL string, context []byte) io.ReadCloser {
 	return response.Body
 }
 
+func (c *Client) GetObject(name string) (int, core.ApiObject, error) {
+	getUrl := c.BuildFullURL(Get, name)
+	resp, err := http.Get(getUrl)
+	if err != nil {
+		log.Println("[Client] http.Get failed", err)
+		return HttpStatusNotSend, nil, err
+	}
+
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("[Client] http.Get response io.ReadAll failed", err)
+		return resp.StatusCode, nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return resp.StatusCode, nil, errors.New("StatusCode not 200, response code: " + err.Error() + "response body: " + string(content))
+	}
+
+	object := core.NewApiObject(c.ResourceType)
+	err = object.JsonUnmarshal(content)
+	if err != nil {
+		log.Println("[Client] http.Get response json.Unmarshal failed", err)
+		return resp.StatusCode, nil, err
+	}
+
+	return resp.StatusCode, object, nil
+}
+
 func (c *Client) Put(resourceURL string, context []byte) io.ReadCloser {
 	putUrl := resourceURL
 	cli := &http.Client{}
