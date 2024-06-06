@@ -175,7 +175,7 @@ func (hpc *HpaController) Sync(hpa *config.HorizontalPodAutoscaler) {
 		if rule.SelectPolicy == "" {
 			rule = DefaultScaleDownPolicy
 		}
-		if int32(time.Since(hpa.Status.LastScaleTime).Seconds()) < rule.StabilizationWindowSeconds {
+		if uint32(time.Since(hpa.Status.LastScaleTime).Seconds()) < uint32(rule.StabilizationWindowSeconds) {
 			//未到冷却时间
 			fmt.Println("[hpaController] Scaling Down : in stable time")
 			return
@@ -200,7 +200,7 @@ func (hpc *HpaController) Sync(hpa *config.HorizontalPodAutoscaler) {
 		if rule.SelectPolicy == "" {
 			rule = DefaultScaleUpPolicy
 		}
-		if int32(time.Since(hpa.Status.LastScaleTime).Seconds()) < rule.StabilizationWindowSeconds {
+		if uint32(time.Since(hpa.Status.LastScaleTime).Seconds()) < uint32(rule.StabilizationWindowSeconds) {
 			//未到冷却时间
 			fmt.Println("[hpaController] Scaling Up : in stable time")
 			return
@@ -221,6 +221,7 @@ func (hpc *HpaController) Sync(hpa *config.HorizontalPodAutoscaler) {
 
 	hpc.Scale(hpa, int(desire))
 	hpa.Status.CurrentReplicas = int32(desire)
+	hpa.Status.LastScaleTime = time.Now()
 	url := hpc.hpaClient.BuildURL(apiClient.Create)
 	buf, _ := hpa.JsonMarshal()
 	hpc.hpaClient.Put(url, buf)

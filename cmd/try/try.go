@@ -2,9 +2,8 @@ package main
 
 import (
 	"MiniK8S/pkg/controller/cache"
-	"MiniK8S/pkg/kubelet/cadvisor"
 	"fmt"
-	v1 "github.com/google/cadvisor/info/v1"
+	"time"
 )
 
 func main() {
@@ -21,14 +20,16 @@ func main() {
 	//time.Sleep(1 * time.Second)
 	//fmt.Println(nt)
 	//fmt.Println(time.Since(nt))
-	cli := cadvisor.NewCAdvisor("http://localhost:9000")
-	query := v1.ContainerInfoRequest{
-		NumStats: 12,
-	}
-	res, _ := cli.Inspect(&query)
-	for _, stat := range res {
-		fmt.Println(stat)
-	}
+	//cli := cadvisor.NewCAdvisor("http://localhost:9000")
+	//query := v1.ContainerInfoRequest{
+	//	NumStats: 12,
+	//}
+	//res, _ := cli.Inspect(&query)
+	//for _, stat := range res {
+	//	fmt.Println(stat)
+	//}
+	t, _ := time.Parse("", "0001-01-01T00:00:00Z")
+	fmt.Println(uint32(time.Since(t).Seconds()))
 	//dir, err := os.Getwd()
 	//if err != nil {
 	//	panic(err)
