@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 )
@@ -166,7 +167,7 @@ func (sc *StorageController) handleStorageClass(scl *core.StorageClass) {
 			return
 		}
 	}
-	sc.mountedNFSServers[scl.Spec.Parameters.Server] = path
+	sc.mountedNFSServers[scl.Spec.Parameters.Server+":"+scl.Spec.Parameters.Path] = path
 }
 
 func (sc *StorageController) handlePersistentVolumeClaim(pvc *core.PersistentVolumeClaim) {
@@ -272,17 +273,32 @@ func (sc *StorageController) handlePersistentVolume(pv *core.PersistentVolume) {
 	sc.lock.Lock()
 	defer sc.lock.Unlock()
 	log.Println("[controller] Handling PersistentVolume, UUID:", pv.Metadata.Uid.String(), "Name:", pv.Metadata.Name)
-	path, ok := sc.mountedNFSServers[pv.Spec.Nfs.Server]
+	_, storageClassObject, err := sc.storageClassClient.GetObject(pv.Spec.StorageClassName)
+	if err != nil {
+		log.Printf("[controller] Unable to get storage class %s, error: %v\n", pv.Spec.StorageClassName, err)
+		return
+	}
+	storageClass := storageClassObject.(*core.StorageClass)
+	if storageClass.Spec.Parameters.Server != pv.Spec.Nfs.Server {
+		log.Println("[controller] NFS server mismatch")
+		return
+	}
+	path, ok := sc.mountedNFSServers[storageClass.Spec.Parameters.Server+":"+storageClass.Spec.Parameters.Path]
 	if !ok {
 		log.Println("[controller] NFS server not mounted")
 		return
 	}
-	volumePath := filepath.Join(path, pv.Spec.Nfs.Path)
+	if !strings.HasPrefix(pv.Spec.Nfs.Path, storageClass.Spec.Parameters.Path) {
+		log.Println("[controller] Path does not match storage class")
+		return
+	}
+	subPath := strings.TrimPrefix(pv.Spec.Nfs.Path, storageClass.Spec.Parameters.Path)
+	volumePath := filepath.Join(path, subPath)
 	info, err := os.Stat(volumePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Printf("[controller] Creating directory for persistent volume %s\n", pv.Metadata.Name)
-			mkdirErr := os.MkdirAll(filepath.Join(path, pv.Spec.Nfs.Path), 0777)
+			mkdirErr := os.MkdirAll(volumePath, 0777)
 			if mkdirErr != nil {
 				log.Printf("[controller] Unable to create directory for persistent volume %s\n", pv.Metadata.Name)
 				return
