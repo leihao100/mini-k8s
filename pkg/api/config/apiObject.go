@@ -81,6 +81,12 @@ func NewApiObject(ty types.ApiObjectType) ApiObject {
 		return &DNS{}
 	case types.HeartbeatObjectType:
 		return &Heartbeat{}
+	case types.StorageClassObjectType:
+		return &StorageClass{}
+	case types.PersistentVolumeObjectType:
+		return &PersistentVolume{}
+	case types.PersistentVolumeClaimObjectType:
+		return &PersistentVolumeClaim{}
 
 	}
 	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
@@ -122,6 +128,12 @@ func NewApiObjectList(ty types.ApiObjectType) ApiObjectList {
 		return &DNSList{}
 	case types.HeartbeatObjectType:
 		return &HeartbeatList{}
+	case types.StorageClassObjectType:
+		return &StorageClassList{}
+	case types.PersistentVolumeObjectType:
+		return &PersistentVolumeList{}
+	case types.PersistentVolumeClaimObjectType:
+		return &PersistentVolumeClaimList{}
 	}
 	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }

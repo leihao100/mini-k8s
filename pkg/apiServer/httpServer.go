@@ -126,6 +126,19 @@ func (h httpServer) BindHandlers() {
 				dns.GET("/status/:name", handlers.HandleGetDNSStatus)    // GET /api/v1/heartbeats/status/:name
 				dns.PUT("/status/:name", handlers.HandleModifyDNSStatus) // PUT /api/v1/heartbeats/status/:name
 			}
+			storageClasses := v1.Group("/storageClasses")
+			{
+				storageClasses.GET("/get", handlers.HandleGetStorageClasses)                 // GET /api/v1/storageClasses/get
+				storageClasses.GET("/get/:name", handlers.HandleGetStorageClass)             // GET /api/v1/storageClasses/get/:name
+				storageClasses.PUT("/create", handlers.HandleCreateStorageClass)             // POST /api/v1/storageClasses/create
+				storageClasses.PUT("/create/:name", handlers.HandleCreateStorageClass)       // PUT /api/v1/storageClasses/create/:name
+				storageClasses.DELETE("/delete", handlers.HandleDeleteStorageClass)          // DELETE /api/v1/storageClasses/delete
+				storageClasses.DELETE("/delete/:name", handlers.HandleDeleteStorageClass)    // DELETE /api/v1/storageClasses/delete/:name
+				storageClasses.GET("/watch", handlers.HandleWatchStorageClasses)             // GET /api/v1/storageClasses/watch
+				storageClasses.GET("/watch/:name", handlers.HandleWatchStorageClass)         // GET /api/v1/storageClasses/watch/:name
+				storageClasses.GET("/status/:name", handlers.HandleGetStorageClassStatus)    // GET /api/v1/storageClasses/status/:name
+				storageClasses.PUT("/status/:name", handlers.HandleModifyStorageClassStatus) // PUT /api/v1/storageClasses/status/:name
+			}
 		}
 	}
 }

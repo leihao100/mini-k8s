@@ -33,6 +33,12 @@ func HandleGetApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/heartbeats/"
 	case types.DnsObjectType:
 		etcdPath = "/api/dnss/"
+	case types.StorageClassObjectType:
+		etcdPath = "/api/storageclasses/"
+	case types.PersistentVolumeObjectType:
+		etcdPath = "/api/persistentvolumes/"
+	case types.PersistentVolumeClaimObjectType:
+		etcdPath = "/api/persistentvolumeclaims/"
 	}
 	buf, err := etcd.GetAllWithPrefix(etcdPath)
 	if err != nil {
@@ -67,6 +73,12 @@ func HandleGetApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/heartbeats/"
 	case types.DnsObjectType:
 		etcdPath = "/api/dnss/"
+	case types.StorageClassObjectType:
+		etcdPath = "/api/storageclasses/"
+	case types.PersistentVolumeObjectType:
+		etcdPath = "/api/persistentvolumes/"
+	case types.PersistentVolumeClaimObjectType:
+		etcdPath = "/api/persistentvolumeclaims/"
 	}
 	etcdPath += UID
 	buf, err := etcd.Get(etcdPath)
@@ -114,6 +126,12 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/heartbeats/"
 	case types.DnsObjectType:
 		etcdPath = "/api/dnss/"
+	case types.StorageClassObjectType:
+		etcdPath = "/api/storageclasses/"
+	case types.PersistentVolumeObjectType:
+		etcdPath = "/api/persistentvolumes/"
+	case types.PersistentVolumeClaimObjectType:
+		etcdPath = "/api/persistentvolumeclaims/"
 	}
 	etcdPath += name
 	exist, version, err := etcd.ExistWithVersion(etcdPath)
@@ -142,6 +160,12 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 				},
 				DaemonEndpoints: 0,
 				Phase:           "Pending",
+			}
+		}
+		if ty == types.PersistentVolumeClaimObjectType {
+			pvc := newApiObject.(*config.PersistentVolumeClaim)
+			pvc.Status = status.PersistentVolumeClaimStatus{
+				Phase: status.PersistentVolumeClaimPending,
 			}
 		}
 		etcd.VersionLock.Lock()
@@ -219,6 +243,12 @@ func HandleDeleteApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/heartbeats/"
 	case types.DnsObjectType:
 		etcdPath = "/api/dnss/"
+	case types.StorageClassObjectType:
+		etcdPath = "/api/storageclasses/"
+	case types.PersistentVolumeObjectType:
+		etcdPath = "/api/persistentvolumes/"
+	case types.PersistentVolumeClaimObjectType:
+		etcdPath = "/api/persistentvolumeclaims/"
 	}
 	err := etcd.DeleteAllWithPrefix(etcdPath)
 	if err != nil {
@@ -246,6 +276,12 @@ func HandleDeleteApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/heartbeats/"
 	case types.DnsObjectType:
 		etcdPath = "/api/dnss/"
+	case types.StorageClassObjectType:
+		etcdPath = "/api/storageclasses/"
+	case types.PersistentVolumeObjectType:
+		etcdPath = "/api/persistentvolumes/"
+	case types.PersistentVolumeClaimObjectType:
+		etcdPath = "/api/persistentvolumeclaims/"
 	}
 	etcdPath += UID
 	exist, err := etcd.Exist(etcdPath)
@@ -281,6 +317,12 @@ func HandleWatchApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/heartbeats/"
 	case types.DnsObjectType:
 		etcdPath = "/api/dnss/"
+	case types.StorageClassObjectType:
+		etcdPath = "/api/storageclasses/"
+	case types.PersistentVolumeObjectType:
+		etcdPath = "/api/persistentvolumes/"
+	case types.PersistentVolumeClaimObjectType:
+		etcdPath = "/api/persistentvolumeclaims/"
 	}
 	fmt.Printf("[apiServer]start watch,type: %v etcdPath: %v\n", ty, etcdPath)
 	cancel, ch := etcd.WatchAllWithPrefix(etcdPath)
@@ -337,6 +379,12 @@ func HandleWatchApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/heartbeats/"
 	case types.DnsObjectType:
 		etcdPath = "/api/dnss/"
+	case types.StorageClassObjectType:
+		etcdPath = "/api/storageclasses/"
+	case types.PersistentVolumeObjectType:
+		etcdPath = "/api/persistentvolumes/"
+	case types.PersistentVolumeClaimObjectType:
+		etcdPath = "/api/persistentvolumeclaims/"
 	}
 	etcdPath += UID
 	exixt, err := etcd.Exist(etcdPath)
@@ -407,6 +455,12 @@ func HandleGetApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/heartbeats/"
 	case types.DnsObjectType:
 		etcdPath = "/api/dnss/"
+	case types.StorageClassObjectType:
+		etcdPath = "/api/storageclasses/"
+	case types.PersistentVolumeObjectType:
+		etcdPath = "/api/persistentvolumes/"
+	case types.PersistentVolumeClaimObjectType:
+		etcdPath = "/api/persistentvolumeclaims/"
 	}
 	etcdPath += UID
 	buf, err := etcd.Get(etcdPath)
@@ -443,6 +497,12 @@ func HandleModifyApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/heartbeats/"
 	case types.DnsObjectType:
 		etcdPath = "/api/dnss/"
+	case types.StorageClassObjectType:
+		etcdPath = "/api/storageclasses/"
+	case types.PersistentVolumeObjectType:
+		etcdPath = "/api/persistentvolumes/"
+	case types.PersistentVolumeClaimObjectType:
+		etcdPath = "/api/persistentvolumeclaims/"
 	}
 	etcdPath += UID
 	exixt, version, err := etcd.ExistWithVersion(etcdPath)
