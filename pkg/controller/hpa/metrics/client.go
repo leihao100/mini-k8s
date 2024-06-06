@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/cadvisor/info/v1"
+	"strings"
 	"time"
 )
 
@@ -27,7 +28,9 @@ type HPAMetricsClient struct {
 
 func NewMetricsClient(nodeClient *apiClient.Client) *HPAMetricsClient {
 	return &HPAMetricsClient{
-		metricsInfo: make(ConatinerMetricsInfo),
+		metricsInfo:     make(ConatinerMetricsInfo),
+		nodeClient:      nodeClient,
+		nodeListWatcher: listwatch.NewListWatchFromClient(nodeClient),
 	}
 }
 func (hmc *HPAMetricsClient) GetResourceMetric(ctx context.Context, resource apitypes.ApiObjectType, namespace string, selector selector.LabelSelector, container string) (ConatinerMetricsInfo, time.Time, error) {
@@ -68,8 +71,8 @@ func (hmc *HPAMetricsClient) GetPodMetrics(pod *config.Pod) []PodMetric {
 				metricsInfo = append(metricsInfo, PodMetric{
 					Timestamp: info.Stats[0].Timestamp,
 					Window:    0,
-					CPU:       info.Stats[0].Cpu.Usage.Total,
-					Memory:    info.Stats[0].Memory.Usage,
+					CPU:       (info.Stats[len(info.Stats)-1].Cpu.Usage.Total - info.Stats[max(0, len(info.Stats)-2)].Cpu.Usage.Total) * 1000 / uint64(info.Stats[len(info.Stats)-1].Timestamp.Sub(info.Stats[max(0, len(info.Stats)-2)].Timestamp).Nanoseconds()),
+					Memory:    info.Stats[len(info.Stats)-1].Memory.Usage,
 				})
 			}
 		}
@@ -111,6 +114,7 @@ func DividePodMetric(a PodMetric, divider uint64) PodMetric {
 }
 
 func CalculateAverage(pms []PodMetric) PodMetric {
+	fmt.Println("[metrics] CalculateAverage")
 	var cnt uint64 = 0
 	result := PodMetric{
 		Timestamp: time.Now(),
@@ -119,6 +123,7 @@ func CalculateAverage(pms []PodMetric) PodMetric {
 		Memory:    0,
 	}
 	for _, pm := range pms {
+		fmt.Println("[metrics] CalculateAverage: cpu&mem ", pm.CPU, pm.Memory)
 		result.CPU += pm.CPU
 		result.Memory += pm.Memory
 		cnt++
@@ -129,6 +134,7 @@ func CalculateAverage(pms []PodMetric) PodMetric {
 }
 
 func (hmc *HPAMetricsClient) Sync() {
+	fmt.Println("[hpaMetrics][Sync]")
 
 	hmc.cadvisorClients = make(map[string]*cadvisor.CAdvisorClient)
 	nodes, _ := hmc.nodeListWatcher.List(config.ListOptions{
@@ -137,6 +143,9 @@ func (hmc *HPAMetricsClient) Sync() {
 	ns := nodes.GetItems()
 	for _, n := range ns {
 		node := n.(*config.Node)
+		if strings.EqualFold(node.GetName(), "Master") {
+			continue
+		}
 		url := "http://" + node.Status.Addresses.Address + CAdvisorPort
 		hmc.cadvisorClients[node.Metadata.Name] = cadvisor.NewCAdvisor(url)
 	}
@@ -154,9 +163,13 @@ func (hmc *HPAMetricsClient) Sync() {
 			hmc.metricsInfo[info.Aliases[0]] = PodMetric{
 				Timestamp: info.Stats[0].Timestamp,
 				Window:    0,
-				CPU:       info.Stats[0].Cpu.Usage.Total,
-				Memory:    info.Stats[0].Memory.Usage,
+				CPU:       (info.Stats[len(info.Stats)-1].Cpu.Usage.Total - info.Stats[max(0, len(info.Stats)-2)].Cpu.Usage.Total) * 1000 / uint64(info.Stats[len(info.Stats)-1].Timestamp.Sub(info.Stats[max(0, len(info.Stats)-2)].Timestamp).Nanoseconds()),
+				Memory:    info.Stats[len(info.Stats)-1].Memory.Usage,
 			}
+			fmt.Println("[metrics client][Sync] pod name is ", info.Aliases[0], "and pod resource is:CPU-", hmc.metricsInfo[info.Aliases[0]].CPU, "Memory", hmc.metricsInfo[info.Aliases[0]].Memory)
+		}
+		for name, info := range hmc.metricsInfo {
+			fmt.Println("[metrics client][Sync debugging] pod name is", name, "info is", info)
 		}
 	}
 }

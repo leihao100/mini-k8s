@@ -3,6 +3,7 @@ package main
 import (
 	"MiniK8S/pkg/controller/cache"
 	"fmt"
+	"time"
 )
 
 func main() {
@@ -19,7 +20,7 @@ func main() {
 	//time.Sleep(1 * time.Second)
 	//fmt.Println(nt)
 	//fmt.Println(time.Since(nt))
-	//cli := cadvisor.NewCAdvisor("http://localhost:8080")
+	//cli := cadvisor.NewCAdvisor("http://localhost:9000")
 	//query := v1.ContainerInfoRequest{
 	//	NumStats: 12,
 	//}
@@ -27,6 +28,8 @@ func main() {
 	//for _, stat := range res {
 	//	fmt.Println(stat)
 	//}
+	t, _ := time.Parse("", "0001-01-01T00:00:00Z")
+	fmt.Println(uint32(time.Since(t).Seconds()))
 	//dir, err := os.Getwd()
 	//if err != nil {
 	//	panic(err)
@@ -131,21 +134,21 @@ func main() {
 	//for _, i := range li {
 	//	fmt.Println(i)
 	//}
-	queue := cache.NewWorkQueue()
-	queue.Add("132")
-	res, ok := queue.Get()
-	if !ok {
-		fmt.Println(res)
-	} else {
-		fmt.Println("queue is empty")
-	}
-	//go bbb(queue)
-	res, ok = queue.Get()
-	if !ok {
-		fmt.Println(res)
-	} else {
-		fmt.Println("queue is empty")
-	}
+	//queue := cache.NewWorkQueue()
+	//queue.Add("132")
+	//res, ok := queue.Get()
+	//if !ok {
+	//	fmt.Println(res)
+	//} else {
+	//	fmt.Println("queue is empty")
+	//}
+	////go bbb(queue)
+	//res, ok = queue.Get()
+	//if !ok {
+	//	fmt.Println(res)
+	//} else {
+	//	fmt.Println("queue is empty")
+	//}
 
 }
 

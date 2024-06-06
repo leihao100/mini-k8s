@@ -40,7 +40,8 @@ func main() {
 	hbSender.Run(ctx, cancel)
 	kubelet := kubelet.NewKubelet(*workNode.GetNode())
 	kubelet.Run(ctx, cancel)
-	kp := kubeproxy.NewKubeProxy(kubelet)
+	kp := kubeproxy.NewKubeProxy()
 	kp.Run(ctx)
+
 	<-ctx.Done()
 }

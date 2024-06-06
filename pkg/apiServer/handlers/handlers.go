@@ -543,8 +543,8 @@ func HandleModifyApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 	}
 	clientVersion := apiObject.GetResourceVersion()
 	if version != clientVersion {
-		c.JSON(http.StatusConflict, gin.H{"status": "FAILED", "error": fmt.Sprintf("client version %v unmatch host version %v", clientVersion, version)})
-		return
+		//c.JSON(http.StatusConflict, gin.H{"status": "FAILED", "error": fmt.Sprintf("client version %v unmatch host version %v", clientVersion, version)})
+		//return
 	}
 	etcd.VersionLock.Lock()
 	defer etcd.VersionLock.Unlock()

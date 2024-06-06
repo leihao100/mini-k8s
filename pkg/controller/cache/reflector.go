@@ -6,6 +6,7 @@ import (
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient/listwatch"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -45,6 +46,7 @@ func NewReflector(lw listwatch.ListerWatcher, expectedType apitypes.ApiObjectTyp
 }
 
 func (r *Reflector) Run(stopCh <-chan struct{}, syncChan chan bool) {
+	fmt.Println("[Reflector", r.expectedType, "] Running")
 	err := r.ListAndWatch(stopCh, syncChan)
 	if err != nil {
 		panic(err)
@@ -53,6 +55,7 @@ func (r *Reflector) Run(stopCh <-chan struct{}, syncChan chan bool) {
 }
 
 func (r *Reflector) ListAndWatch(stopCh <-chan struct{}, syncChan chan bool) error {
+
 	list, err := r.listerWatcher.List(config.ListOptions{
 		Kind:            r.name,
 		APIVersion:      "",
@@ -91,13 +94,14 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}, syncChan chan bool) err
 }
 
 func (r *Reflector) HandleWatch(w watch.Interface, stopCh <-chan struct{}) error {
-	for true {
+	for {
 		select {
 		case <-stopCh:
 			return errors.New("watch stopped")
 		case event := <-w.ResultChan():
 			switch event.Type {
 			case watch.Added, watch.Modified, watch.Deleted:
+				fmt.Println("[reflector] watch added/modify/delete " + r.typeDescription)
 				r.PushEvent(event)
 
 			case watch.Error:
@@ -106,7 +110,7 @@ func (r *Reflector) HandleWatch(w watch.Interface, stopCh <-chan struct{}) error
 
 				return errors.New("to be done")
 			default:
-				panic("should never get here")
+				fmt.Println("should never get here")
 				return errors.New("unknown watch event")
 			}
 		}
@@ -125,5 +129,6 @@ func (r *Reflector) HandleList(l config.ApiObjectList) error {
 }
 
 func (r *Reflector) PushEvent(watchEvent watch.Event) {
+	fmt.Println("[reflector] ", r.expectedType, "watch event:", watchEvent, "adding it into the cache queue")
 	r.WorkQueue.Add(watchEvent)
 }

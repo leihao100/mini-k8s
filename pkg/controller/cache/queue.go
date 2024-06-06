@@ -17,7 +17,7 @@ func NewWorkQueue() *WorkQueue {
 		queue:         make([]interface{}, 0),
 		processingSet: make(map[interface{}]struct{}),
 		shutdown:      false,
-		mutex:         sync.Mutex{},
+		//mutex:         sync.Mutex{},
 	}
 	wq.cond = sync.NewCond(&wq.mutex)
 	return wq
@@ -27,9 +27,9 @@ func (wq *WorkQueue) Add(item interface{}) {
 	wq.mutex.Lock()
 	defer wq.mutex.Unlock()
 
-	if _, exists := wq.processingSet[item]; exists {
-		return
-	}
+	//if _, exists := wq.processingSet[item]; exists {
+	//	return
+	//}
 
 	wq.queue = append(wq.queue, item)
 	wq.cond.Signal()
@@ -37,7 +37,6 @@ func (wq *WorkQueue) Add(item interface{}) {
 
 func (wq *WorkQueue) Get() (interface{}, bool) {
 	wq.mutex.Lock()
-	defer wq.mutex.Unlock()
 
 	if len(wq.queue) == 0 && !wq.shutdown {
 		wq.cond.Wait()
@@ -50,6 +49,7 @@ func (wq *WorkQueue) Get() (interface{}, bool) {
 	item := wq.queue[0]
 	wq.queue = wq.queue[1:]
 	wq.processingSet[item] = struct{}{}
+	wq.mutex.Unlock()
 	return item, false
 }
 

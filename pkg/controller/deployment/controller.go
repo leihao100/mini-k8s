@@ -10,8 +10,10 @@ import (
 	"MiniK8S/pkg/controller/cache"
 	"context"
 	"fmt"
+	"github.com/docker/docker/testutil"
 	"github.com/google/uuid"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -23,6 +25,7 @@ type DeploymentController struct {
 	replicaMap      map[uuid.UUID]*config.Deployment
 	pods            map[uuid.UUID][]*config.Pod
 	queue           *cache.WorkQueue
+	lastSync        time.Time
 }
 
 func NewController(pi *cache.Informer, ri *cache.Informer, pc *apiClient.Client, dc *apiClient.Client) *DeploymentController {
@@ -32,6 +35,7 @@ func NewController(pi *cache.Informer, ri *cache.Informer, pc *apiClient.Client,
 		podInformer:     pi,
 		replicaInformer: ri,
 		queue:           cache.NewWorkQueue(),
+		lastSync:        time.Now(),
 
 		replicaMap: make(map[uuid.UUID]*config.Deployment),
 	}
@@ -49,19 +53,26 @@ func NewController(pi *cache.Informer, ri *cache.Informer, pc *apiClient.Client,
 }
 
 func (dpc *DeploymentController) AddDeployment(obj interface{}) {
-	dp := obj.(config.Deployment)
+	dp := obj.(*config.Deployment)
 	dpc.queue.Add(dp)
 }
 func (dpc *DeploymentController) DeleteDeployment(obj interface{}) {
+	dp := obj.(*config.Deployment)
+	pds, _ := dpc.GetPodsWithOwnership(dp)
+	for _, pod := range pds {
+		fmt.Println("[dpController] Deleting pod form dp rm", pod.GetName())
+		url := dpc.podClient.BuildURL(apiClient.Delete) + "/" + pod.GetName()
+		dpc.podClient.Delete(url, nil)
+	}
 
 }
 func (dpc *DeploymentController) UpdateDeployment(oldObj, newObj interface{}) {
-	dp := newObj.(config.Deployment)
+	dp := newObj.(*config.Deployment)
 	dpc.queue.Add(dp)
 }
 func (dpc *DeploymentController) AddPod(obj interface{}) {
-	pd := obj.(config.Pod)
-	dps := dpc.GetDpsByPod(&pd)
+	pd := obj.(*config.Pod)
+	dps := dpc.GetDpsByPod(pd)
 	for _, dp := range dps {
 		dpc.queue.Add(dp)
 	}
@@ -74,9 +85,11 @@ func (dpc *DeploymentController) DeletePod(obj interface{}) {
 	//	o := owner.UID
 	//	dpc.queue.Add(dpc.replicaMap[o])
 	//}
-	pd := obj.(config.Pod)
-	dps := dpc.GetDpsByPod(&pd)
+	fmt.Println("[dpController] delete pod")
+	pd := obj.(*config.Pod)
+	dps := dpc.GetDpsByPod(pd)
 	for _, dp := range dps {
+		fmt.Println("[dpController] handle delete pod: Adding dp into work queue : ", dp.GetName())
 		dpc.queue.Add(dp)
 	}
 }
@@ -84,21 +97,33 @@ func (dpc *DeploymentController) DeletePod(obj interface{}) {
 func (dpc *DeploymentController) UpdatePod(oldObj, newObj interface{}) {
 	//pd := newObj.(config.Pod)
 	//dpc.queue.Add(pd)
-	oldpd := oldObj.(config.Pod)
-	newpd := newObj.(config.Pod)
-	if reflect.DeepEqual(oldpd.Metadata.Labels, newpd.Metadata.Labels) {
+	if newObj == nil {
 		return
 	}
+	if oldObj == nil {
+		newpd := newObj.(*config.Pod)
+		newdps := dpc.GetDpsByPod(newpd)
+		for _, dp := range newdps {
+			dpc.queue.Add(dp)
+		}
+	} else {
+		oldpd := oldObj.(*config.Pod)
+		newpd := newObj.(*config.Pod)
+		if reflect.DeepEqual(oldpd.Metadata.Labels, newpd.Metadata.Labels) {
+			return
+		}
 
-	olddps := dpc.GetDpsByPod(&oldpd)
-	newdps := dpc.GetDpsByPod(&newpd)
+		olddps := dpc.GetDpsByPod(oldpd)
+		newdps := dpc.GetDpsByPod(newpd)
 
-	for _, dp := range olddps {
-		dpc.queue.Add(dp)
+		for _, dp := range olddps {
+			dpc.queue.Add(dp)
+		}
+		for _, dp := range newdps {
+			dpc.queue.Add(dp)
+		}
 	}
-	for _, dp := range newdps {
-		dpc.queue.Add(dp)
-	}
+
 }
 func (dc *DeploymentController) Run(ctx context.Context, cancel context.CancelFunc) {
 	fmt.Println("[dpController] Run")
@@ -109,15 +134,20 @@ func (dc *DeploymentController) Run(ctx context.Context, cancel context.CancelFu
 			case <-ctx.Done():
 				return
 			default:
-				if dc.queue.Len() == 0 {
-					time.Sleep(3 * time.Second)
-				}
-				obj, ok := dc.queue.Get()
-				if !ok { //此时队列为空
-					time.Sleep(3 * time.Second)
-				}
-				dp := obj.(config.Deployment)
-				dc.Sync(&dp)
+				fmt.Println("[dpController] Run: try getting a dp from queue ")
+				//if dc.queue.Len() == 0 {
+				//	time.Sleep(2 * time.Second)
+				//	fmt.Println("[dpController] Run: queue is empty")
+				//	continue
+				//}
+				fmt.Println("[dpController] Run: get a dp from queue")
+				obj, _ := dc.queue.Get()
+				//if ok { //此时队列为空
+				//	time.Sleep(3 * time.Second)
+				//}
+				dp := obj.(*config.Deployment)
+				dc.Sync(dp)
+				//time.Sleep(1 * time.Second)
 			}
 		}
 	}()
@@ -144,8 +174,8 @@ func (dc *DeploymentController) Sync(dp *config.Deployment) {
 			dc.DecreaseReplicaCount(dp, pdw)
 		}
 		dp.Status.Replicas = dp.Spec.Replicas
-		url := dc.deployClient.BuildURL(apiClient.Create)
-		buf, err := dp.JsonMarshal()
+		url := dc.deployClient.BuildURL(apiClient.Status) + "/" + dp.GetName()
+		buf, err := dp.Status.JsonMarshal()
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -169,11 +199,14 @@ func (dc *DeploymentController) SelectDpByLabelSelector(labelSelector selector.L
 func (dc *DeploymentController) GetDpsByPod(pod *config.Pod) []*config.Deployment {
 	fmt.Println("[dpController] GetDpsByPod")
 	dps := dc.replicaInformer.List()
+	fmt.Println("[dpController] GetDpsByPod debugging : Pod's label is ", pod.Metadata.Labels)
 	var result []*config.Deployment
 	for _, dp := range dps {
 		actualDp := dp.(*config.Deployment)
-		if selector.LabelCompare(actualDp.Metadata.Labels, pod.Metadata.Labels) {
+		fmt.Println("[dpController] GetDpsByPod debugging : ", "dp's name is ", actualDp.GetName(), "dp's label is ", actualDp.Spec.Template.Metadata.Labels)
+		if selector.LabelCompare(actualDp.Spec.Template.Metadata.Labels, pod.Metadata.Labels) {
 			result = append(result, actualDp)
+			fmt.Println("[dpController] GetDpsByPod debugging : adding dp", "dp's name is ", actualDp.GetName())
 		}
 	}
 	return result
@@ -203,7 +236,7 @@ func IsDPOwned(dp *config.Deployment, pd *config.Pod) bool {
 	if refs == nil || len(refs) == 0 {
 		return false
 	}
-	if refs[0].Kind != string(types.DeploymentObjectType) || refs[0].UID != dp.GetUID() {
+	if !strings.EqualFold(refs[0].Kind, string(types.DeploymentObjectType)) || refs[0].UID != dp.GetUID() {
 		return false
 	}
 	return true
@@ -257,14 +290,18 @@ func (dc *DeploymentController) IncreaseReplicaCount(dp *config.Deployment, pdwo
 			dc.podClient.Put(url, buf)
 			replica++
 		}
+		mt := dp.Spec.Template.Metadata
 		pod := config.Pod{
-			ApiVersion: "",
+			ApiVersion: "v1",
 			Kind:       string(types.PodObjectType),
 			Metadata:   dp.Spec.Template.Metadata,
 			Spec:       dp.Spec.Template.Spec,
 			Status:     status.PodStatus{},
 		}
 		for i := 0; i < int(delta)-len(pdwo); i++ {
+			mt.Name = "deployment-" + pod.Spec.Containers[0].Name + "-" + testutil.GenerateRandomAlphaOnlyString(5)
+			mt.OwnerReferences = refs
+			pod.Metadata = mt
 			url := dc.podClient.BuildURL(apiClient.Create)
 			buf, err := pod.JsonMarshal()
 			if err != nil {
@@ -273,6 +310,7 @@ func (dc *DeploymentController) IncreaseReplicaCount(dp *config.Deployment, pdwo
 			dc.podClient.Put(url, buf)
 		}
 	}
+	//time.Sleep(1 * time.Second)
 }
 
 func (dc *DeploymentController) DecreaseReplicaCount(dp *config.Deployment, pdw []*config.Pod) {
@@ -281,8 +319,9 @@ func (dc *DeploymentController) DecreaseReplicaCount(dp *config.Deployment, pdw 
 	target := dp.Spec.Replicas
 	delta := replica - target
 	for i := 0; i < int(delta); i++ {
-		url := dc.podClient.BuildURL(apiClient.Delete) + "/" + pdw[i].GetUID().String()
-		dc.podClient.Delete(url, nil)
+		url := dc.podClient.BuildURL(apiClient.Delete) + "/" + pdw[i].GetName()
+		buf, _ := pdw[i].JsonMarshal()
+		dc.podClient.Delete(url, buf)
 	}
 
 }

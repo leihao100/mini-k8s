@@ -89,6 +89,7 @@ require (
 
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
+	github.com/coreos/go-iptables v0.7.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/cadvisor v0.49.0
 	github.com/google/go-cmp v0.6.0 // indirect

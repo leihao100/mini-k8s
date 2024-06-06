@@ -7,17 +7,18 @@ import (
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/apiClient/listwatch"
-	"MiniK8S/pkg/kubelet"
 	"MiniK8S/pkg/kubeproxy/ipInterface"
-	ipvsManager "MiniK8S/pkg/kubeproxy/ipvs"
+	iptableManager "MiniK8S/pkg/kubeproxy/iptable"
 	"MiniK8S/utils/net"
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/google/uuid"
 )
 
 type KubeProxy struct {
-	kl            *kubelet.Kubelet
+	//kl            *kubelet.Kubelet
 	services      map[uuid.UUID]*config.Service
 	ipManager     ipInterface.IP
 	serviceToPods map[uuid.UUID][]*config.Pod
@@ -30,11 +31,11 @@ type KubeProxy struct {
 	dnsListWatcher     listwatch.ListerWatcher
 }
 
-func NewKubeProxy(kl *kubelet.Kubelet) *KubeProxy {
+func NewKubeProxy() *KubeProxy {
 	return &KubeProxy{
-		kl:                 kl,
+		//kl:                 kl,
 		services:           make(map[uuid.UUID]*config.Service),
-		ipManager:          ipvsManager.GetIPVS(),
+		ipManager:          iptableManager.New(),
 		serviceToPods:      make(map[uuid.UUID][]*config.Pod),
 		serviceClient:      apiClient.NewRESTClient(types.ServiceObjectType),
 		podClient:          apiClient.NewRESTClient(types.PodObjectType),
@@ -173,7 +174,6 @@ func (kp *KubeProxy) CreateService(service *config.Service) {
 }
 
 func (kp *KubeProxy) SelectPod(service *config.Service) []*config.Pod {
-	//pods := kp.kl.GetPods()
 	pods, _ := kp.podListWatcher.List(config.ListOptions{
 		Kind:       string(types.PodObjectType),
 		APIVersion: "",
@@ -232,13 +232,30 @@ func (kp *KubeProxy) GetSvc() {
 
 func (kp *KubeProxy) CreateDns(dns *config.DNS) {
 	fmt.Println("[kube-proxy] Creating DNS")
-	net.GenerateNginxConfig(*dns)
+	svcs, _ := kp.serviceListWatcher.List(config.ListOptions{
+		Watch: false,
+		Kind:  string(types.ServiceObjectType),
+	})
+	for _, svc := range svcs.GetItems() {
+		s := svc.(*config.Service)
+		for _, path := range dns.Spec.Path {
+			if strings.EqualFold(s.Metadata.Name, path.ServiceName) {
+				path.ClusterIP = s.Spec.ClusterIP
+				net.GenerateNginxConfig(*dns)
+			}
+		}
+	}
+	net.AddHost(dns)
+	//url := kp.dnsClient.BuildURL(apiClient.Create)
+	//buf, _ := dns.JsonMarshal()
 
 }
 
 func (kp *KubeProxy) RemoveDns(dns *config.DNS) {
 	fmt.Println("[kube-proxy] Removing DNS")
+	//net.RemoveNginxConfig(dns)
 	net.RemoveNginxConfig(*dns)
+	net.RemoveHost(*dns)
 }
 
 func (kp *KubeProxy) HandlePodWatch(w watch.Interface, ctx context.Context) error {

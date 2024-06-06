@@ -74,8 +74,8 @@ func putBytes(URL string, content []byte) (*http.Response, error) {
 	return cli.Do(req)
 }
 
-func (c *Client) PutObject(name string, object core.ApiObject) (int, error) {
-	putUrl := c.BuildFullURL(Create, name)
+func (c *Client) PutObject(object core.ApiObject) (int, error) {
+	putUrl := c.BuildFullURL(Create, "")
 	content, err := object.JsonMarshal()
 	if err != nil {
 		log.Println("[Client] http.Put JsonMarshal failed", err)

@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	_ "github.com/docker/docker/pkg/stdcopy"
 	"io"
@@ -71,6 +72,7 @@ func (c *DockerClient) CreatePause(config config.Container, name string) (*conta
 		PortBindings: config.PortBindings,
 		VolumesFrom:  config.VolumesFrom,
 		NetworkMode:  container.NetworkMode(config.NetworkMode),
+		//Mounts:
 	}, nil, nil, name)
 	if err != nil {
 		fmt.Println("Unable to create docker container")
@@ -93,6 +95,7 @@ func (c *DockerClient) CreateContainer(config config.Container, name string) (*c
 			exist = true
 		}
 	}
+	config.Binds = append(config.Binds, "/etc:/etc")
 	if !exist {
 		ct := context.Background()
 		fmt.Println("pulling image ", containerRepoTag)
@@ -191,6 +194,15 @@ func (c *DockerClient) ListContainers() []types.Container {
 		return nil
 	}
 	return containers
+}
+
+func (c *DockerClient) VolumeCreate(name string) error {
+	ctx := context.Background()
+	c.Client.VolumeCreate(ctx, volume.CreateOptions{
+		Driver: "local",
+		Name:   name,
+	})
+	return nil
 }
 
 func (c *DockerClient) BuildMount(con *config.Container) []mount.Mount {

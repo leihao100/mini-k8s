@@ -127,6 +127,12 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 	fmt.Println("[kubelet] makePod" + pod.GetUID().String())
 	//pod.Metadata.Uid, _ = uuid.NewUUID()
 	k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
+
+	//创建volume
+	for _, volume := range pod.Spec.Volumes {
+		k.cli.VolumeCreate(volume)
+	}
+
 	podStatus := status.PodStatus{
 		ContainerStatuses: nil,
 		HostIP:            "",
@@ -137,8 +143,12 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 	k.cli.StartContainer(pauseID)
 	pod.Status = podStatus
 	containers := pod.Spec.Containers
+	name := pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_" + pod.GetUID().String()
+	if pod.Metadata.Namespace == "" {
+		name = "defaultNameSpace" + name
+	}
 	newContainerStatus := status.ContainerStatus{
-		Name:         pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_",
+		Name:         name,
 		ContainerID:  pauseID,
 		ImageID:      "",
 		Image:        pauseName,
@@ -158,7 +168,7 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 		container.Pause = pauseID
 		response, err := k.cli.CreateContainer(container, containerName)
 		if err != nil {
-			panic(err)
+			//panic(err)
 			fmt.Println("error:", err)
 		}
 		k.cli.StartContainer(response.ID)
@@ -399,12 +409,40 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 	phase := status.PodRunning
 	for _, podstatus := range pod.Status.ContainerStatuses {
 		if podstatus.State.Running == false {
+			if podstatus.RestartCount >= config.PodRestartTimes {
+				url := k.podClient.BuildURL(apiClient.Delete) + "/" + pod.GetName()
+				buf, _ := pod.JsonMarshal()
+				k.podClient.Delete(url, buf)
+				return nil
+			}
 			if podstatus.State.ExitCode != 0 {
 				fmt.Println("[kubelet] Pod Status Error: " + podstatus.Name + " Pod failed: " + podstatus.State.Status)
-				phase = status.PodFailed
+				fmt.Println("[kubelet] trying to restart pod: " + podstatus.Name)
+				startContainer, err := k.cli.StartContainer(podstatus.ContainerID)
+				if err != nil {
+					fmt.Println(err)
+				}
+				if startContainer {
+					continue
+				} else {
+					podstatus.RestartCount++
+					phase = status.PodFailed
+				}
+
 			} else {
 				fmt.Println("[kubelet] Pod Status: " + podstatus.Name + " Pod Completed")
-				phase = status.PodSucceeded
+				fmt.Println("[kubelet] trying to restart pod: " + podstatus.Name)
+				startContainer, err := k.cli.StartContainer(podstatus.ContainerID)
+				if err != nil {
+					fmt.Println(err)
+				}
+				if startContainer {
+					continue
+				} else {
+					podstatus.RestartCount++
+					phase = status.PodSucceeded
+				}
+
 			}
 		}
 	}
@@ -413,8 +451,8 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 	}
 	if phase != status.PodRunning || !reflect.DeepEqual(old, pod.Status.ContainerStatuses) || pod.Status.PodIP == "" {
 		fmt.Println("[kubelet] pod name is", pod.GetName(), " and pod status has changed")
-		msg, _ := pod.JsonMarshal()
-		url := k.podClient.BuildURL(apiClient.Create)
+		msg, _ := pod.Status.JsonMarshal()
+		url := k.podClient.BuildURL(apiClient.Status) + "/" + pod.GetName()
 		k.podClient.Put(url, msg)
 		//pod.Status.ContainerStatuses =
 	}

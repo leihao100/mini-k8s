@@ -12,7 +12,7 @@ type Interface interface {
 	Get(resourceURL string, context []byte) io.ReadCloser
 	GetObject(name string) (int, config.ApiObject, error)
 	Put(resourceURL string, context []byte) io.ReadCloser
-	PutObject(name string, object config.ApiObject) (int, error)
+	PutObject(object config.ApiObject) (int, error)
 	Delete(resourceURL string, context []byte) io.ReadCloser
 	GetAll() (objectList config.ApiObjectList, err error)
 	WatchAll() (watch.Interface, error)

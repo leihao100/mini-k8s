@@ -18,6 +18,8 @@ type Pod struct {
 	Status     status.PodStatus `json:"status,omitempty"`
 }
 
+const PodRestartTimes = 5
+
 /*
 API文档中描述如下
 Field	Description

@@ -39,6 +39,7 @@ func (s *simpleStore) Add(key string, obj interface{}) error {
 func (s *simpleStore) Update(key string, obj interface{}) error {
 
 	if _, loaded := s.items.Load(key); !loaded {
+		s.items.Store(key, obj)
 		return errors.New("object does not exist")
 	}
 	s.items.Store(key, obj)
