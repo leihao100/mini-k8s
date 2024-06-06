@@ -291,8 +291,7 @@ func (sc *StorageController) handlePersistentVolume(pv *core.PersistentVolume) {
 			log.Printf("[controller] Unable to get directory for persistent volume %s\n", pv.Metadata.Name)
 			return
 		}
-	}
-	if !info.IsDir() {
+	} else if !info.IsDir() {
 		log.Println("[controller] Path is not a directory")
 		return
 	}
