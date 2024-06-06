@@ -1,7 +1,6 @@
 package main
 
 import (
-	"MiniK8S/config"
 	apiserver "MiniK8S/pkg/apiServer"
 	"MiniK8S/pkg/controller"
 	"MiniK8S/pkg/node"
@@ -18,7 +17,7 @@ docker run --rm --net=host quay.io/coreos/etcd:v3.5.13 etcdctl --endpoints=http:
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	config.SetEtcdHost()
+	//config.SetEtcdHost()
 	server := apiserver.NewApiServer()
 	server.Run(cancel)
 	fmt.Println("server成功运行")

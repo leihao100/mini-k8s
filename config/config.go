@@ -7,7 +7,7 @@ import (
 const version string = "V1.0"
 
 var (
-	etcdHost string = "localhost"
+	etcdHost string = "192.168.1.16"
 	etcdPort string = ":2379"
 )
 
