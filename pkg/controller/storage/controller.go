@@ -103,6 +103,7 @@ func (sc *StorageController) UpdatePersistentVolumeClaim(oldObj, newObj interfac
 func (sc *StorageController) DeletePersistentVolumeClaim(obj interface{}) {}
 
 func (sc *StorageController) handleStorageClass(scl *core.StorageClass) {
+	defer log.Println("[controller] Finished handling StorageClass, UUID:", scl.Metadata.Uid.String(), "Name:", scl.Metadata.Name)
 	sc.lock.Lock()
 	defer sc.lock.Unlock()
 	log.Println("[controller] Handling StorageClass, UUID:", scl.Metadata.Uid.String(), "Name:", scl.Metadata.Name)
@@ -125,6 +126,7 @@ func (sc *StorageController) handleStorageClass(scl *core.StorageClass) {
 			return
 		}
 	}
+	log.Println("[controller] Parent directory for storage class exists")
 	path := parentPath + scl.Metadata.Name + "_" + scl.Metadata.Uid.String()
 	info, err := os.Stat(path)
 	if err != nil {
@@ -136,7 +138,7 @@ func (sc *StorageController) handleStorageClass(scl *core.StorageClass) {
 			}
 			// Mount the server to the path
 			remotePath := scl.Spec.Parameters.Server + ":" + scl.Spec.Parameters.Path
-			log.Printf("[controller] Created directory for storage class %s, mounting %s to %s. \n", scl.Metadata.Name, remotePath, path)
+			log.Printf("[controller] Created directory for storage class %s, mounting %s to %s \n", scl.Metadata.Name, remotePath, path)
 			err = syscall.Mount(remotePath, path, "nfs", 0, "")
 			if err != nil {
 				log.Printf("[controller] Unable to mount NFS server to path, Error: %v\n", err)
