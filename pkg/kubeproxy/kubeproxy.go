@@ -201,27 +201,18 @@ func (kp *KubeProxy) RemoveService(service *config.Service) {
 }
 
 func (kp *KubeProxy) RemovePod(pod *config.Pod) {
-	for _, container := range pod.Spec.Containers {
-		for _, s2 := range kp.services {
-			for k, v := range s2.Spec.Selector {
-				if container.Labels[k] == v {
-					kp.ipManager.RemovePodFromService(s2, pod)
-				}
-			}
+	for _, service := range kp.services {
+		if selector.LabelCompare(service.Metadata.Labels, pod.Metadata.Labels) {
+			kp.ipManager.RemovePodFromService(service, pod)
 		}
 	}
 }
 
 func (kp *KubeProxy) AddPod(pod *config.Pod) {
-	for _, container := range pod.Spec.Containers {
-		for _, s2 := range kp.services {
-			for k, v := range s2.Spec.Selector {
-				if container.Labels[k] == v {
-					kp.ipManager.AddPodToService(s2, pod)
-				} else {
-					continue
-				}
-			}
+
+	for _, service := range kp.services {
+		if selector.LabelCompare(service.Metadata.Labels, pod.Metadata.Labels) {
+			kp.ipManager.AddPodToService(service, pod)
 		}
 	}
 }

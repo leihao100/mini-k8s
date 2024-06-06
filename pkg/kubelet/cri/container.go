@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/client"
 	_ "github.com/docker/docker/pkg/stdcopy"
 	"io"
+	"os"
 )
 
 func GetClient() (Client, error) {
@@ -215,4 +216,20 @@ func (c *DockerClient) BuildMount(con *config.Container) []mount.Mount {
 		})
 	}
 	return mnt
+}
+
+func (c *DockerClient) Execute(id string, cmd []string) {
+	ctx := context.Background()
+	idResponse, err := c.Client.ContainerExecCreate(ctx, id, types.ExecConfig{
+		Cmd: cmd,
+	})
+	if err != nil {
+		return
+	}
+	response, err := c.Client.ContainerExecAttach(ctx, idResponse.ID, types.ExecStartCheck{})
+	if err != nil {
+		return
+	}
+	defer response.Close()
+	io.Copy(os.Stdout, response.Reader)
 }
