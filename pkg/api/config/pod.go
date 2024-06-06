@@ -46,7 +46,7 @@ type PodSpec struct {
 
 type Volume struct {
 	Name                      string `json:"name,omitempty"`
-	PersistentVolumeClaimName string `json:"persistentVolumeClaim,omitempty"`
+	PersistentVolumeClaimName string `json:"persistentVolumeClaimName,omitempty"`
 }
 
 type PodTemplateSpec struct {

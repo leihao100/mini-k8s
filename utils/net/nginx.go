@@ -67,7 +67,7 @@ func GenerateNginxConfig(dns config.DNS) {
 	tmpl, err := template.New("nginxConf").Parse(nginxConfTemplate)
 
 	err = tmpl.Execute(file, dns)
-
+	RunNginx()
 	fmt.Println("Additional content appended to file successfully")
 }
 
@@ -115,6 +115,7 @@ func RemoveNginxConfig(dns config.DNS) error {
 			return fmt.Errorf("error writing to file: %v", err)
 		}
 	}
+	RunNginx()
 
 	return nil
 
