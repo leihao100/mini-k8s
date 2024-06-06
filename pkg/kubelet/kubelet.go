@@ -152,6 +152,7 @@ func createKubeletNfsMountParentDirectory() string {
 }
 
 func processVolumes(container *config.Container, pod *config.Pod, pathMap map[string]string) {
+	log.Printf("[MakePod] Processing volumes for container %s\n", container.Name)
 	newVolumeMounts := make([]config.VolumeMount, 0)
 	for _, volume := range container.VolumeMount {
 		localPath := ""
@@ -165,8 +166,10 @@ func processVolumes(container *config.Container, pod *config.Pod, pathMap map[st
 			}
 		}
 		if localPath == "" {
+			log.Printf("[MakePod] No local path found for volume %s (should be normal volume)\n", volume.Name)
 			newVolumeMounts = append(newVolumeMounts, volume)
 		} else {
+			log.Printf("[MakePod] Local path found for volume %s: %s (PV)\n", volume.Name, localPath)
 			container.Binds = append(container.Binds, localPath+":"+volume.MountPath)
 		}
 	}
