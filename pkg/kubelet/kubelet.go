@@ -158,7 +158,7 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 		container.Pause = pauseID
 		response, err := k.cli.CreateContainer(container, containerName)
 		if err != nil {
-			panic(err)
+			//panic(err)
 			fmt.Println("error:", err)
 		}
 		k.cli.StartContainer(response.ID)
@@ -399,12 +399,40 @@ func (k *Kubelet) inspectPod(ctx context.Context, pod *config.Pod) error {
 	phase := status.PodRunning
 	for _, podstatus := range pod.Status.ContainerStatuses {
 		if podstatus.State.Running == false {
+			if podstatus.RestartCount >= config.PodRestartTimes {
+				url := k.podClient.BuildURL(apiClient.Delete) + "/" + pod.GetName()
+				buf, _ := pod.JsonMarshal()
+				k.podClient.Delete(url, buf)
+				return nil
+			}
 			if podstatus.State.ExitCode != 0 {
 				fmt.Println("[kubelet] Pod Status Error: " + podstatus.Name + " Pod failed: " + podstatus.State.Status)
-				phase = status.PodFailed
+				fmt.Println("[kubelet] trying to restart pod: " + podstatus.Name)
+				startContainer, err := k.cli.StartContainer(podstatus.ContainerID)
+				if err != nil {
+					fmt.Println(err)
+				}
+				if startContainer {
+					continue
+				} else {
+					podstatus.RestartCount++
+					phase = status.PodFailed
+				}
+
 			} else {
 				fmt.Println("[kubelet] Pod Status: " + podstatus.Name + " Pod Completed")
-				phase = status.PodSucceeded
+				fmt.Println("[kubelet] trying to restart pod: " + podstatus.Name)
+				startContainer, err := k.cli.StartContainer(podstatus.ContainerID)
+				if err != nil {
+					fmt.Println(err)
+				}
+				if startContainer {
+					continue
+				} else {
+					podstatus.RestartCount++
+					phase = status.PodSucceeded
+				}
+
 			}
 		}
 	}
