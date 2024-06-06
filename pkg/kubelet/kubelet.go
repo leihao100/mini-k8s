@@ -127,6 +127,12 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 	fmt.Println("[kubelet] makePod" + pod.GetUID().String())
 	//pod.Metadata.Uid, _ = uuid.NewUUID()
 	k.podManager.AddPod(pod.Metadata.Uid, k.podManager.MakePodName(pod), pod)
+
+	//创建volume
+	for _, volume := range pod.Spec.Volumes {
+		k.cli.VolumeCreate(volume)
+	}
+
 	podStatus := status.PodStatus{
 		ContainerStatuses: nil,
 		HostIP:            "",
@@ -137,8 +143,12 @@ func (k *Kubelet) MakePod(pod *config.Pod) {
 	k.cli.StartContainer(pauseID)
 	pod.Status = podStatus
 	containers := pod.Spec.Containers
+	name := pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_" + pod.GetUID().String()
+	if pod.Metadata.Namespace == "" {
+		name = "defaultNameSpace" + name
+	}
 	newContainerStatus := status.ContainerStatus{
-		Name:         pod.Metadata.Namespace + "_" + pod.Metadata.Name + "_pause_",
+		Name:         name,
 		ContainerID:  pauseID,
 		ImageID:      "",
 		Image:        pauseName,
