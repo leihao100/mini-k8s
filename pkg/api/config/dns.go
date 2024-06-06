@@ -5,8 +5,9 @@ import (
 	"MiniK8S/pkg/api/status"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type DNS struct {
@@ -23,7 +24,9 @@ type DNSSpec struct {
 	Path     []DNSPath `json:"path,omitempty"`
 }
 type DNSPath struct {
+	ServiceName string `json:"serviceName,omitempty"`
 	ClusterIP   string `json:"clusterIP,omitempty"`
+	ClusterPort string `json:"clusterPort,omitempty"`
 	ClusterPath string `json:"clusterPath,omitempty"`
 }
 
