@@ -39,7 +39,7 @@ spec:
       mountPath: /tmp/volume2
 
   - name: apache
-    images: httpd:latest
+    image: httpd:latest
 
   volumes:
   - name: volume1
