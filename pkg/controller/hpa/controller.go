@@ -298,7 +298,7 @@ func (hpc *HpaController) GetDeploymentResourceMetric(dp *config.Deployment, cma
 
 	for _, pod := range pods {
 		metricsVector = make([]metrics.PodMetric, 0)
-		for _, container := range pod.Spec.Containers {
+		for _, container := range pod.Status.ContainerStatuses {
 			metricsVector = append(metricsVector, cmap[container.Name])
 			fmt.Println("[hpaController] GetDeploymentResourceMetric :adding name:", container.Name, cmap[container.Name])
 		}
