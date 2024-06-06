@@ -307,7 +307,7 @@ func (dc *DeploymentController) IncreaseReplicaCount(dp *config.Deployment, pdwo
 			dc.podClient.Put(url, buf)
 		}
 	}
-	time.Sleep(1 * time.Second)
+	//time.Sleep(1 * time.Second)
 }
 
 func (dc *DeploymentController) DecreaseReplicaCount(dp *config.Deployment, pdw []*config.Pod) {

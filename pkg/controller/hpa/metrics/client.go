@@ -27,7 +27,9 @@ type HPAMetricsClient struct {
 
 func NewMetricsClient(nodeClient *apiClient.Client) *HPAMetricsClient {
 	return &HPAMetricsClient{
-		metricsInfo: make(ConatinerMetricsInfo),
+		metricsInfo:     make(ConatinerMetricsInfo),
+		nodeClient:      nodeClient,
+		nodeListWatcher: listwatch.NewListWatchFromClient(nodeClient),
 	}
 }
 func (hmc *HPAMetricsClient) GetResourceMetric(ctx context.Context, resource apitypes.ApiObjectType, namespace string, selector selector.LabelSelector, container string) (ConatinerMetricsInfo, time.Time, error) {
