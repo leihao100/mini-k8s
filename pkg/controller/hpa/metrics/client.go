@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/cadvisor/info/v1"
+	"strings"
 	"time"
 )
 
@@ -140,7 +141,7 @@ func (hmc *HPAMetricsClient) Sync() {
 	ns := nodes.GetItems()
 	for _, n := range ns {
 		node := n.(*config.Node)
-		if node.GetName() == "master" {
+		if strings.EqualFold(node.GetName(), "Master") {
 			continue
 		}
 		url := "http://" + node.Status.Addresses.Address + CAdvisorPort

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -245,7 +246,7 @@ func (hpc *HpaController) Scale(hpa *config.HorizontalPodAutoscaler, desire int)
 }
 
 func (hpc *HpaController) GetResourceMetric(hpa *config.HorizontalPodAutoscaler, cmap metrics.ConatinerMetricsInfo) (metrics.PodMetric, int, error) {
-	if hpa.Spec.ScaleTargetRef.Kind != string(types.DeploymentObjectType) {
+	if !strings.EqualFold(hpa.Spec.ScaleTargetRef.Kind, string(types.DeploymentObjectType)) {
 		return metrics.PodMetric{}, 0, fmt.Errorf("HPA is not a deployment object")
 	}
 	dpName := hpa.Spec.ScaleTargetRef.Name
