@@ -103,9 +103,12 @@ func (hpc *HpaController) CalculateTarget(hpa *config.HorizontalPodAutoscaler, r
 
 func (hpc *HpaController) SyncAll() {
 	time.Sleep(DefaultSyncTime * time.Second)
+	fmt.Println("[hpaController] SyncAll")
 	hpas := hpc.hpaInformer.List()
 	for _, hpa := range hpas {
+
 		h := hpa.(*config.HorizontalPodAutoscaler)
+		fmt.Println("[hpaController] SyncAll : adding ", h.GetName())
 		hpc.queue.Add(h)
 	}
 }
