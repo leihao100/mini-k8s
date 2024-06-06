@@ -9,8 +9,8 @@ import (
 	"text/template"
 )
 
-const DefaultNginxConfigPath = "/etc/nginx/nginx.conf"
-const NginxConfigPath = "nginx.conf"
+const DefaultNginxConfigPath = "/usr/local/nginx/conf/nginx.conf"
+const NginxConfigPath = DefaultNginxConfigPath
 
 const nginxConfTemplate = `
 #minik8s-{{.Metadata.Uid}}

@@ -7,7 +7,6 @@ import (
 	"MiniK8S/pkg/api/watch"
 	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/apiClient/listwatch"
-	"MiniK8S/pkg/kubelet"
 	"MiniK8S/pkg/kubeproxy/ipInterface"
 	iptableManager "MiniK8S/pkg/kubeproxy/iptable"
 	"MiniK8S/utils/net"
@@ -18,7 +17,7 @@ import (
 )
 
 type KubeProxy struct {
-	kl            *kubelet.Kubelet
+	//kl            *kubelet.Kubelet
 	services      map[uuid.UUID]*config.Service
 	ipManager     ipInterface.IP
 	serviceToPods map[uuid.UUID][]*config.Pod
@@ -31,9 +30,9 @@ type KubeProxy struct {
 	dnsListWatcher     listwatch.ListerWatcher
 }
 
-func NewKubeProxy(kl *kubelet.Kubelet) *KubeProxy {
+func NewKubeProxy() *KubeProxy {
 	return &KubeProxy{
-		kl:                 kl,
+		//kl:                 kl,
 		services:           make(map[uuid.UUID]*config.Service),
 		ipManager:          iptableManager.New(),
 		serviceToPods:      make(map[uuid.UUID][]*config.Pod),
@@ -174,7 +173,6 @@ func (kp *KubeProxy) CreateService(service *config.Service) {
 }
 
 func (kp *KubeProxy) SelectPod(service *config.Service) []*config.Pod {
-	//pods := kp.kl.GetPods()
 	pods, _ := kp.podListWatcher.List(config.ListOptions{
 		Kind:       string(types.PodObjectType),
 		APIVersion: "",
