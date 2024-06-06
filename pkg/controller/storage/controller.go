@@ -249,7 +249,7 @@ func (sc *StorageController) handlePersistentVolumeClaim(pvc *core.PersistentVol
 			StorageClassName: storageClass.GetName(),
 			Nfs: core.NFSVolumeSource{
 				Server: storageClass.Spec.Parameters.Server,
-				Path:   storageClass.Spec.Parameters.Path + pvName,
+				Path:   storageClass.Spec.Parameters.Path + "/" + pvName,
 			},
 		},
 		Status: status.PersistentVolumeStatus{
