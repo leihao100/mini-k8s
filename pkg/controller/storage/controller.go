@@ -32,7 +32,7 @@ type StorageController struct {
 	//pvcQueue                      *cache.WorkQueue
 }
 
-func NewController(si *cache.Informer, pi *cache.Informer, pci *cache.Informer, sc *apiClient.Client, pvc *apiClient.Client, pv *apiClient.Client) *StorageController {
+func NewController(si *cache.Informer, pi *cache.Informer, pci *cache.Informer, sc *apiClient.Client, pv *apiClient.Client, pvc *apiClient.Client) *StorageController {
 	newSc := &StorageController{
 		storageClassClient:            sc,
 		persistentVolumeClient:        pv,
