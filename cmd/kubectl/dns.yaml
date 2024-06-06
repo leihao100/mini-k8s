@@ -4,13 +4,12 @@ metadata:
   name: nginx-dns
 spec:
   hostname: myapp.com
+  hostport: "200"
   path:
     - serviceName: example-svc
-      hostPort: 200
-      clusterPort: 1234
+      clusterPort: "1234"
       clusterPath: /hello
     - serviceName: example-svc
-      hostPort: 200
-      clusterPort: 2345
+      clusterPort: "2345"
       clusterPath: /apache
 

@@ -115,8 +115,8 @@ func (s *Service) Info() {
 	var targetPort string = ""
 	var endpoints string = ""
 	for _, pport := range s.Spec.Ports {
-		port += strconv.Itoa(int(pport.Port))
-		targetPort += strconv.Itoa(int(pport.TargetPort))
+		port += strconv.Itoa(int(pport.Port)) + " "
+		targetPort += strconv.Itoa(int(pport.TargetPort)) + " "
 	}
 	for _, endpoint := range s.Spec.Endpoints {
 		endpoints += endpoint + " "
@@ -158,8 +158,8 @@ func (s *ServiceList) Info() {
 		var targetPort string = ""
 		var endpoints string = ""
 		for _, pport := range item.Spec.Ports {
-			port += strconv.Itoa(int(pport.Port))
-			targetPort += strconv.Itoa(int(pport.TargetPort))
+			port += strconv.Itoa(int(pport.Port)) + " "
+			targetPort += strconv.Itoa(int(pport.TargetPort)) + " "
 		}
 		for _, endpoint := range item.Spec.Endpoints {
 			endpoints += endpoint + " "
