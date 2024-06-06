@@ -2,7 +2,7 @@ package config
 
 const version string = "V1.0"
 const (
-	etcdHost string = "192.168.1.10"
+	etcdHost string = "localhost"
 	etcdPort string = ":2379"
 )
 

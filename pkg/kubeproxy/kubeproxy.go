@@ -170,7 +170,12 @@ func (kp *KubeProxy) CreateService(service *config.Service) {
 	for _, pod := range pods {
 		fmt.Println("[kube-proxy] Adding Pod: ", pod.Metadata.Name, "To Service: ", service.Metadata.Name)
 		kp.ipManager.AddPodToService(service, pod)
+		service.Spec.Endpoints = append(service.Spec.Endpoints, pod.Status.PodIP)
+
 	}
+	url := kp.serviceClient.BuildURL(apiClient.Create)
+	buf, _ := service.JsonMarshal()
+	kp.serviceClient.Put(url, buf)
 }
 
 func (kp *KubeProxy) SelectPod(service *config.Service) []*config.Pod {
@@ -192,7 +197,8 @@ func (kp *KubeProxy) SelectPod(service *config.Service) []*config.Pod {
 
 func (kp *KubeProxy) RemoveService(service *config.Service) {
 	fmt.Println("[kube-proxy] Removing service")
-	kp.services[service.Metadata.Uid] = nil
+	delete(kp.services, service.Metadata.Uid)
+	//kp.services[service.Metadata.Uid] = nil
 	kp.ipManager.RemoveService(service)
 	pods := kp.serviceToPods[service.Metadata.Uid]
 	for _, pod := range pods {
@@ -201,9 +207,12 @@ func (kp *KubeProxy) RemoveService(service *config.Service) {
 }
 
 func (kp *KubeProxy) RemovePod(pod *config.Pod) {
-	for _, service := range kp.services {
-		if selector.LabelCompare(service.Metadata.Labels, pod.Metadata.Labels) {
-			kp.ipManager.RemovePodFromService(service, pod)
+	svcs, _ := kp.serviceListWatcher.List(config.ListOptions{})
+	//scs := svcs.GetItems()
+	for _, service := range svcs.GetItems() {
+		svc := service.(*config.Service)
+		if selector.LabelCompare(svc.Metadata.Labels, pod.Metadata.Labels) {
+			kp.ipManager.RemovePodFromService(svc, pod)
 		}
 	}
 }
