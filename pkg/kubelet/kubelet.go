@@ -23,23 +23,25 @@ import (
 const pauseName = "mirrorgooglecontainers/pause:latest"
 
 type Kubelet struct {
-	node           config.Node
-	cli            cri.Client
-	podManager     *pod.PodManager
-	podClient      *apiClient.Client
-	podListWatcher listwatch.ListerWatcher
-	lock           sync.Locker
+	node                     config.Node
+	cli                      cri.Client
+	podManager               *pod.PodManager
+	podClient                *apiClient.Client
+	podListWatcher           listwatch.ListerWatcher
+	lock                     sync.Locker
+	mountedPersistentVolumes map[uuid.UUID]string
 }
 
 func NewKubelet(node config.Node) *Kubelet {
 	cli, _ := cri.GetClient()
 	return &Kubelet{
-		node:           node,
-		cli:            cli,
-		podManager:     pod.NewPodManager(),
-		podClient:      apiClient.NewRESTClient(apitypes.PodObjectType),
-		podListWatcher: nil,
-		lock:           &sync.Mutex{},
+		node:                     node,
+		cli:                      cli,
+		podManager:               pod.NewPodManager(),
+		podClient:                apiClient.NewRESTClient(apitypes.PodObjectType),
+		podListWatcher:           nil,
+		lock:                     &sync.Mutex{},
+		mountedPersistentVolumes: map[uuid.UUID]string{},
 	}
 }
 

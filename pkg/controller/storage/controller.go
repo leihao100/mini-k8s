@@ -10,6 +10,7 @@ import (
 	"MiniK8S/pkg/controller/cache"
 	"context"
 	petname "github.com/dustinkirkland/golang-petname"
+	"github.com/moby/sys/mountinfo"
 	"log"
 	"net/http"
 	"os"
@@ -136,22 +137,34 @@ func (sc *StorageController) handleStorageClass(scl *core.StorageClass) {
 				log.Println("[controller] Unable to create directory for storage class")
 				return
 			}
-			// Mount the server to the path
-			remotePath := scl.Spec.Parameters.Server + ":" + scl.Spec.Parameters.Path
-			log.Printf("[controller] Created directory for storage class %s, mounting %s to %s \n", scl.Metadata.Name, remotePath, path)
-			err = syscall.Mount(remotePath, path, "nfs", 0, "")
-			if err != nil {
-				log.Printf("[controller] Unable to mount NFS server to path, Error: %v\n", err)
-				return
-			}
+			log.Printf("[controller] Created directory for storage class %s, path:%s \n", scl.Metadata.Name, path)
 		} else {
 			log.Println("[controller] Unable to get directory for storage class")
 			return
 		}
 	}
+	info, err = os.Stat(path)
+	if err != nil {
+		log.Println("[controller] Unable to get directory for storage class")
+		return
+	}
 	if !info.IsDir() {
 		log.Println("[controller] Path is not a directory")
 		return
+	}
+	isMounted, mountInfoErr := mountinfo.Mounted(path)
+	if mountInfoErr != nil {
+		log.Printf("[controller] Unable to get mount info for path %s, Error: %v\n", path, mountInfoErr)
+		return
+	}
+	if !isMounted { // Mount the server to the path
+		remotePath := ":" + scl.Spec.Parameters.Path
+		log.Printf("[controller] Mounting %s to %s \n", scl.Spec.Parameters.Server+remotePath, path)
+		err = syscall.Mount(remotePath, path, "nfs", 0, "addr="+scl.Spec.Parameters.Server)
+		if err != nil {
+			log.Printf("[controller] Unable to mount NFS server to path, Error: %v\n", err)
+			return
+		}
 	}
 	sc.mountedNFSServers[scl.Spec.Parameters.Server] = path
 }
@@ -304,6 +317,11 @@ func (sc *StorageController) finalize() {
 		err := syscall.Unmount(path, 0)
 		if err != nil {
 			log.Printf("[controller] Unable to unmount NFS server %s from path %s\n", server, path)
+		}
+		log.Printf("[controller] Removing path %s\n", path)
+		err = os.RemoveAll(path)
+		if err != nil {
+			log.Printf("[controller] Unable to remove path %s\n", path)
 		}
 	}
 }
