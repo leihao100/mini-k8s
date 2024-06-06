@@ -213,6 +213,16 @@ func (kp *KubeProxy) RemovePod(pod *config.Pod) {
 		svc := service.(*config.Service)
 		if selector.LabelCompare(svc.Metadata.Labels, pod.Metadata.Labels) {
 			kp.ipManager.RemovePodFromService(svc, pod)
+
+			for i, endpoint := range svc.Spec.Endpoints {
+				if endpoint == pod.Status.PodIP {
+					svc.Spec.Endpoints = append(svc.Spec.Endpoints[:i], svc.Spec.Endpoints[i+1:]...)
+					break
+				}
+			}
+			url := kp.serviceClient.BuildURL(apiClient.Create)
+			buf, _ := service.JsonMarshal()
+			kp.serviceClient.Put(url, buf)
 		}
 	}
 }

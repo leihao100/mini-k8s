@@ -7,7 +7,7 @@ import (
 	"text/template"
 )
 
-const DefaultPrometheusPath = "prometheus.yml"
+const DefaultPrometheusPath = "/etc/prometheus/file_sd/prometheus.yml"
 const prometheusTemplate = `
 #minik8s-{{.Name}}
 - targets:

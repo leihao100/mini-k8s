@@ -7,6 +7,7 @@ import (
 	"MiniK8S/pkg/controller/deployment"
 	"MiniK8S/pkg/controller/hpa"
 	"MiniK8S/pkg/controller/pod"
+	"MiniK8S/pkg/controller/prometheus"
 	"context"
 	"fmt"
 )
@@ -29,6 +30,7 @@ type ControllerManager struct {
 	podController        *pod.PodController
 	deploymentController *deployment.DeploymentController
 	hpaController        *hpa.HpaController
+	proController        *prometheus.PrometheusController
 }
 
 func NewControllerManager() *ControllerManager {
@@ -41,6 +43,7 @@ func NewControllerManager() *ControllerManager {
 	dnscli, dnsinf := cache.NewDefaultInformerAndCli(types.DnsObjectType)
 	dpController := deployment.NewController(podinf, deploymentinf, podcli, deploymentcli)
 	hpaController := hpa.NewController(podinf, hpainf, deploymentinf, podcli, hpacli, deploymentcli, nodecli)
+	prController := prometheus.NewPrometheusController(podcli, nodecli, podinf, nodeinf)
 	return &ControllerManager{
 		podClient:        podcli,
 		nodeClient:       nodecli,
@@ -58,6 +61,7 @@ func NewControllerManager() *ControllerManager {
 
 		deploymentController: dpController,
 		hpaController:        hpaController,
+		proController:        prController,
 	}
 }
 
