@@ -22,6 +22,10 @@ func HandleDeleteStorageClass(c *gin.Context) {
 	HandleDeleteApiObject(c, types.StorageClassObjectType)
 }
 
+func HandleDeleteStorageClasses(c *gin.Context) {
+	HandleDeleteApiObjects(c, types.StorageClassObjectType)
+}
+
 func HandleWatchStorageClasses(c *gin.Context) {
 	HandleWatchApiObjects(c, types.StorageClassObjectType)
 }

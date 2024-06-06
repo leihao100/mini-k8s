@@ -132,7 +132,7 @@ func (h httpServer) BindHandlers() {
 				storageClasses.GET("/get/:name", handlers.HandleGetStorageClass)             // GET /api/v1/storageClasses/get/:name
 				storageClasses.PUT("/create", handlers.HandleCreateStorageClass)             // POST /api/v1/storageClasses/create
 				storageClasses.PUT("/create/:name", handlers.HandleCreateStorageClass)       // PUT /api/v1/storageClasses/create/:name
-				storageClasses.DELETE("/delete", handlers.HandleDeleteStorageClass)          // DELETE /api/v1/storageClasses/delete
+				storageClasses.DELETE("/delete", handlers.HandleDeleteStorageClasses)        // DELETE /api/v1/storageClasses/delete
 				storageClasses.DELETE("/delete/:name", handlers.HandleDeleteStorageClass)    // DELETE /api/v1/storageClasses/delete/:name
 				storageClasses.GET("/watch", handlers.HandleWatchStorageClasses)             // GET /api/v1/storageClasses/watch
 				storageClasses.GET("/watch/:name", handlers.HandleWatchStorageClass)         // GET /api/v1/storageClasses/watch/:name
