@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+const DefaultSyncTime = 20
+
 var DefaultScaleUpPolicy = config.HPAScalingRules{
 	Policies: []config.HPAScalingPolicy{{
 		Type:          config.PolicyPercent,
@@ -99,9 +101,18 @@ func (hpc *HpaController) CalculateTarget(hpa *config.HorizontalPodAutoscaler, r
 
 }
 
+func (hpc *HpaController) SyncAll() {
+	time.Sleep(DefaultSyncTime * time.Second)
+	hpas := hpc.hpaInformer.List()
+	for _, hpa := range hpas {
+		h := hpa.(*config.HorizontalPodAutoscaler)
+		hpc.queue.Add(h)
+	}
+}
+
 func (hpc *HpaController) Run(ctx context.Context, cancel context.CancelFunc) {
 	fmt.Println("[hpa] Starting HpaController")
-
+	go hpc.SyncAll()
 	go func() {
 		defer cancel()
 		for {
@@ -225,6 +236,7 @@ func (hpc *HpaController) Sync(hpa *config.HorizontalPodAutoscaler) {
 	url := hpc.hpaClient.BuildURL(apiClient.Create)
 	buf, _ := hpa.JsonMarshal()
 	hpc.hpaClient.Put(url, buf)
+
 	//choose behaviour
 
 }

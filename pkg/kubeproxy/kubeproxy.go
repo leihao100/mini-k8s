@@ -12,6 +12,7 @@ import (
 	"MiniK8S/utils/net"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -231,13 +232,30 @@ func (kp *KubeProxy) GetSvc() {
 
 func (kp *KubeProxy) CreateDns(dns *config.DNS) {
 	fmt.Println("[kube-proxy] Creating DNS")
-	net.GenerateNginxConfig(*dns)
+	svcs, _ := kp.serviceListWatcher.List(config.ListOptions{
+		Watch: false,
+		Kind:  string(types.ServiceObjectType),
+	})
+	for _, svc := range svcs.GetItems() {
+		s := svc.(*config.Service)
+		for _, path := range dns.Spec.Path {
+			if strings.EqualFold(s.Metadata.Name, path.ServiceName) {
+				path.ClusterIP = s.Spec.ClusterIP
+				net.GenerateNginxConfig(*dns)
+			}
+		}
+	}
+	net.AddHost(dns)
+	//url := kp.dnsClient.BuildURL(apiClient.Create)
+	//buf, _ := dns.JsonMarshal()
 
 }
 
 func (kp *KubeProxy) RemoveDns(dns *config.DNS) {
 	fmt.Println("[kube-proxy] Removing DNS")
+	//net.RemoveNginxConfig(dns)
 	net.RemoveNginxConfig(*dns)
+	net.RemoveHost(*dns)
 }
 
 func (kp *KubeProxy) HandlePodWatch(w watch.Interface, ctx context.Context) error {

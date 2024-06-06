@@ -59,6 +59,7 @@ func (dpc *DeploymentController) DeleteDeployment(obj interface{}) {
 	dp := obj.(*config.Deployment)
 	pds, _ := dpc.GetPodsWithOwnership(dp)
 	for _, pod := range pds {
+		fmt.Println("[dpController] Deleting pod form dp rm", pod.GetName())
 		url := dpc.podClient.BuildURL(apiClient.Delete) + "/" + pod.GetName()
 		dpc.podClient.Delete(url, nil)
 	}
@@ -316,8 +317,9 @@ func (dc *DeploymentController) DecreaseReplicaCount(dp *config.Deployment, pdw 
 	target := dp.Spec.Replicas
 	delta := replica - target
 	for i := 0; i < int(delta); i++ {
-		url := dc.podClient.BuildURL(apiClient.Delete)
-		dc.podClient.Delete(url, nil)
+		url := dc.podClient.BuildURL(apiClient.Delete) + "/" + pdw[i].GetName()
+		buf, _ := pdw[i].JsonMarshal()
+		dc.podClient.Delete(url, buf)
 	}
 
 }
