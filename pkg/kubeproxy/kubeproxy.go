@@ -213,6 +213,16 @@ func (kp *KubeProxy) RemovePod(pod *config.Pod) {
 		svc := service.(*config.Service)
 		if selector.LabelCompare(svc.Metadata.Labels, pod.Metadata.Labels) {
 			kp.ipManager.RemovePodFromService(svc, pod)
+
+			for i, endpoint := range svc.Spec.Endpoints {
+				if endpoint == pod.Status.PodIP {
+					svc.Spec.Endpoints = append(svc.Spec.Endpoints[:i], svc.Spec.Endpoints[i+1:]...)
+					break
+				}
+			}
+			url := kp.serviceClient.BuildURL(apiClient.Create)
+			buf, _ := service.JsonMarshal()
+			kp.serviceClient.Put(url, buf)
 		}
 	}
 }
@@ -240,18 +250,27 @@ func (kp *KubeProxy) CreateDns(dns *config.DNS) {
 		Watch: false,
 		Kind:  string(types.ServiceObjectType),
 	})
+	flag := false
 	for _, svc := range svcs.GetItems() {
 		s := svc.(*config.Service)
-		for _, path := range dns.Spec.Path {
+		for i, path := range dns.Spec.Path {
+			fmt.Println("[kube-proxy] Adding Path -name : ", path.ServiceName)
 			if strings.EqualFold(s.Metadata.Name, path.ServiceName) {
-				path.ClusterIP = s.Spec.ClusterIP
-				net.GenerateNginxConfig(*dns)
+				fmt.Println("[kube-proxy] dns find svc ,its cluster ip is ", s.Spec.ClusterIP)
+				dns.Spec.Path[i].ClusterIP = s.Spec.ClusterIP
+				fmt.Println("[kube-proxy] after select dns 's cluster ip is : ", dns.Spec.Path[i].ClusterIP)
+				flag = true
 			}
 		}
 	}
+	if flag {
+		net.GenerateNginxConfig(dns)
+	}
+
 	net.AddHost(dns)
-	//url := kp.dnsClient.BuildURL(apiClient.Create)
-	//buf, _ := dns.JsonMarshal()
+	url := kp.dnsClient.BuildURL(apiClient.Create)
+	buf, _ := dns.JsonMarshal()
+	kp.dnsClient.Put(url, buf)
 
 }
 

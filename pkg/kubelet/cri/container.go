@@ -96,7 +96,7 @@ func (c *DockerClient) CreateContainer(config config.Container, name string) (*c
 			exist = true
 		}
 	}
-	config.Binds = append(config.Binds, "/etc:/etc")
+	//config.Binds = append(config.Binds, "/etc:/etc")
 	if !exist {
 		ct := context.Background()
 		fmt.Println("pulling image ", containerRepoTag)
@@ -215,6 +215,15 @@ func (c *DockerClient) BuildMount(con *config.Container) []mount.Mount {
 			Target: m.MountPath,
 		})
 	}
+	//mnt = append(mnt, mount.Mount{
+	//	Type:   mount.TypeBind,
+	//	Source: "/etc",
+	//	Target: "/etc",
+	//	BindOptions: &mount.BindOptions{
+	//		Propagation: mount.PropagationShared,
+	//	},
+	//})
+
 	return mnt
 }
 

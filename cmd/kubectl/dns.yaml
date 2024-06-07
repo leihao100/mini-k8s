@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: DNS
+metadata:
+  name: nginx-dns
+spec:
+  hostname: myapp.com
+  hostport: "200"
+  path:
+    - serviceName: example-svc
+      clusterPort: "1234"
+      clusterPath: /hello
+    - serviceName: example-svc
+      clusterPort: "2345"
+      clusterPath: /apache
+

@@ -8,6 +8,7 @@ import (
 	"MiniK8S/pkg/controller/hpa"
 	"MiniK8S/pkg/controller/pod"
 	"MiniK8S/pkg/controller/storage"
+	"MiniK8S/pkg/controller/prometheus"
 	"context"
 	"fmt"
 )
@@ -37,6 +38,7 @@ type ControllerManager struct {
 	deploymentController *deployment.DeploymentController
 	hpaController        *hpa.HpaController
 	storageController    *storage.StorageController
+	proController        *prometheus.PrometheusController
 }
 
 func NewControllerManager() *ControllerManager {
@@ -54,6 +56,7 @@ func NewControllerManager() *ControllerManager {
 	dpController := deployment.NewController(podinf, deploymentinf, podcli, dnscli)
 	hpaController := hpa.NewController(podinf, hpainf, deploymentinf, podcli, hpacli, deploymentcli, nodecli)
 	storageController := storage.NewController(scinf, pvinf, pvcinf, sccli, pvcli, pvccli)
+	prController := prometheus.NewPrometheusController(podcli, nodecli, podinf, nodeinf)
 	return &ControllerManager{
 		podClient:                   podcli,
 		nodeClient:                  nodecli,
@@ -78,6 +81,7 @@ func NewControllerManager() *ControllerManager {
 		deploymentController: dpController,
 		hpaController:        hpaController,
 		storageController:    storageController,
+		proController:        prController,
 	}
 }
 

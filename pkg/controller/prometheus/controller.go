@@ -5,6 +5,8 @@ import (
 	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/controller/cache"
 	"MiniK8S/utils/net"
+	"fmt"
+	"strings"
 )
 
 type PrometheusController struct {
@@ -36,27 +38,38 @@ func NewPrometheusController(pc, nc *apiClient.Client, pi, ni *cache.Informer) *
 }
 func (ptc *PrometheusController) AddPod(obj interface{}) {
 	//pd := obj.(*config.Pod)
-	//if strings.EqualFold(pd.Metadata.Namespace, "prometheus") {
-	//	if pd {
-	//
-	//	}
-	//}
 }
 
 func (ptc *PrometheusController) UpdatePod(oldobj, newobj interface{}) {
+
 	pd := newobj.(*config.Pod)
-	if pd.Status.PodIP == "" {
-		return
-	} else {
-		net.AddPrometheus(pd.Metadata.Name, pd.Status.PodIP+":9090")
+	if strings.EqualFold(pd.Metadata.Namespace, "prometheus") {
+		if pd.Status.PodIP == "" || pd.Metadata.Generation == 1 {
+			return
+		} else {
+			net.AddPrometheus(pd.Metadata.Name, pd.Status.PodIP+":9090")
+			pd.Metadata.Generation = 1
+			url := ptc.podClient.BuildURL(apiClient.Create)
+			buf, _ := pd.JsonMarshal()
+			ptc.podClient.Put(url, buf)
+		}
 	}
 }
 func (ptc *PrometheusController) DeletePod(obj interface{}) {
-	pod := obj.(*config.Pod)
-	net.RemovePrometheus(pod.Metadata.Name)
+	pd := obj.(*config.Pod)
+	if strings.EqualFold(pd.Metadata.Namespace, "prometheus") {
+		if pd.Status.PodIP == "" {
+			return
+		} else {
+			net.RemovePrometheus(pd.Metadata.Name)
+			//net.AddPrometheus(pd.Metadata.Name, pd.Status.PodIP+":9090")
+		}
+	}
+
 }
 
 func (ptc *PrometheusController) AddNode(obj interface{}) {
+	fmt.Println("[prometheus] Add Node")
 	node := obj.(*config.Node)
 	net.AddPrometheus(node.Metadata.Name, node.Status.Addresses.Address+":9090")
 }

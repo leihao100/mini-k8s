@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-svc
+  labels:
+    app: example
+spec:
+  type: iptable
+  ports:
+    - name: hello
+      port: 1234
+      targetPort: 5678
+    - name: apache
+      port: 2345
+      targetPort: 80
+  selector:
+      app: example
+  clusterIP: 10.6.0.1
+
+  

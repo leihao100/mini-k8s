@@ -155,7 +155,7 @@ func (im *IPtableManager) RemoveService(serviceArg *config.Service) {
 			clusterPort := strconv.Itoa(int(Ports.Port))
 			serverPort := strconv.Itoa(int(Ports.TargetPort))
 			for i, serverIP := range servers {
-				probility := strconv.FormatFloat(float64(1/(num-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(num-i), 'f', 4, 64)
 				fmt.Printf("Probility: %v\n", probility)
 				im.DeleteRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
@@ -165,7 +165,7 @@ func (im *IPtableManager) RemoveService(serviceArg *config.Service) {
 			clusterPort := strconv.Itoa(int(Ports.Port))
 			serverPort := strconv.Itoa(int(Ports.TargetPort))
 			for i, serverIP := range servers {
-				probility := strconv.FormatFloat(float64(1/(num-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(num-i), 'f', 4, 64)
 				fmt.Printf("Probility: %v\n", probility)
 				im.DeleteRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
@@ -188,12 +188,12 @@ func (im *IPtableManager) AddPodToService(serviceArg *config.Service, pod *confi
 			clusterPort := strconv.Itoa(int(Ports.Port))
 			serverPort := strconv.Itoa(int(Ports.TargetPort))
 			for i, serverIP := range oldServers {
-				probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(oldNum-i), 'f', 4, 64)
 				fmt.Printf("Old Probility: %v\n", probility)
 				im.DeleteRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
 			for i, serverIP := range newServers {
-				probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(newNum-i), 'f', 4, 64)
 				fmt.Printf("New Probility: %v\n", probility)
 				im.AddRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
@@ -203,12 +203,12 @@ func (im *IPtableManager) AddPodToService(serviceArg *config.Service, pod *confi
 			clusterPort := strconv.Itoa(int(Ports.Port))
 			serverPort := strconv.Itoa(int(Ports.TargetPort))
 			for i, serverIP := range oldServers {
-				probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(oldNum-i), 'f', 4, 64)
 				fmt.Printf("Old Probility: %v\n", probility)
 				im.DeleteRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
 			for i, serverIP := range newServers {
-				probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(newNum-i), 'f', 4, 64)
 				fmt.Printf("New Probility: %v\n", probility)
 				im.AddRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
@@ -229,12 +229,12 @@ func (im *IPtableManager) RemovePodFromService(serviceArg *config.Service, pod *
 			clusterPort := strconv.Itoa(int(Ports.Port))
 			serverPort := strconv.Itoa(int(Ports.TargetPort))
 			for i, serverIP := range oldServers {
-				probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(oldNum-i), 'f', 4, 64)
 				fmt.Printf("Old Probility: %v\n", probility)
 				im.DeleteRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
 			for i, serverIP := range newServers {
-				probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(newNum-i), 'f', 4, 64)
 				fmt.Printf("New Probility: %v\n", probility)
 				im.AddRulesNodePort(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
@@ -244,12 +244,12 @@ func (im *IPtableManager) RemovePodFromService(serviceArg *config.Service, pod *
 			clusterPort := strconv.Itoa(int(Ports.Port))
 			serverPort := strconv.Itoa(int(Ports.TargetPort))
 			for i, serverIP := range oldServers {
-				probility := strconv.FormatFloat(float64(1/(oldNum-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(oldNum-i), 'f', 4, 64)
 				fmt.Printf("Old Probility: %v\n", probility)
 				im.DeleteRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
 			for i, serverIP := range newServers {
-				probility := strconv.FormatFloat(float64(1/(newNum-i)), 'f', 4, 64)
+				probility := strconv.FormatFloat(float64(1)/float64(newNum-i), 'f', 4, 64)
 				fmt.Printf("New Probility: %v\n", probility)
 				im.AddRules(serviceArg.Spec.ClusterIP, serverIP, clusterPort, serverPort, probility)
 			}
@@ -257,3 +257,4 @@ func (im *IPtableManager) RemovePodFromService(serviceArg *config.Service, pod *
 	}
 
 }
+

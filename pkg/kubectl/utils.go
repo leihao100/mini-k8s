@@ -30,6 +30,9 @@ func parseResourceType(ty string) (types.ApiObjectType, error) {
 		return types.PersistentVolumeObjectType, nil
 	case "persistentvolumeclaim", "persistentvolumeclaims":
 		return types.PersistentVolumeClaimObjectType, nil
+	case "dns", "dnss":
+		return types.DnsObjectType, nil
+
 	default:
 		errMsg := fmt.Sprintf("No apiObjectType name %s", ty)
 		return types.ErrorObjectType, errors.New(errMsg)

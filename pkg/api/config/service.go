@@ -115,14 +115,14 @@ func (s *Service) Info() {
 	var targetPort string = ""
 	var endpoints string = ""
 	for _, pport := range s.Spec.Ports {
-		port += strconv.Itoa(int(pport.Port))
-		targetPort += strconv.Itoa(int(pport.TargetPort))
+		port += strconv.Itoa(int(pport.Port)) + " "
+		targetPort += strconv.Itoa(int(pport.TargetPort)) + " "
 	}
 	for _, endpoint := range s.Spec.Endpoints {
 		endpoints += endpoint + " "
 	}
-	fmt.Printf("%-10s\t%-40s\t%-10s\t%-20s\t%-10s\t%-10s\t%-20s\n", "NAME", "UID", "TYPE", "CLUSTERIP", "PORT", "TARGETPORT", "ENDPOINTS")
-	fmt.Printf("%-10s\t%-40s\t%-10s\t%-20s\t%-10s\t%-10s\t%-20s\n", s.Metadata.Name, s.Metadata.Uid, s.Spec.Type, s.Spec.ClusterIP, port, targetPort, endpoints)
+	fmt.Printf("%-20s\t%-40s\t%-10s\t%-20s\t%-10s\t%-10s\t%-20s\n", "NAME", "UID", "TYPE", "CLUSTERIP", "PORT", "TARGETPORT", "ENDPOINTS")
+	fmt.Printf("%-20s\t%-40s\t%-10s\t%-20s\t%-10s\t%-10s\t%-20s\n", s.Metadata.Name, s.Metadata.Uid, s.Spec.Type, s.Spec.ClusterIP, port, targetPort, endpoints)
 }
 
 func (s *ServiceList) JsonUnmarshal(data []byte) error {
@@ -152,14 +152,14 @@ func (s *ServiceList) GetItems() []ApiObject {
 	return items
 }
 func (s *ServiceList) Info() {
-	fmt.Printf("%-10s\t%-40s\t%-10s\t%-20s\t%-10s\t%-10s\t%-20s\n", "NAME", "UID", "TYPE", "CLUSTERIP", "PORT", "TARGETPORT", "ENDPOINTS")
+	fmt.Printf("%-20s\t%-40s\t%-10s\t%-20s\t%-10s\t%-10s\t%-40s\n", "NAME", "UID", "TYPE", "CLUSTERIP", "PORT", "TARGETPORT", "ENDPOINTS")
 	for _, item := range s.Items {
 		var port string = ""
 		var targetPort string = ""
 		var endpoints string = ""
 		for _, pport := range item.Spec.Ports {
-			port += strconv.Itoa(int(pport.Port))
-			targetPort += strconv.Itoa(int(pport.TargetPort))
+			port += strconv.Itoa(int(pport.Port)) + " "
+			targetPort += strconv.Itoa(int(pport.TargetPort)) + " "
 		}
 		for _, endpoint := range item.Spec.Endpoints {
 			endpoints += endpoint + " "

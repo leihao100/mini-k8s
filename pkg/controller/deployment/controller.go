@@ -72,6 +72,7 @@ func (dpc *DeploymentController) UpdateDeployment(oldObj, newObj interface{}) {
 }
 func (dpc *DeploymentController) AddPod(obj interface{}) {
 	pd := obj.(*config.Pod)
+
 	dps := dpc.GetDpsByPod(pd)
 	for _, dp := range dps {
 		dpc.queue.Add(dp)
@@ -102,6 +103,9 @@ func (dpc *DeploymentController) UpdatePod(oldObj, newObj interface{}) {
 	}
 	if oldObj == nil {
 		newpd := newObj.(*config.Pod)
+		if newpd.Status.Phase == string(status.PodRunning) {
+			return
+		}
 		newdps := dpc.GetDpsByPod(newpd)
 		for _, dp := range newdps {
 			dpc.queue.Add(dp)
@@ -112,7 +116,6 @@ func (dpc *DeploymentController) UpdatePod(oldObj, newObj interface{}) {
 		if reflect.DeepEqual(oldpd.Metadata.Labels, newpd.Metadata.Labels) {
 			return
 		}
-
 		olddps := dpc.GetDpsByPod(oldpd)
 		newdps := dpc.GetDpsByPod(newpd)
 
@@ -125,6 +128,7 @@ func (dpc *DeploymentController) UpdatePod(oldObj, newObj interface{}) {
 	}
 
 }
+
 func (dc *DeploymentController) Run(ctx context.Context, cancel context.CancelFunc) {
 	fmt.Println("[dpController] Run")
 	go func() {
@@ -164,6 +168,21 @@ func (dc *DeploymentController) ListDeployments() []*config.Deployment {
 
 func (dc *DeploymentController) Sync(dp *config.Deployment) {
 	fmt.Println("[dpController] Sync")
+	if time.Since(dc.lastSync) < 300*time.Millisecond {
+		time.Sleep(300 * time.Millisecond)
+	}
+	//dps := dc.replicaInformer.List()
+	//flag := false
+	//for _, d := range dps {
+	//	ddp := d.(*config.Deployment)
+	//	if ddp.Metadata.Uid==dp.Metadata.Uid {
+	//		flag = true
+	//		break
+	//	}
+	//}
+	//if flag==false {
+	//	return
+	//}
 	pdw, pdwo := dc.GetPodsWithOwnership(dp)
 	runningReplicas := len(pdw)
 	dp.Status.Replicas = int32(runningReplicas)
@@ -181,6 +200,7 @@ func (dc *DeploymentController) Sync(dp *config.Deployment) {
 		}
 		dc.deployClient.Put(url, buf)
 	}
+	dc.lastSync = time.Now()
 }
 
 func (dc *DeploymentController) SelectDpByLabelSelector(labelSelector selector.LabelSelector) []*config.Deployment {
