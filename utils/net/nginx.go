@@ -66,7 +66,7 @@ func GenerateNginxConfig(dns config.DNS) {
 	tmpl, err := template.New("nginxConf").Parse(nginxConfTemplate)
 
 	err = tmpl.Execute(&stringbuilder, dns)
-
+	//content := stringbuilder.String()
 	var lines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {

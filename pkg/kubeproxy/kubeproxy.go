@@ -253,15 +253,18 @@ func (kp *KubeProxy) CreateDns(dns *config.DNS) {
 	for _, svc := range svcs.GetItems() {
 		s := svc.(*config.Service)
 		for _, path := range dns.Spec.Path {
+			fmt.Println("[kube-proxy] Adding Path -name : ", path.ServiceName)
 			if strings.EqualFold(s.Metadata.Name, path.ServiceName) {
+				fmt.Println("[kube-proxy] dns find svc ,its cluster ip is ", s.Spec.ClusterIP)
 				path.ClusterIP = s.Spec.ClusterIP
 				net.GenerateNginxConfig(*dns)
 			}
 		}
 	}
 	net.AddHost(dns)
-	//url := kp.dnsClient.BuildURL(apiClient.Create)
-	//buf, _ := dns.JsonMarshal()
+	url := kp.dnsClient.BuildURL(apiClient.Create)
+	buf, _ := dns.JsonMarshal()
+	kp.dnsClient.Put(url, buf)
 
 }
 
