@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"text/template"
 )
 
@@ -16,7 +17,6 @@ const nginxConfTemplate = `
 #minik8s-{{.Metadata.Uid}}
 #worker_processes 1;
 #events { worker_connections 1024; }
-http {
     server {
         listen {{.Spec.HostPort}};
         server_name {{.Spec.HostName}};
@@ -30,7 +30,6 @@ http {
         }
         {{end}}
     }
-}
 #minik8s-end
 `
 
@@ -63,10 +62,30 @@ func GenerateNginxConfig(dns config.DNS) {
 		return
 	}
 	defer file.Close()
-
+	stringbuilder := strings.Builder{}
 	tmpl, err := template.New("nginxConf").Parse(nginxConfTemplate)
 
-	err = tmpl.Execute(file, dns)
+	err = tmpl.Execute(&stringbuilder, dns)
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "#add here" {
+			//lines = append(lines, line)
+			lines = append(lines, stringbuilder.String())
+		}
+		lines = append(lines, line)
+	}
+
+	file, err = os.Create(NginxConfigPath)
+
+	for _, line := range lines {
+		if _, err := file.WriteString(line + "\n"); err != nil {
+			//return fmt.Errorf("error writing to file: %v", err)
+		}
+	}
+
 	RunNginx()
 	fmt.Println("Additional content appended to file successfully")
 }
@@ -108,7 +127,6 @@ func RemoveNginxConfig(dns config.DNS) error {
 	if err != nil {
 		return fmt.Errorf("error creating file: %v", err)
 	}
-	defer file.Close()
 
 	for _, line := range lines {
 		if _, err := file.WriteString(line + "\n"); err != nil {
