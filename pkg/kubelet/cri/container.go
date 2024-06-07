@@ -217,8 +217,11 @@ func (c *DockerClient) BuildMount(con *config.Container) []mount.Mount {
 	}
 	mnt = append(mnt, mount.Mount{
 		Type:   mount.TypeBind,
-		Source: "etc",
+		Source: "/etc",
 		Target: "/etc",
+		BindOptions: &mount.BindOptions{
+			Propagation: mount.PropagationShared,
+		},
 	})
 
 	return mnt
