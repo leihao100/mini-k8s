@@ -168,6 +168,12 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 				Phase: status.PersistentVolumeClaimPending,
 			}
 		}
+		if ty == types.PersistentVolumeObjectType {
+			pv := newApiObject.(*config.PersistentVolume)
+			if pv.Status.Phase == "" {
+				pv.Status.Phase = status.PersistentVolumeAvailable
+			}
+		}
 		etcd.VersionLock.Lock()
 		defer etcd.VersionLock.Unlock()
 		expectedVersion := etcd.RVM.GetNextResourceVersion()
