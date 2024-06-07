@@ -215,14 +215,14 @@ func (c *DockerClient) BuildMount(con *config.Container) []mount.Mount {
 			Target: m.MountPath,
 		})
 	}
-	mnt = append(mnt, mount.Mount{
-		Type:   mount.TypeBind,
-		Source: "/etc",
-		Target: "/etc",
-		BindOptions: &mount.BindOptions{
-			Propagation: mount.PropagationShared,
-		},
-	})
+	//mnt = append(mnt, mount.Mount{
+	//	Type:   mount.TypeBind,
+	//	Source: "/etc",
+	//	Target: "/etc",
+	//	BindOptions: &mount.BindOptions{
+	//		Propagation: mount.PropagationShared,
+	//	},
+	//})
 
 	return mnt
 }
