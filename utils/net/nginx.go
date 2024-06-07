@@ -11,7 +11,7 @@ import (
 )
 
 const DefaultNginxConfigPath = "/usr/local/nginx/conf/nginx.conf"
-const NginxConfigPath = "nginx.conf"
+const NginxConfigPath = DefaultNginxConfigPath
 
 const nginxConfTemplate = `
 #minik8s-{{.Metadata.Uid}}
