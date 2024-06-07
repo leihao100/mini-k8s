@@ -8,11 +8,11 @@ spec:
   containers:
   - name: ubuntu
     image: ubuntu:latest
-    command:
+    cmd:
     - tail
     - -f
     - /dev/null
-    volumeMounts:
+    volumeMount:
     - name: volume1
       mountPath: /tmp/volume1
     - name: volume2
@@ -20,11 +20,11 @@ spec:
 
   - name: centos
     image: centos:latest
-    command:
+    cmd:
     - tail
     - -f
     - /dev/null
-    volumeMounts:
+    volumeMount:
     - name: volume1
       mountPath: /tmp/tmp/volume1
     - name: volume2
@@ -32,7 +32,7 @@ spec:
 
   - name: http-echo
     image: hashicorp/http-echo:latest
-    volumeMounts:
+    volumeMount:
     - name: volume1
       mountPath: /tmp/volume1
     - name: volume2
