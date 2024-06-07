@@ -11,10 +11,16 @@ import (
 const HostConfigPath = "/etc/hosts"
 
 const HostConfTemplate = `
-#minik8s-{{.Metadata.Uid}}
-192.168.1.10  {{.Spec.HostName}}
+#minik8s-{{.Uid}}
+{{.Ip}}  {{.HostName}}
 #minik8s-end
 `
+
+type hostconfig struct {
+	Uid      string
+	Ip       string
+	HostName string
+}
 
 func AddHost(dns *config.DNS) {
 	file, err := os.OpenFile(HostConfigPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
@@ -25,8 +31,13 @@ func AddHost(dns *config.DNS) {
 	defer file.Close()
 
 	tmpl, err := template.New("nginxConf").Parse(HostConfTemplate)
-
-	err = tmpl.Execute(file, dns)
+	ip, _ := GetLocalIP()
+	con := hostconfig{
+		Uid:      dns.Metadata.Uid.String(),
+		Ip:       ip,
+		HostName: dns.Spec.HostName,
+	}
+	err = tmpl.Execute(file, con)
 
 	fmt.Println("Additional content appended to file successfully")
 }
@@ -66,6 +77,11 @@ func RemoveHost(dns config.DNS) error {
 	file, err = os.Create(HostConfigPath)
 	if err != nil {
 		return fmt.Errorf("error creating file: %v", err)
+	}
+	for _, line := range lines {
+		if _, err := file.WriteString(line + "\n"); err != nil {
+			return fmt.Errorf("error writing to file: %v", err)
+		}
 	}
 	//defer file.Close()
 	return nil
