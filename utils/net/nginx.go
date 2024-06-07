@@ -11,7 +11,7 @@ import (
 )
 
 const DefaultNginxConfigPath = "/usr/local/nginx/conf/nginx.conf"
-const NginxConfigPath = DefaultNginxConfigPath
+const NginxConfigPath = "nginx.conf"
 
 const nginxConfTemplate = `
 #minik8s-{{.Metadata.Uid}}
@@ -56,7 +56,7 @@ const nginxConfTemplate = `
 //}
 
 func GenerateNginxConfig(dns config.DNS) {
-	file, err := os.OpenFile(NginxConfigPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	file, err := os.Open(NginxConfigPath)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
 		return
@@ -72,8 +72,9 @@ func GenerateNginxConfig(dns config.DNS) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "#add here" {
-			//lines = append(lines, line)
+			lines = append(lines, line)
 			lines = append(lines, stringbuilder.String())
+			continue
 		}
 		lines = append(lines, line)
 	}
