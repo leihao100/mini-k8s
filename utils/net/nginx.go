@@ -22,7 +22,7 @@ const nginxConfTemplate = `
         server_name {{.Spec.HostName}};
         {{range .Spec.Path}}
         location {{.ClusterPath}} {
-            proxy_pass http://{{.ClusterIP}};
+            proxy_pass http://{{.ClusterIP}}:{{.Spec.ClusterPort}};
             #proxy_set_header Host $host;
             #proxy_set_header X-Real-IP $remote_addr;
             #proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
