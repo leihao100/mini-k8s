@@ -55,7 +55,7 @@ const nginxConfTemplate = `
 //	return nil
 //}
 
-func GenerateNginxConfig(dns config.DNS) {
+func GenerateNginxConfig(dns *config.DNS) {
 	file, err := os.Open(NginxConfigPath)
 	if err != nil {
 		fmt.Println("Error opening file:", err)

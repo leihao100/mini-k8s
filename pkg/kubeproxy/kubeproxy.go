@@ -250,17 +250,23 @@ func (kp *KubeProxy) CreateDns(dns *config.DNS) {
 		Watch: false,
 		Kind:  string(types.ServiceObjectType),
 	})
+	flag := false
 	for _, svc := range svcs.GetItems() {
 		s := svc.(*config.Service)
-		for _, path := range dns.Spec.Path {
+		for i, path := range dns.Spec.Path {
 			fmt.Println("[kube-proxy] Adding Path -name : ", path.ServiceName)
 			if strings.EqualFold(s.Metadata.Name, path.ServiceName) {
 				fmt.Println("[kube-proxy] dns find svc ,its cluster ip is ", s.Spec.ClusterIP)
-				path.ClusterIP = s.Spec.ClusterIP
-				net.GenerateNginxConfig(*dns)
+				dns.Spec.Path[i].ClusterIP = s.Spec.ClusterIP
+				fmt.Println("[kube-proxy] after select dns 's cluster ip is : ", dns.Spec.Path[i].ClusterIP)
+				flag = true
 			}
 		}
 	}
+	if flag {
+		net.GenerateNginxConfig(dns)
+	}
+
 	net.AddHost(dns)
 	url := kp.dnsClient.BuildURL(apiClient.Create)
 	buf, _ := dns.JsonMarshal()
