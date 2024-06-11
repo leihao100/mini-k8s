@@ -87,7 +87,8 @@ func NewApiObject(ty types.ApiObjectType) ApiObject {
 		return &PersistentVolume{}
 	case types.PersistentVolumeClaimObjectType:
 		return &PersistentVolumeClaim{}
-
+	case types.JobObjectType:
+		return &Job{}
 	}
 	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }
@@ -105,9 +106,11 @@ func NewApiObjectStatus(ty types.ApiObjectType) ApiObjectStatus {
 	case types.NodeObjectType:
 		return &status.NodeStatus{}
 	case types.DnsObjectType:
-		return &DNS{}
+		return &status.DNSStatus{}
 	case types.HeartbeatObjectType:
 		return &Heartbeat{}
+	case types.JobObjectType:
+		return &status.JobStatus{}
 	}
 	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }
@@ -134,6 +137,8 @@ func NewApiObjectList(ty types.ApiObjectType) ApiObjectList {
 		return &PersistentVolumeList{}
 	case types.PersistentVolumeClaimObjectType:
 		return &PersistentVolumeClaimList{}
+	case types.JobObjectType:
+		return &JobList{}
 	}
 	panic(fmt.Sprintf("Error ApiObjectType %v", ty))
 }

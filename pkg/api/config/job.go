@@ -45,6 +45,14 @@ const (
 	MailRemindFail  MailRemindType = "fail"
 )
 
+type JobList struct {
+	ApiVersion      string `json:"apiVersion,omitempty"`
+	Kind            string `json:"kind,omitempty"`
+	ResourceVersion string `json:"resourceVersion,omitempty"`
+	Continue        string `json:"continue,omitempty"`
+	Items           []Job  `json:"items"`
+}
+
 func (j *Job) Info() {
 	fmt.Printf("%-10s\t%-40s\t%-20s\n", "NAME", "UID", "STATUS")
 	fmt.Printf("%-10s\t%-40s\t%-20d\n", j.Metadata.Name, j.Metadata.Uid, j.Status.Ready)
@@ -101,4 +109,37 @@ func (j *Job) GetResourceVersion() int64 {
 
 func (j *Job) SetResourceVersion(version int64) {
 	j.Metadata.ResourceVersion = strconv.FormatInt(version, 10)
+}
+
+func (j *JobList) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &j)
+}
+
+func (j *JobList) JsonMarshal() ([]byte, error) {
+	return json.Marshal(j)
+}
+func (j *JobList) AppendItems(objects []string) error {
+	for _, object := range objects {
+		ApiObject := &Job{}
+		err := ApiObject.JsonUnmarshal([]byte(object))
+		if err != nil {
+			return err
+		}
+		j.Items = append(j.Items, *ApiObject)
+	}
+	return nil
+}
+func (j *JobList) GetItems() []ApiObject {
+	var items []ApiObject
+	items = make([]ApiObject, 0)
+	for _, item := range j.Items {
+		items = append(items, &item)
+	}
+	return items
+}
+func (j *JobList) Info() {
+	fmt.Printf("%-10s\t%-40s\t%-20s\n", "NAME", "UID", "STATUS")
+	for _, item := range j.Items {
+		fmt.Printf("%-10s\t%-40s\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Status.Ready)
+	}
 }
