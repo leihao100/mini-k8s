@@ -165,6 +165,20 @@ func (h httpServer) BindHandlers() {
 				persistentVolumeClaims.GET("/status/:name", handlers.HandleGetPersistentVolumeClaimStatus)    // GET /api/v1/persistentVolumeClaims/status/:name
 				persistentVolumeClaims.PUT("/status/:name", handlers.HandleModifyPersistentVolumeClaimStatus) // PUT /api/v1/persistentVolumeClaims/status/:name
 			}
+
+			job := v1.Group("/jobs")
+			{
+				job.GET("/get", handlers.HandleGetJobs)                  // GET /api/v1/heartbeats/get
+				job.GET("/get/:name", handlers.HandleGetJob)             // GET /api/v1/heartbeats/get/:name
+				job.PUT("/create", handlers.HandleCreateJob)             // POST /api/v1/heartbeats/create
+				job.PUT("/create/:name", handlers.HandleCreateJob)       // PUT /api/v1/heartbeats/create/:name
+				job.DELETE("/delete", handlers.HandleDeleteJobs)         // DELETE /api/v1/heartbeats/delete
+				job.DELETE("/delete/:name", handlers.HandleDeleteJob)    // DELETE /api/v1/heartbeats/delete/:name
+				job.GET("/watch", handlers.HandleWatchJobs)              // GET /api/v1/heartbeats/watch
+				job.GET("/watch/:name", handlers.HandleWatchJob)         // GET /api/v1/heartbeats/watch/:name
+				job.GET("/status/:name", handlers.HandleGetJobStatus)    // GET /api/v1/heartbeats/status/:name
+				job.PUT("/status/:name", handlers.HandleModifyJobStatus) // PUT /api/v1/heartbeats/status/:name
+			}
 		}
 	}
 }

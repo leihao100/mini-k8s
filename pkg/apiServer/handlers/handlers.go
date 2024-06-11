@@ -39,6 +39,8 @@ func HandleGetApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/persistentvolumes/"
 	case types.PersistentVolumeClaimObjectType:
 		etcdPath = "/api/persistentvolumeclaims/"
+	case types.JobObjectType:
+		etcdPath = "/api/jobs/"
 	}
 	buf, err := etcd.GetAllWithPrefix(etcdPath)
 	if err != nil {
@@ -79,6 +81,8 @@ func HandleGetApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/persistentvolumes/"
 	case types.PersistentVolumeClaimObjectType:
 		etcdPath = "/api/persistentvolumeclaims/"
+	case types.JobObjectType:
+		etcdPath = "/api/jobs/"
 	}
 	etcdPath += UID
 	buf, err := etcd.Get(etcdPath)
@@ -132,6 +136,8 @@ func HandleCreateApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/persistentvolumes/"
 	case types.PersistentVolumeClaimObjectType:
 		etcdPath = "/api/persistentvolumeclaims/"
+	case types.JobObjectType:
+		etcdPath = "/api/jobs/"
 	}
 	etcdPath += name
 	exist, version, err := etcd.ExistWithVersion(etcdPath)
@@ -255,6 +261,8 @@ func HandleDeleteApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/persistentvolumes/"
 	case types.PersistentVolumeClaimObjectType:
 		etcdPath = "/api/persistentvolumeclaims/"
+	case types.JobObjectType:
+		etcdPath = "/api/jobs/"
 	}
 	err := etcd.DeleteAllWithPrefix(etcdPath)
 	if err != nil {
@@ -288,6 +296,8 @@ func HandleDeleteApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/persistentvolumes/"
 	case types.PersistentVolumeClaimObjectType:
 		etcdPath = "/api/persistentvolumeclaims/"
+	case types.JobObjectType:
+		etcdPath = "/api/jobs/"
 	}
 	etcdPath += UID
 	exist, err := etcd.Exist(etcdPath)
@@ -329,6 +339,8 @@ func HandleWatchApiObjects(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/persistentvolumes/"
 	case types.PersistentVolumeClaimObjectType:
 		etcdPath = "/api/persistentvolumeclaims/"
+	case types.JobObjectType:
+		etcdPath = "/api/jobs/"
 	}
 	fmt.Printf("[apiServer]start watch,type: %v etcdPath: %v\n", ty, etcdPath)
 	cancel, ch := etcd.WatchAllWithPrefix(etcdPath)
@@ -391,6 +403,8 @@ func HandleWatchApiObject(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/persistentvolumes/"
 	case types.PersistentVolumeClaimObjectType:
 		etcdPath = "/api/persistentvolumeclaims/"
+	case types.JobObjectType:
+		etcdPath = "/api/jobs/"
 	}
 	etcdPath += UID
 	exixt, err := etcd.Exist(etcdPath)
@@ -467,6 +481,8 @@ func HandleGetApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/persistentvolumes/"
 	case types.PersistentVolumeClaimObjectType:
 		etcdPath = "/api/persistentvolumeclaims/"
+	case types.JobObjectType:
+		etcdPath = "/api/jobs/"
 	}
 	etcdPath += UID
 	buf, err := etcd.Get(etcdPath)
@@ -509,6 +525,8 @@ func HandleModifyApiObjectStatus(c *gin.Context, ty types.ApiObjectType) {
 		etcdPath = "/api/persistentvolumes/"
 	case types.PersistentVolumeClaimObjectType:
 		etcdPath = "/api/persistentvolumeclaims/"
+	case types.JobObjectType:
+		etcdPath = "/api/jobs/"
 	}
 	etcdPath += UID
 	exixt, version, err := etcd.ExistWithVersion(etcdPath)
