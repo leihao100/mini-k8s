@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/sftp"
 )
 
-const HPCUsername = ""
-const HPCPassword = ""
+const HPCUsername = "stu096"
+const HPCPassword = "P7HslfLmQuci"
 
 type Client interface {
 	Run(ctx context.Context)
