@@ -11,7 +11,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "show kubectl version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("kubectl version:", config.Version())
+		fmt.Println("[kubectl] kubectl version:", config.Version())
 	},
 }
 

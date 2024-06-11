@@ -18,6 +18,8 @@ type Pod struct {
 	Status     status.PodStatus `json:"status,omitempty"`
 }
 
+const PodRestartTimes = 5
+
 /*
 API文档中描述如下
 Field	Description
@@ -38,8 +40,13 @@ type PodSpec struct {
 	InitContainers []Container       `json:"initContainers,omitempty"`
 	NodeName       string            `json:"nodeName,omitempty"`
 	ExposedPorts   []string          `json:"exposedPorts,omitempty"`
-	Volumes        []string          `json:"volumes,omitempty"`
+	Volumes        []Volume          `json:"volumes,omitempty"`
 	BindPorts      map[string]string `json:"bindPorts,omitempty"`
+}
+
+type Volume struct {
+	Name                      string `json:"name,omitempty"`
+	PersistentVolumeClaimName string `json:"persistentVolumeClaimName,omitempty"`
 }
 
 type PodTemplateSpec struct {
@@ -69,6 +76,9 @@ func (p *Pod) SetUID(uid uuid.UUID) {
 
 func (p *Pod) GetUID() uuid.UUID {
 	return p.Metadata.Uid
+}
+func (p *Pod) GetName() string {
+	return p.Metadata.Name
 }
 
 func (p *Pod) SetResourceVersion(version int64) {
@@ -100,8 +110,8 @@ func (p *Pod) GetStatus() ApiObjectStatus {
 	return &p.Status
 }
 func (p *Pod) Info() {
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", p.Metadata.Name, p.Metadata.Uid, p.Spec.NodeName, p.Status.Phase, p.Status.PodIP)
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", p.Metadata.Name, p.Metadata.Uid, p.Spec.NodeName, p.Status.Phase, p.Status.PodIP)
 }
 
 func (p *PodList) JsonUnmarshal(data []byte) error {
@@ -122,12 +132,17 @@ func (p *PodList) AppendItems(objects []string) error {
 	}
 	return nil
 }
-func (p *PodList) GetItems() any {
-	return p.Items
+func (p *PodList) GetItems() []ApiObject {
+	var items []ApiObject
+	items = make([]ApiObject, 0)
+	for _, item := range p.Items {
+		items = append(items, &item)
+	}
+	return items
 }
 func (p *PodList) Info() {
-	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", "NAME", "UID", "NODE", "STATUS", "IP")
 	for _, item := range p.Items {
-		fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t%-20s\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.NodeName, item.Status.Phase, item.Status.PodIP)
+		fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t%-20s\n", item.Metadata.Name, item.Metadata.Uid, item.Spec.NodeName, item.Status.Phase, item.Status.PodIP)
 	}
 }

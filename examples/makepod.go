@@ -8,7 +8,7 @@ import (
 	"MiniK8S/pkg/kubelet"
 )
 
-func main() {
+func ain() {
 	co := config.Container{
 		Name:         "helloworld",
 		Cmd:          nil,

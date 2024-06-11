@@ -18,10 +18,6 @@ func HandleCreateNode(c *gin.Context) {
 	HandleCreateApiObject(c, types.NodeObjectType)
 }
 
-func HandleModifyNode(c *gin.Context) {
-	HandleModifyApiObject(c, types.NodeObjectType)
-}
-
 func HandleDeleteNodes(c *gin.Context) {
 	HandleDeleteApiObjects(c, types.NodeObjectType)
 }

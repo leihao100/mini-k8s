@@ -1,20 +1,25 @@
 package status
 
-import "time"
+import (
+	"MiniK8S/pkg/api/types"
+	"encoding/json"
+	"time"
+)
 
 // JobStatus from https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#jobspec-v1-batch
 type JobStatus struct {
-	Active         int       `json:"active"`
-	CompletedIndex string    `json:"completed"`
-	CompletionTime time.Time `json:"completion_time"`
-	Failed         int       `json:"failed"`
-	Ready          int       `json:"ready"`
-	StartTime      time.Time `json:"start_time"`
-	Succeeded      int       `json:"succeeded"`
+	JobID          string         `json:"jobID,omitempty"`
+	State          types.JobState `json:"State,omitempty"`
+	Active         int            `json:"active,omitempty"`
+	CompletedIndex string         `json:"completed,omitempty"`
+	CompletionTime time.Time      `json:"completion_time,omitempty"`
+	Failed         int            `json:"failed,omitempty"`
+	Ready          int            `json:"ready,omitempty"`
+	StartTime      time.Time      `json:"start_time,omitempty"`
+	Succeeded      int            `json:"succeeded,omitempty"`
 }
 
 /*
-
 active
 integer	The number of pending and running pods.
 completedIndexes
@@ -36,3 +41,10 @@ integer	The number of pods which reached phase Succeeded.
 uncountedTerminatedPods
 UncountedTerminatedPods	UncountedTerminatedPods holds the UIDs of Pods that have terminated but the job controller hasn't yet accounted for in the status counters. The job controller creates pods with a finalizer. When a pod terminates (succeeded or failed), the controller does three steps to account for it in the job status: (1) Add the pod UID to the arrays in this field. (2) Remove the pod finalizer. (3) Remove the pod UID from the arrays while increasing the corresponding counter. This field is beta-level. The job controller only makes use of this field when the feature gate JobTrackingWithFinalizers is enabled (enabled by default). Old jobs might not be tracked using this field, in which case the field remains null.
 */
+func (j *JobStatus) JsonMarshal() ([]byte, error) {
+	return json.Marshal(j)
+}
+
+func (j *JobStatus) JsonUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &j)
+}

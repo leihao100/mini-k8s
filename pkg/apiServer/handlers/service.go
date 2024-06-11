@@ -18,10 +18,6 @@ func HandleCreateService(c *gin.Context) {
 	HandleCreateApiObject(c, types.ServiceObjectType)
 }
 
-func HandleModifyService(c *gin.Context) {
-	HandleModifyApiObject(c, types.ServiceObjectType)
-}
-
 func HandleDeleteServices(c *gin.Context) {
 	HandleDeleteApiObjects(c, types.ServiceObjectType)
 }

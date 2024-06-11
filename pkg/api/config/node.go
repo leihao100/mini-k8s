@@ -11,6 +11,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type NodeType string
+
+const (
+	Master NodeType = "master"
+	Worker NodeType = "worker"
+)
+
 type Node struct {
 	ApiVersion string            `yaml:"apiVersion" json:"apiVersion,omitempty"`
 	Kind       string            `yaml:"kind" json:"kind,omitempty"`
@@ -72,7 +79,9 @@ func (n *Node) SetUID(uid uuid.UUID) {
 func (n *Node) GetUID() uuid.UUID {
 	return n.Metadata.Uid
 }
-
+func (n *Node) GetName() string {
+	return n.Metadata.Name
+}
 func (n *Node) SetResourceVersion(version int64) {
 	n.Metadata.ResourceVersion = strconv.FormatInt(version, 10)
 }
@@ -103,8 +112,8 @@ func (n *Node) GetStatus() ApiObjectStatus {
 }
 
 func (n *Node) Info() {
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
-	fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\n", n.Metadata.Name, n.Metadata.Uid, n.Status.Phase, n.Status.Addresses.Address)
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", n.Metadata.Name, n.Metadata.Uid, n.Status.Phase, n.Status.Addresses.Address)
 }
 func (n *NodeList) JsonUnmarshal(data []byte) error {
 	return json.Unmarshal(data, &n)
@@ -124,12 +133,17 @@ func (n *NodeList) AppendItems(objects []string) error {
 	}
 	return nil
 }
-func (n *NodeList) GetItems() any {
-	return n.Items
+func (n *NodeList) GetItems() []ApiObject {
+	var items []ApiObject
+	items = make([]ApiObject, 0)
+	for _, item := range n.Items {
+		items = append(items, &item)
+	}
+	return items
 }
 func (n *NodeList) Info() {
-	fmt.Printf("%-10s\t%-10s\t%10s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
+	fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\n", "NAME", "UID", "STATUS", "IP")
 	for _, item := range n.Items {
-		fmt.Printf("%-10s\t%-10s\t%-10s\t%-20s\t\n", item.Metadata.Name, item.Metadata.Uid, item.Status.Phase, item.Status.Addresses.Address)
+		fmt.Printf("%-10s\t%-40s\t%-20s\t%-20s\t\n", item.Metadata.Name, item.Metadata.Uid, item.Status.Phase, item.Status.Addresses.Address)
 	}
 }

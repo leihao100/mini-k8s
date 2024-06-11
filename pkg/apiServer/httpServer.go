@@ -39,8 +39,8 @@ func (h httpServer) BindHandlers() {
 			{
 				pods.GET("/get", handlers.HandleGetPods)                  // GET /api/v1/pods/get
 				pods.GET("/get/:name", handlers.HandleGetPod)             // GET /api/v1/pods/get/:name
-				pods.POST("/create", handlers.HandleCreatePod)            // POST /api/v1/pods/create
-				pods.PUT("/create/:name", handlers.HandleModifyPod)       // PUT /api/v1/pods/create/:name
+				pods.PUT("/create", handlers.HandleCreatePod)             // POST /api/v1/pods/create
+				pods.PUT("/create/:name", handlers.HandleCreatePod)       // PUT /api/v1/pods/create/:name
 				pods.DELETE("/delete", handlers.HandleDeletePods)         // DELETE /api/v1/pods/delete
 				pods.DELETE("/delete/:name", handlers.HandleDeletePod)    // DELETE /api/v1/pods/delete/:name
 				pods.GET("/watch", handlers.HandleWatchPods)              // GET /api/v1/pods/watch
@@ -52,8 +52,8 @@ func (h httpServer) BindHandlers() {
 			{
 				services.GET("/get", handlers.HandleGetServices)                  // GET /api/v1/services/get
 				services.GET("/get/:name", handlers.HandleGetService)             // GET /api/v1/services/get/:name
-				services.POST("/create", handlers.HandleCreateService)            // POST /api/v1/services/create
-				services.PUT("/create/:name", handlers.HandleModifyService)       // PUT /api/v1/services/create/:name
+				services.PUT("/create", handlers.HandleCreateService)             // POST /api/v1/services/create
+				services.PUT("/create/:name", handlers.HandleCreateService)       // PUT /api/v1/services/create/:name
 				services.DELETE("/delete", handlers.HandleDeleteServices)         // DELETE /api/v1/services/delete
 				services.DELETE("/delete/:name", handlers.HandleDeleteService)    // DELETE /api/v1/services/delete/:name
 				services.GET("/watch", handlers.HandleWatchServices)              // GET /api/v1/services/watch
@@ -65,8 +65,8 @@ func (h httpServer) BindHandlers() {
 			{
 				deployments.GET("/get", handlers.HandleGetDeployments)                  // GET /api/v1/deployments/get
 				deployments.GET("/get/:name", handlers.HandleDeleteDeployment)          // GET /api/v1/deployments/get/:name
-				deployments.POST("/create", handlers.HandleCreateDeployment)            // POST /api/v1/deployments/create
-				deployments.PUT("/create/:name", handlers.HandleModifyDeployment)       // PUT /api/v1/deployments/create/:name
+				deployments.PUT("/create", handlers.HandleCreateDeployment)             // POST /api/v1/deployments/create
+				deployments.PUT("/create/:name", handlers.HandleCreateDeployment)       // PUT /api/v1/deployments/create/:name
 				deployments.DELETE("/delete", handlers.HandleDeleteDeployments)         // DELETE /api/v1/deployments/delete
 				deployments.DELETE("/delete/:name", handlers.HandleDeleteDeployment)    // DELETE /api/v1/deployments/delete/:name
 				deployments.GET("/watch", handlers.HandleWatchDeployments)              // GET /api/v1/deployments/watch
@@ -74,12 +74,12 @@ func (h httpServer) BindHandlers() {
 				deployments.GET("/status/:name", handlers.HandleGetDeploymentStatus)    // GET /api/v1/deployments/status/:name
 				deployments.PUT("/status/:name", handlers.HandleModifyDeploymentStatus) // PUT /api/v1/deployments/status/:name
 			}
-			hpas := v1.Group("/hpa")
+			hpas := v1.Group("/hpas")
 			{
 				hpas.GET("/get", handlers.HandleGetHPAs)                  // GET /api/v1/hpa/get
 				hpas.GET("/get/:name", handlers.HandleGetHPA)             // GET /api/v1/hpa/get/:name
-				hpas.POST("/create", handlers.HandleCreateHPA)            // POST /api/v1/hpa/create
-				hpas.PUT("/create/:name", handlers.HandleModifyHPA)       // PUT /api/v1/hpa/create/:name
+				hpas.PUT("/create", handlers.HandleCreateHPA)             // POST /api/v1/hpa/create
+				hpas.PUT("/create/:name", handlers.HandleCreateHPA)       // PUT /api/v1/hpa/create/:name
 				hpas.DELETE("/delete", handlers.HandleDeleteHPAs)         // DELETE /api/v1/hpa/delete
 				hpas.DELETE("/delete/:name", handlers.HandleDeleteHPA)    // DELETE /api/v1/hpa/delete/:name
 				hpas.GET("/watch", handlers.HandleWatchHPAs)              // GET /api/v1/hpa/watch
@@ -91,14 +91,93 @@ func (h httpServer) BindHandlers() {
 			{
 				nodes.GET("/get", handlers.HandleGetNodes)                  // GET /api/v1/nodes/get
 				nodes.GET("/get/:name", handlers.HandleGetNode)             // GET /api/v1/nodes/get/:name
-				nodes.POST("/create", handlers.HandleCreateNode)            // POST /api/v1/nodes/create
-				nodes.PUT("/create/:name", handlers.HandleModifyNode)       // PUT /api/v1/nodes/create/:name
+				nodes.PUT("/create", handlers.HandleCreateNode)             // POST /api/v1/nodes/create
+				nodes.PUT("/create/:name", handlers.HandleCreateNode)       // PUT /api/v1/nodes/create/:name
 				nodes.DELETE("/delete", handlers.HandleDeleteNodes)         // DELETE /api/v1/nodes/delete
 				nodes.DELETE("/delete/:name", handlers.HandleDeleteNode)    // DELETE /api/v1/nodes/delete/:name
 				nodes.GET("/watch", handlers.HandleWatchNodes)              // GET /api/v1/nodes/watch
 				nodes.GET("/watch/:name", handlers.HandleWatchNode)         // GET /api/v1/nodes/watch/:name
 				nodes.GET("/status/:name", handlers.HandleGetNodeStatus)    // GET /api/v1/nodes/status/:name
 				nodes.PUT("/status/:name", handlers.HandleModifyNodeStatus) // PUT /api/v1/nodes/status/:name
+			}
+			heartbeats := v1.Group("/heartbeats")
+			{
+				heartbeats.GET("/get", handlers.HandleGetHeartbeats)                  // GET /api/v1/heartbeats/get
+				heartbeats.GET("/get/:name", handlers.HandleGetHeartbeat)             // GET /api/v1/heartbeats/get/:name
+				heartbeats.PUT("/create", handlers.HandleCreateHeartbeat)             // POST /api/v1/heartbeats/create
+				heartbeats.PUT("/create/:name", handlers.HandleCreateHeartbeat)       // PUT /api/v1/heartbeats/create/:name
+				heartbeats.DELETE("/delete", handlers.HandleDeleteHeartbeats)         // DELETE /api/v1/heartbeats/delete
+				heartbeats.DELETE("/delete/:name", handlers.HandleDeleteHeartbeat)    // DELETE /api/v1/heartbeats/delete/:name
+				heartbeats.GET("/watch", handlers.HandleWatchHeartbeats)              // GET /api/v1/heartbeats/watch
+				heartbeats.GET("/watch/:name", handlers.HandleWatchHeartbeat)         // GET /api/v1/heartbeats/watch/:name
+				heartbeats.GET("/status/:name", handlers.HandleGetHeartbeatStatus)    // GET /api/v1/heartbeats/status/:name
+				heartbeats.PUT("/status/:name", handlers.HandleModifyHeartbeatStatus) // PUT /api/v1/heartbeats/status/:name
+			}
+			dns := v1.Group("/dnss")
+			{
+				dns.GET("/get", handlers.HandleGetDNSs)                  // GET /api/v1/heartbeats/get
+				dns.GET("/get/:name", handlers.HandleGetDNS)             // GET /api/v1/heartbeats/get/:name
+				dns.PUT("/create", handlers.HandleCreateDNS)             // POST /api/v1/heartbeats/create
+				dns.PUT("/create/:name", handlers.HandleCreateDNS)       // PUT /api/v1/heartbeats/create/:name
+				dns.DELETE("/delete", handlers.HandleDeleteDNSs)         // DELETE /api/v1/heartbeats/delete
+				dns.DELETE("/delete/:name", handlers.HandleDeleteDNS)    // DELETE /api/v1/heartbeats/delete/:name
+				dns.GET("/watch", handlers.HandleWatchDNSs)              // GET /api/v1/heartbeats/watch
+				dns.GET("/watch/:name", handlers.HandleWatchDNS)         // GET /api/v1/heartbeats/watch/:name
+				dns.GET("/status/:name", handlers.HandleGetDNSStatus)    // GET /api/v1/heartbeats/status/:name
+				dns.PUT("/status/:name", handlers.HandleModifyDNSStatus) // PUT /api/v1/heartbeats/status/:name
+			}
+			storageClasses := v1.Group("/storageClasses")
+			{
+				storageClasses.GET("/get", handlers.HandleGetStorageClasses)                 // GET /api/v1/storageClasses/get
+				storageClasses.GET("/get/:name", handlers.HandleGetStorageClass)             // GET /api/v1/storageClasses/get/:name
+				storageClasses.PUT("/create", handlers.HandleCreateStorageClass)             // POST /api/v1/storageClasses/create
+				storageClasses.PUT("/create/:name", handlers.HandleCreateStorageClass)       // PUT /api/v1/storageClasses/create/:name
+				storageClasses.DELETE("/delete", handlers.HandleDeleteStorageClasses)        // DELETE /api/v1/storageClasses/delete
+				storageClasses.DELETE("/delete/:name", handlers.HandleDeleteStorageClass)    // DELETE /api/v1/storageClasses/delete/:name
+				storageClasses.GET("/watch", handlers.HandleWatchStorageClasses)             // GET /api/v1/storageClasses/watch
+				storageClasses.GET("/watch/:name", handlers.HandleWatchStorageClass)         // GET /api/v1/storageClasses/watch/:name
+				storageClasses.GET("/status/:name", handlers.HandleGetStorageClassStatus)    // GET /api/v1/storageClasses/status/:name
+				storageClasses.PUT("/status/:name", handlers.HandleModifyStorageClassStatus) // PUT /api/v1/storageClasses/status/:name
+			}
+			persistentVolumes := v1.Group("/persistentVolumes")
+			{
+				persistentVolumes.GET("/get", handlers.HandleGetPersistentVolumes)                  // GET /api/v1/persistentVolumes/get
+				persistentVolumes.GET("/get/:name", handlers.HandleGetPersistentVolume)             // GET /api/v1/persistentVolumes/get/:name
+				persistentVolumes.PUT("/create", handlers.HandleCreatePersistentVolume)             // POST /api/v1/persistentVolumes/create
+				persistentVolumes.PUT("/create/:name", handlers.HandleCreatePersistentVolume)       // PUT /api/v1/persistentVolumes/create/:name
+				persistentVolumes.DELETE("/delete", handlers.HandleDeletePersistentVolumes)         // DELETE /api/v1/persistentVolumes/delete
+				persistentVolumes.DELETE("/delete/:name", handlers.HandleDeletePersistentVolume)    // DELETE /api/v1/persistentVolumes/delete/:name
+				persistentVolumes.GET("/watch", handlers.HandleWatchPersistentVolumes)              // GET /api/v1/persistentVolumes/watch
+				persistentVolumes.GET("/watch/:name", handlers.HandleWatchPersistentVolume)         // GET /api/v1/persistentVolumes/watch/:name
+				persistentVolumes.GET("/status/:name", handlers.HandleGetPersistentVolumeStatus)    // GET /api/v1/persistentVolumes/status/:name
+				persistentVolumes.PUT("/status/:name", handlers.HandleModifyPersistentVolumeStatus) // PUT /api/v1/persistentVolumes/status/:name
+			}
+			persistentVolumeClaims := v1.Group("/persistentVolumeClaims")
+			{
+				persistentVolumeClaims.GET("/get", handlers.HandleGetPersistentVolumeClaims)                  // GET /api/v1/persistentVolumeClaims/get
+				persistentVolumeClaims.GET("/get/:name", handlers.HandleGetPersistentVolumeClaim)             // GET /api/v1/persistentVolumeClaims/get/:name
+				persistentVolumeClaims.PUT("/create", handlers.HandleCreatePersistentVolumeClaim)             // POST /api/v1/persistentVolumeClaims/create
+				persistentVolumeClaims.PUT("/create/:name", handlers.HandleCreatePersistentVolumeClaim)       // PUT /api/v1/persistentVolumeClaims/create/:name
+				persistentVolumeClaims.DELETE("/delete", handlers.HandleDeletePersistentVolumeClaims)         // DELETE /api/v1/persistentVolumeClaims/delete
+				persistentVolumeClaims.DELETE("/delete/:name", handlers.HandleDeletePersistentVolumeClaim)    // DELETE /api/v1/persistentVolumeClaims/delete/:name
+				persistentVolumeClaims.GET("/watch", handlers.HandleWatchPersistentVolumeClaims)              // GET /api/v1/persistentVolumeClaims/watch
+				persistentVolumeClaims.GET("/watch/:name", handlers.HandleWatchPersistentVolumeClaim)         // GET /api/v1/persistentVolumeClaims/watch/:name
+				persistentVolumeClaims.GET("/status/:name", handlers.HandleGetPersistentVolumeClaimStatus)    // GET /api/v1/persistentVolumeClaims/status/:name
+				persistentVolumeClaims.PUT("/status/:name", handlers.HandleModifyPersistentVolumeClaimStatus) // PUT /api/v1/persistentVolumeClaims/status/:name
+			}
+
+			job := v1.Group("/jobs")
+			{
+				job.GET("/get", handlers.HandleGetJobs)                  // GET /api/v1/heartbeats/get
+				job.GET("/get/:name", handlers.HandleGetJob)             // GET /api/v1/heartbeats/get/:name
+				job.PUT("/create", handlers.HandleCreateJob)             // POST /api/v1/heartbeats/create
+				job.PUT("/create/:name", handlers.HandleCreateJob)       // PUT /api/v1/heartbeats/create/:name
+				job.DELETE("/delete", handlers.HandleDeleteJobs)         // DELETE /api/v1/heartbeats/delete
+				job.DELETE("/delete/:name", handlers.HandleDeleteJob)    // DELETE /api/v1/heartbeats/delete/:name
+				job.GET("/watch", handlers.HandleWatchJobs)              // GET /api/v1/heartbeats/watch
+				job.GET("/watch/:name", handlers.HandleWatchJob)         // GET /api/v1/heartbeats/watch/:name
+				job.GET("/status/:name", handlers.HandleGetJobStatus)    // GET /api/v1/heartbeats/status/:name
+				job.PUT("/status/:name", handlers.HandleModifyJobStatus) // PUT /api/v1/heartbeats/status/:name
 			}
 		}
 	}

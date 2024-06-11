@@ -6,6 +6,7 @@ type LabelSelector struct {
 }
 
 /*
+LabelSelectorRequirement
 matchExpressions ([]LabelSelectorRequirement)
 matchExpressions 是标签选择器要求的列表，这些要求的结果按逻辑与的关系来计算。
 标签选择器要求是包含值、键和关联键和值的运算符的选择器。
@@ -28,3 +29,27 @@ operator 表示键与一组值的关系。有效的运算符包括 In、NotIn、
 matchExpressions.values ([]string)
 values 是一个字符串值数组。如果运算符为 In 或 NotIn，则 values 数组必须为非空。 如果运算符是 Exists 或 DoesNotExist，则 values 数组必须为空。 该数组在策略性合并补丁（Strategic Merge Patch）期间被替换。
 */
+
+func LabelSelectorCompare(requirement LabelSelector, labels map[string]string) bool {
+	flag := true
+	for reqKey, reqVal := range requirement.MatchLabels {
+		givenVal, exist := labels[reqKey]
+		if !exist || reqVal != givenVal {
+			flag = false
+			break
+		}
+	}
+	return flag
+}
+
+func LabelCompare(requirement map[string]string, labels map[string]string) bool {
+	flag := true
+	for reqKey, reqVal := range requirement {
+		givenVal, exist := labels[reqKey]
+		if !exist || reqVal != givenVal {
+			flag = false
+			break
+		}
+	}
+	return flag
+}

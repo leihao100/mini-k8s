@@ -46,6 +46,11 @@ func (p *PodManager) DeletePodById(id uuid.UUID) {
 	delete(p.name2Pod, name)
 	delete(p.id2Pod, id)
 	delete(p.containers, id)
+	for i, pd := range p.pods {
+		if pd.Metadata.Uid == id {
+			p.pods = append(p.pods[:i], p.pods[i+1:]...)
+		}
+	}
 }
 
 func (p *PodManager) GetPods() []*config.Pod {

@@ -1,5 +1,17 @@
-package ipvs
+package ipvsManager
 
+import (
+	"MiniK8S/pkg/api/config"
+	"MiniK8S/pkg/kubeproxy/ipInterface"
+	"net"
+
+	//"github.com/cloudflare/ipvs"
+	"net/netip"
+
+	"github.com/moby/ipvs"
+)
+
+// IPSet :gets from k8s' source code,may be in use
 type IPSet struct {
 	Name string
 	// SetType specifies the ipset type.
@@ -17,4 +29,134 @@ type IPSet struct {
 	Comment string
 	//Map maps the service and its ips
 	Map map[string]string
+}
+
+type IPVSManager struct {
+	Client *ipvs.Handle
+}
+
+func GetIPVS() ipInterface.IP {
+	ip, _ := ipvs.New("")
+	return &IPVSManager{
+		Client: ip,
+	}
+}
+
+func (im *IPVSManager) New() {
+	client, err := ipvs.New("")
+	if err != nil {
+		return
+	}
+	im.Client = client
+}
+
+func (im *IPVSManager) AddService(service *config.Service) {
+	client := *im.Client
+	_, err := netip.ParseAddr(service.Spec.ClusterIP)
+	if err != nil {
+		return
+	}
+	for _, port := range service.Spec.Ports {
+		client.NewService(&ipvs.Service{
+			Address: net.IP(service.Spec.ClusterIP),
+			Port:    uint16(port.Port),
+			//Netmask:  netmask.Mask{},
+			Protocol: defaultProtocol,
+		})
+	}
+
+}
+
+func (im *IPVSManager) RemoveService(service *config.Service) {
+	client := *im.Client
+	addr, err := netip.ParseAddr(service.Spec.ClusterIP)
+	if err != nil {
+		return
+	}
+	services, err := client.GetServices()
+	if err != nil {
+		return
+	}
+	ports := make([]uint16, 0)
+	for _, port := range service.Spec.Ports {
+		ports = append(ports, uint16(port.Port))
+	}
+	for _, port := range ports {
+		for _, service := range services {
+			if service.Port == port && service.Address.String() == addr.String() {
+				client.DelService(service)
+			}
+		}
+	}
+}
+
+func (im *IPVSManager) AddPodToService(serviceArg *config.Service, pod *config.Pod) {
+	client := *im.Client
+	addr, err := netip.ParseAddr(serviceArg.Spec.ClusterIP)
+	if err != nil {
+		return
+	}
+	services, err := client.GetServices()
+	if err != nil {
+		return
+	}
+	ports := make([]config.ServicePort, 0)
+	for _, port := range serviceArg.Spec.Ports {
+		ports = append(ports, port)
+	}
+	for _, port := range ports {
+		for _, service := range services {
+			//todo 这里用等号可能有问题
+			if service.Port == uint16(port.Port) && service.Address.String() == addr.String() {
+				//now we have found this
+				podIP, _ := netip.ParseAddr(pod.Status.PodIP)
+				client.NewDestination(service, &ipvs.Destination{
+					Address: net.IP(podIP.String()),
+					//tobe finish
+					//FwdMethod:      0,
+					Weight:         1,
+					UpperThreshold: 0,
+					LowerThreshold: 0,
+					Port:           uint16(port.TargetPort),
+					//Family:         defaultAddressFamily,
+					//TunnelType:     0,
+					//TunnelPort:     0,
+					//TunnelFlags:    0,
+				})
+			}
+		}
+	}
+}
+
+func (im *IPVSManager) RemovePodFromService(serviceArg *config.Service, pod *config.Pod) {
+	client := *im.Client
+	addr, err := netip.ParseAddr(serviceArg.Spec.ClusterIP)
+	if err != nil {
+		return
+	}
+	podAddr, err := netip.ParseAddr(pod.Status.PodIP)
+	services, err := client.GetServices()
+	if err != nil {
+		return
+	}
+	ports := make([]config.ServicePort, 0)
+	for _, port := range serviceArg.Spec.Ports {
+		ports = append(ports, port)
+	}
+	for _, port := range ports {
+		for _, service := range services {
+			if service.Port == uint16(port.Port) && service.Address.String() == addr.String() {
+				//now we have found this
+				//then go around its destinations and delete the destination whose ip equals to podIP a
+				destinations, _ := client.GetDestinations(service)
+				for _, destination := range destinations {
+					if destination.Address.String() == podAddr.String() {
+						client.DelDestination(service, destination)
+						break
+					}
+				}
+				break
+			}
+		}
+	}
 }

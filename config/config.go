@@ -1,13 +1,34 @@
 package config
 
+import (
+	"MiniK8S/utils/net"
+)
+
 const version string = "V1.0"
-const (
-	etcdHost string = "localhost"
+
+var (
+	etcdHost string = "192.168.1.16"
 	etcdPort string = ":2379"
 )
-const (
-	apiServerHost string = "localhost"
+
+func SetEtcdHost() {
+	etcdHost, _ = net.GetLocalIP()
+}
+
+var (
+	apiServerHost string = "http://localhost"
 	apiServerPort string = ":8080"
+)
+
+const (
+	PiHost            = "pilogin.hpc.sjtu.edu.cn"
+	HPCJobDirPrefix   = "job-"
+	HPCHomeDir        = "/lustre/home/acct-stu/stu096/"
+	OutputFileSuffix  = ".out"
+	ErrorFileSuffix   = ".err"
+	SlurmFileSuffix   = ".slurm"
+	CuFileSuffix      = ".cu"
+	MailAddressSuffix = "@sjtu.edu.cn"
 )
 
 func Version() string {
@@ -24,4 +45,10 @@ func ApiServerHost() string {
 }
 func ApiServerPort() string {
 	return apiServerPort
+}
+func SetApiServerHost(host string) {
+	apiServerHost = host
+}
+func SetApiServerPort(port string) {
+	apiServerPort = port
 }
