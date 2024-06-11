@@ -102,7 +102,7 @@ func (c *JobClient) SubmitCudaJob(jobUID uuid.UUID, cudaFilePath string, slurmFi
 		return "-1", err
 	}
 
-	cmd := fmt.Sprintf("module load gcc/8.3.0 cuda/10.1.243-gcc-8.3.0 && nvcc %s -o %s -lcublas && cd %s && sbatch %s", cudaFileDstPath, objectFileDstPath, dirName, slurmFileDstPath)
+	cmd := fmt.Sprintf("module load gcc/11.2.0 gromacs/2022.5-gcc-11.2.0-cuda && nvcc %s -o %s -lcublas && cd %s && sbatch %s", cudaFileDstPath, objectFileDstPath, dirName, slurmFileDstPath)
 	res, err = c.executeCommand(cmd)
 	if err != nil {
 		log.Printf("[jobClient] SubmitCudaJob executeCommandsAndGetLastOutput err: %v\n", err)
