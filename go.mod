@@ -73,7 +73,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/pkg/sftp v1.13.6 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/vishvananda/netlink v1.1.0 // indirect
@@ -87,6 +86,7 @@ require (
 	github.com/dustinkirkland/golang-petname v0.0.0-20240428194347-eebcea082ee0
 	github.com/moby/ipvs v1.1.0
 	github.com/moby/sys/mountinfo v0.6.2
+	github.com/pkg/sftp v1.13.6
 	gopkg.in/yaml.v3 v3.0.1
 )
 

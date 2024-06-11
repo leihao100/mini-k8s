@@ -12,9 +12,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/google/uuid"
-	"github.com/moby/sys/mountinfo"
 	"io"
 	"log"
 	"os"
@@ -23,6 +20,10 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/docker/docker/api/types"
+	"github.com/google/uuid"
+	"github.com/moby/sys/mountinfo"
 )
 
 const pauseName = "mirrorgooglecontainers/pause:latest"
