@@ -26,9 +26,10 @@ type JobSpec struct {
 }
 
 type JobArgs struct {
-	NumTasksperNode int `json:"numTasksperNode,omitempty"`
-	CpusPerTask     int `json:"cpusPerTask,omitempty"`
-	GpuResources    int `json:"gpuResources,omitempty"`
+	Mail            *MailRemind `json:"mail,omitempty"`
+	NumTasksperNode int         `json:"numTasksperNode,omitempty"`
+	CpusPerTask     int         `json:"cpusPerTask,omitempty"`
+	GpuResources    int         `json:"gpuResources,omitempty"`
 }
 
 type MailRemind struct {
