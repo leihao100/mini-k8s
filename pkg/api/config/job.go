@@ -26,10 +26,9 @@ type JobSpec struct {
 }
 
 type JobArgs struct {
-	NumTasksperNode int         `json:"numTasksperNode,omitempty"`
-	CpusPerTask     int         `json:"cpusPerTask,omitempty"`
-	GpuResources    int         `json:"gpuResources,omitempty"`
-	Mail            *MailRemind `json:"mail,omitempty"`
+	NumTasksperNode int `json:"numTasksperNode,omitempty"`
+	CpusPerTask     int `json:"cpusPerTask,omitempty"`
+	GpuResources    int `json:"gpuResources,omitempty"`
 }
 
 type MailRemind struct {
@@ -54,8 +53,12 @@ type JobList struct {
 }
 
 func (j *Job) Info() {
-	fmt.Printf("%-10s\t%-40s\t%-20s\n", "NAME", "UID", "STATUS")
-	fmt.Printf("%-10s\t%-40s\t%-20d\n", j.Metadata.Name, j.Metadata.Uid, j.Status.Ready)
+	state := j.Status.State
+	if state != "COMPLETED" {
+		state = "RUNNING"
+	}
+	fmt.Printf("%-10s\t%-40s\t%-20s\n", "NAME", "UID", "STATE")
+	fmt.Printf("%-10s\t%-40s\t%-20s\n", j.Metadata.Name, j.Metadata.Uid, state)
 }
 
 func (j *Job) SetUID(uid uuid.UUID) {
@@ -138,8 +141,12 @@ func (j *JobList) GetItems() []ApiObject {
 	return items
 }
 func (j *JobList) Info() {
-	fmt.Printf("%-10s\t%-40s\t%-20s\n", "NAME", "UID", "STATUS")
+	fmt.Printf("%-10s\t%-40s\t%-20s\n", "NAME", "UID", "STATE")
 	for _, item := range j.Items {
-		fmt.Printf("%-10s\t%-40s\t%-20d\n", item.Metadata.Name, item.Metadata.Uid, item.Status.Ready)
+		state := item.Status.State
+		if state != "COMPLETED" {
+			state = "RUNNING"
+		}
+		fmt.Printf("%-10s\t%-40s\t%-20s\n", item.Metadata.Name, item.Metadata.Uid, state)
 	}
 }

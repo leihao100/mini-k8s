@@ -533,8 +533,7 @@ func GenerateJobScript(job *apiConfig.Job) string {
 ulimit -s unlimited
 ulimit -l unlimited
 
-module load gcc/8.3.0 cuda/10.1.243-gcc-8.3.0
-
+module load gcc/11.2.0 gromacs/2022.5-gcc-11.2.0-cuda
 ./%s
 `
 	numTasksPerNode := 0
