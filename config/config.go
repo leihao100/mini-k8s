@@ -20,6 +20,17 @@ var (
 	apiServerPort string = ":8080"
 )
 
+const (
+	PiHost            = "pilogin.hpc.sjtu.edu.cn"
+	HPCJobDirPrefix   = "job-"
+	HPCHomeDir        = "/lustre/home/acct-stu/stu1653/"
+	OutputFileSuffix  = ".out"
+	ErrorFileSuffix   = ".err"
+	SlurmFileSuffix   = ".slurm"
+	CuFileSuffix      = ".cu"
+	MailAddressSuffix = "@sjtu.edu.cn"
+)
+
 func Version() string {
 	return version
 }

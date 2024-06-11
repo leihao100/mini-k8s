@@ -20,3 +20,13 @@ const (
 
 type Time = time.Time
 type Quantity string
+
+type JobState string
+
+const (
+	JobPending   JobState = "PENDING"
+	JobRunning   JobState = "RUNNING"
+	JobFailed    JobState = "FAILED"
+	JobCompleted JobState = "COMPLETED"
+	JobMissing   JobState = "MISSING"
+)

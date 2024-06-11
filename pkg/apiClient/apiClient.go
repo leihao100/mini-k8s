@@ -182,7 +182,6 @@ func (c *Client) Get(resourceURL string, context []byte) io.ReadCloser {
 	if err != nil {
 		panic(err)
 	}
-
 	return response.Body
 }
 
