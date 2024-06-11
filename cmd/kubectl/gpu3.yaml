@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Job
+metadata:
+  name: sum
+  namespace: default
+spec:
+  cudaFilePath: /root/MiniK8S/cuda/sum/sum.cu
+  resultFileName: result
+  resultFilePath: /root/MiniK8S/cuda/sum
+  args:
+    cpusPerTask: 1
+

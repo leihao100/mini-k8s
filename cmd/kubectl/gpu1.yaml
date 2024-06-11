@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Job
+metadata:
+  name: multiply2
+  namespace: default
+spec:
+  cudaFilePath: /root/MiniK8S/cuda/demo/cublashello.cu
+  resultFileName: result
+  resultFilePath: /root/MiniK8S/cuda
+  args:
+    cpusPerTask: 1
+
