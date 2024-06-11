@@ -49,39 +49,39 @@ func NewControllerManager() *ControllerManager {
 	servicecli, serviceinf := cache.NewDefaultInformerAndCli(types.ServiceObjectType)
 	hpacli, hpainf := cache.NewDefaultInformerAndCli(types.HorizontalPodAutoscalerObjectType)
 	dnscli, dnsinf := cache.NewDefaultInformerAndCli(types.DnsObjectType)
-	// pvcli, pvinf := cache.NewDefaultInformerAndCli(types.PersistentVolumeObjectType)
-	// pvccli, pvcinf := cache.NewDefaultInformerAndCli(types.PersistentVolumeClaimObjectType)
-	// sccli, scinf := cache.NewDefaultInformerAndCli(types.StorageClassObjectType)
+	pvcli, pvinf := cache.NewDefaultInformerAndCli(types.PersistentVolumeObjectType)
+	pvccli, pvcinf := cache.NewDefaultInformerAndCli(types.PersistentVolumeClaimObjectType)
+	sccli, scinf := cache.NewDefaultInformerAndCli(types.StorageClassObjectType)
 
 	dpController := deployment.NewController(podinf, deploymentinf, podcli, dnscli)
 	hpaController := hpa.NewController(podinf, hpainf, deploymentinf, podcli, hpacli, deploymentcli, nodecli)
-	// storageController := storage.NewController(scinf, pvinf, pvcinf, sccli, pvcli, pvccli)
-	// prController := prometheus.NewPrometheusController(podcli, nodecli, podinf, nodeinf)
+	storageController := storage.NewController(scinf, pvinf, pvcinf, sccli, pvcli, pvccli)
+	prController := prometheus.NewPrometheusController(podcli, nodecli, podinf, nodeinf)
 	return &ControllerManager{
-		podClient:        podcli,
-		nodeClient:       nodecli,
-		deploymentClient: deploymentcli,
-		serviceClient:    servicecli,
-		hpaClient:        hpacli,
-		dnsClient:        dnscli,
-		// storageClassClient:          sccli,
-		// persistentVolumeClient:      pvcli,
-		// persistentVolumeClaimClient: pvccli,
+		podClient:                   podcli,
+		nodeClient:                  nodecli,
+		deploymentClient:            deploymentcli,
+		serviceClient:               servicecli,
+		hpaClient:                   hpacli,
+		dnsClient:                   dnscli,
+		storageClassClient:          sccli,
+		persistentVolumeClient:      pvcli,
+		persistentVolumeClaimClient: pvccli,
 
-		podInformer:        podinf,
-		nodeInformer:       nodeinf,
-		deploymentInformer: deploymentinf,
-		serviceInformer:    serviceinf,
-		hpaInformer:        hpainf,
-		dnsInformer:        dnsinf,
-		// storageClassInformer:          scinf,
-		// persistentVolumeInformer:      pvinf,
-		// persistentVolumeClaimInformer: pvcinf,
+		podInformer:                   podinf,
+		nodeInformer:                  nodeinf,
+		deploymentInformer:            deploymentinf,
+		serviceInformer:               serviceinf,
+		hpaInformer:                   hpainf,
+		dnsInformer:                   dnsinf,
+		storageClassInformer:          scinf,
+		persistentVolumeInformer:      pvinf,
+		persistentVolumeClaimInformer: pvcinf,
 
 		deploymentController: dpController,
 		hpaController:        hpaController,
-		// storageController:    storageController,
-		// proController:        prController,
+		storageController:    storageController,
+		proController:        prController,
 	}
 }
 
@@ -94,11 +94,11 @@ func (cm *ControllerManager) Run(ctx context.Context, cancel context.CancelFunc)
 	cm.serviceInformer.Run(stopCh)
 	cm.hpaInformer.Run(stopCh)
 	cm.dnsInformer.Run(stopCh)
-	// cm.persistentVolumeInformer.Run(stopCh)
-	// cm.persistentVolumeClaimInformer.Run(stopCh)
-	// cm.storageClassInformer.Run(stopCh)
+	cm.persistentVolumeInformer.Run(stopCh)
+	cm.persistentVolumeClaimInformer.Run(stopCh)
+	cm.storageClassInformer.Run(stopCh)
 
 	cm.deploymentController.Run(ctx, cancel)
 	cm.hpaController.Run(ctx, cancel)
-	// cm.storageController.Run(ctx, cancel)
+	cm.storageController.Run(ctx, cancel)
 }
