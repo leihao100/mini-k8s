@@ -265,6 +265,7 @@ func (c *Client) GetAll() (objectList core.ApiObjectList, err error) {
 	if len(content) == 0 {
 		return objectList, nil
 	}
+	log.Printf("%v", string(content))
 	err = objectList.JsonUnmarshal(content)
 	if err != nil {
 		log.Printf("[RESTClient] http.Get response json.Unmarshal failed, err %v\n", err)

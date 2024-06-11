@@ -9,8 +9,6 @@ import (
 	"MiniK8S/pkg/apiClient"
 	"MiniK8S/pkg/controller/cache"
 	"context"
-	petname "github.com/dustinkirkland/golang-petname"
-	"github.com/moby/sys/mountinfo"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +16,9 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+
+	petname "github.com/dustinkirkland/golang-petname"
+	"github.com/moby/sys/mountinfo"
 )
 
 type StorageController struct {
