@@ -60,6 +60,8 @@ func NewRESTClient(ty types.ApiObjectType) *Client {
 		field = "persistentVolumeClaims"
 	case types.StorageClassObjectType:
 		field = "storageClasses"
+	case types.JobObjectType:
+		field = "jobs"
 	}
 	newURL.Init("v1", string(field))
 	apiserverURL := config.ApiServerHost() + config.ApiServerPort()
