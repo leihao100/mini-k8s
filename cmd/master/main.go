@@ -3,6 +3,7 @@ package main
 import (
 	apiserver "MiniK8S/pkg/apiServer"
 	"MiniK8S/pkg/controller"
+	gpu "MiniK8S/pkg/gpu/server"
 	"MiniK8S/pkg/node"
 	"MiniK8S/pkg/node/heartbeat"
 	"MiniK8S/pkg/scheduler"
@@ -29,6 +30,7 @@ func main() {
 	newScheduler.Run(ctx, cancel)
 	controllerManager := controller.NewControllerManager()
 	controllerManager.Run(ctx, cancel)
-
+	gpuServer := gpu.NewServer()
+	gpuServer.Run(ctx, cancel)
 	<-ctx.Done()
 }

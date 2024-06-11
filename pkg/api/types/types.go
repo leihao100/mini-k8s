@@ -28,3 +28,14 @@ const (
 	PhasePending = "Pending"
 	PhaseRunning = "Running"
 )
+
+type JobState string
+
+const (
+	JobPending   JobState = "PENDING"
+	JobRunning   JobState = "RUNNING"
+	JobFailed    JobState = "FAILED"
+	JobCompleted JobState = "COMPLETED"
+	JobMissing   JobState = "MISSING"
+)
+
